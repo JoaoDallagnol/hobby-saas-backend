@@ -1,0 +1,10 @@
+CREATE TABLE users (
+    id UUID PRIMARY KEY,
+    email VARCHAR(320) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    email_verified BOOLEAN NOT NULL,
+    bio TEXT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_users_email ON users (email);
