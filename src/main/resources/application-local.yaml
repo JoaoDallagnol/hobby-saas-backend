@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/hobby_saas}
+    username: ${DB_USERNAME:backend}
+    password: ${DB_PASSWORD:backend}
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/hobby-saas}
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  integrations:
+    r2:
+      endpoint: ${R2_ENDPOINT:}
+      bucket: ${R2_BUCKET:}
+      access-key: ${R2_ACCESS_KEY:}
+      secret-key: ${R2_SECRET_KEY:}
+    google:
+      places-api-key: ${GOOGLE_PLACES_API_KEY:}
+    sentry:
+      dsn: ${SENTRY_DSN:}
+    brevo:
+      smtp-username: ${BREVO_SMTP_USERNAME:}
+      smtp-password: ${BREVO_SMTP_PASSWORD:}
