@@ -53,6 +53,11 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Keycloak (auth), Cloudflare
 - Sessão usa `notes` como campo único de notas/reflexão; não recriar diário separado no MVP.
 - Se `equipmentIds` estiverem ativos em algum fluxo, eles sempre referenciam biblioteca do usuário; nunca texto livre dentro da sessão.
 - Modelos marcados como "conceitual" ou pertencentes a fases futuras na documentação não devem ser implementados sem revisão específica.
+- Perfis de ambiente e configuração sensível devem nascer separados desde cedo (`local` e `prod` no mínimo), com valores vindos de env vars/secrets e nunca hardcoded no código.
+- Nenhum secret, token, senha, private key, webhook secret ou credencial de provedor pode ir para o repositório, examples commitados ou documentação com valor real.
+- Toda integração externa deve ser implementada assumindo revisão de segurança: validação de input, autorização por recurso, menor privilégio, rotação de secret possível, logs sem vazamento e falha segura.
+- Ao expor endpoint novo, considerar documentação OpenAPI, autenticação/autorização, validação de payload, tratamento de erro e risco de vazamento de dados.
+- Implementação deve evitar padrões que um pentest básico apontaria: segredo hardcoded, endpoint sem auth esperada, IDOR/BOLA, confiança em dado do client, log de credencial, CORS aberto sem motivo, stacktrace/sensitive data exposta e ausência de validação de input.
 
 ## Comandos
 - Build: `mvn clean install`

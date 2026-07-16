@@ -31,6 +31,10 @@
   - [ ] Configurar perfis de ambiente (`local`, `test`, `prod` ou equivalente).
   - [ ] Configurar leitura de variáveis de ambiente para secrets e integrações.
   - [ ] Adicionar dependências base: Web, Validation, Security Resource Server, JPA, Flyway, Postgres, Actuator, testes.
+- [ ] Definir contrato inicial da API.
+  - [ ] Escolher abordagem de OpenAPI/Swagger para documentação e navegação dos endpoints.
+  - [ ] Manter contrato alinhado com comportamento real da API conforme as features forem entrando.
+  - [ ] Não documentar endpoint inexistente nem deixar endpoint existente sem revisão do contrato quando houver mudança relevante.
 - [ ] Subir ambiente local via Docker Compose.
   - [ ] Postgres disponível para a aplicação.
   - [ ] Keycloak disponível para autenticação local.
@@ -194,6 +198,15 @@
 ## 11. Segurança e operação mínima
 
 - [ ] Garantir que segredos fiquem fora do código.
+- [ ] Definir estratégia de gestão de secrets por ambiente.
+  - [ ] `local`: usar `.env`, variáveis locais ou mecanismo equivalente fora do versionamento.
+  - [ ] `prod`: usar secrets/env vars do servidor sem valor sensível commitado.
+  - [ ] Manter exemplos seguros versionados sem credenciais reais.
+- [ ] Garantir perfis/configuração por ambiente.
+  - [ ] `application.yaml` base sem secret real.
+  - [ ] `application-local.yaml` para desenvolvimento local.
+  - [ ] `application-prod.yaml` para comportamento de produção.
+  - [ ] Definir claramente quais variáveis são obrigatórias em cada ambiente.
 - [ ] Preparar HTTPS/proxy e variáveis esperadas para produção.
 - [ ] Definir estratégia de rate limiting.
   - [ ] Camada de edge/proxy.
@@ -203,6 +216,12 @@
   - [ ] Estratégia de retenção definida.
 - [ ] Documentar restauração mínima do backup.
 - [ ] Configurar SMTP do Keycloak com Brevo no plano de deploy.
+- [ ] Criar baseline de revisão de segurança para mudanças novas.
+  - [ ] Verificar autenticação e autorização por recurso em cada endpoint novo.
+  - [ ] Verificar validação de input e tratamento seguro de erro.
+  - [ ] Verificar ausência de segredo hardcoded ou log sensível.
+  - [ ] Verificar exposição indevida de dados, IDOR/BOLA e confiança excessiva em payload do client.
+  - [ ] Verificar CORS, headers e comportamento de produção conforme necessidade real.
 
 ## 12. Testes
 
