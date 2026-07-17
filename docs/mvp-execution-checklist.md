@@ -10,10 +10,11 @@
 > - Nenhuma mudança de produto, roadmap, schema, contrato ou implementação pode terminar deixando `AGENTS.md` ou arquivos de `docs/` desatualizados entre si.
 > - Se surgir inconsistência entre documentos, reportar antes de editar; depois da decisão, atualizar todos os arquivos impactados no mesmo trabalho.
 > - Antes de fechar qualquer mudança, fazer análise de impacto: verificar dependências em funcionalidades relacionadas, banco, APIs, validações, roadmap, checklist e documentação.
+> - Ordem de execução permitida: construir primeiro domínio, persistência, contratos e regras centrais da API; integrações externas reais podem ser fechadas depois, desde que o checklist técnico e a arquitetura final continuem respeitados.
 
 ## Definição de pronto do MVP
 
-- [ ] Usuário consegue autenticar via Firebase Authentication e ser provisionado no banco na primeira request autenticada.
+- [ ] Usuário consegue autenticar via Firebase Authentication real e ser provisionado no banco na primeira request autenticada.
 - [ ] Usuário consegue manter perfil básico e hobbies praticados.
 - [ ] Usuário consegue criar, listar e consultar sessões com atributos fixos e dinâmicos por hobby.
 - [ ] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
@@ -26,22 +27,22 @@
 
 ## 1. Base do projeto
 
-- [ ] Inicializar backend Spring Boot 4.1.x com Java 25 e Maven.
-  - [ ] Estruturar módulos/pacotes base do projeto.
-  - [ ] Configurar perfis de ambiente (`local`, `test`, `prod` ou equivalente).
-  - [ ] Configurar leitura de variáveis de ambiente para secrets e integrações.
-  - [ ] Adicionar dependências base: Web, Validation, Security, JPA, Flyway, Postgres, Actuator, testes.
+- [x] Inicializar backend Spring Boot 4.1.x com Java 25 e Maven.
+  - [x] Estruturar módulos/pacotes base do projeto.
+  - [x] Configurar perfis de ambiente (`local`, `test`, `prod` ou equivalente).
+  - [x] Configurar leitura de variáveis de ambiente para secrets e integrações.
+  - [x] Adicionar dependências base: Web, Validation, Security, JPA, Flyway, Postgres, Actuator, testes.
 - [ ] Definir contrato inicial da API.
   - [ ] Escolher abordagem de OpenAPI/Swagger para documentação e navegação dos endpoints.
   - [ ] Manter contrato alinhado com comportamento real da API conforme as features forem entrando.
   - [ ] Não documentar endpoint inexistente nem deixar endpoint existente sem revisão do contrato quando houver mudança relevante.
-- [ ] Subir ambiente local via Docker Compose.
-  - [ ] Postgres disponível para a aplicação.
-  - [ ] App sobe apontando para os serviços locais.
+- [x] Subir ambiente local via Docker Compose.
+  - [x] Postgres disponível para a aplicação.
+  - [x] App sobe apontando para os serviços locais.
   - [ ] Estratégia de auth local definida sem depender de provedor self-hosted (ex: projeto Firebase de dev e/ou fluxo de token de teste controlado).
-- [ ] Configurar observabilidade mínima.
-  - [ ] Actuator habilitado com endpoints úteis.
-  - [ ] Integração com Sentry preparada ou documentada com placeholders de config.
+- [x] Configurar observabilidade mínima.
+  - [x] Actuator habilitado com endpoints úteis.
+  - [x] Integração com Sentry preparada ou documentada com placeholders de config.
 
 ## 2. Persistência e migrações
 
@@ -81,13 +82,15 @@
 
 ## 4. Autenticação e provisionamento de usuário
 
+> Observação: este bloco não precisa bloquear a implementação inicial das regras de negócio do backend, desde que a integração real com Firebase seja concluída antes de considerar o MVP fechado end-to-end.
+
 - [ ] Configurar autenticação backend com Firebase Authentication.
-  - [ ] Validar ID token/JWT emitido pelo Firebase conforme ambiente.
-  - [ ] Mapear identidade autenticada sem criar modelo próprio de senha.
+  - [ ] Validar ID token/JWT emitido pelo Firebase conforme ambiente real (`dev`/`prod`).
+  - [x] Mapear identidade autenticada sem criar modelo próprio de senha.
 - [ ] Implementar provisionamento just-in-time de `users`.
-  - [ ] Criar usuário na primeira request autenticada se não existir.
-  - [ ] Sincronizar `sub`, `email`, `name` e `email_verified` a partir do token.
-  - [ ] Nunca gerar `users.id` no banco; usar o `sub`/`uid` do token validado como string.
+  - [x] Criar usuário na primeira request autenticada se não existir.
+  - [x] Sincronizar `sub`, `email`, `name` e `email_verified` a partir do token.
+  - [x] Nunca gerar `users.id` no banco; usar o `sub`/`uid` do token validado como string.
 - [ ] Garantir autorização por recurso.
   - [ ] Usuário só acessa/edita os próprios dados.
   - [ ] Regras não dependem de payload do client para validar posse/permissão.

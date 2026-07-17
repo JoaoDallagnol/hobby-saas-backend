@@ -39,10 +39,12 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - Toda mudança de funcionalidade, schema, contrato, fluxo ou priorização precisa passar por análise de impacto antes de fechar o trabalho: verificar se algo dependia disso em outra parte do produto, da implementação, do roadmap ou da documentação.
 - Se uma funcionalidade for removida, promovida, rebaixada ou alterada, revisar explicitamente vínculos com APIs, banco, validações, checklist, roadmap e features que dependem dela.
 - Se aparecer inconsistência entre documentos, reportar antes de editar e só consolidar a mudança depois da decisão explícita.
+- Em estágio inicial, é aceitável implementar primeiro domínio, persistência, contratos e regras centrais da API antes de fechar integrações externas reais (auth, storage, Places, e-mail), desde que o desenho final dessas integrações permaneça preservado na arquitetura e na documentação.
 
 ## Regras não óbvias (ler sempre)
 - `users.id` = `sub`/`uid` do Firebase Authentication, armazenado como string. Nunca gerar id próprio, nunca criar coluna de senha em `users`.
 - Provisionamento de `users` é just-in-time na primeira request autenticada; dados-base vêm do token validado do Firebase.
+- Durante desenvolvimento inicial, fluxos de negócio podem ser implementados e testados com autenticação controlada de ambiente local/teste antes da integração real com Firebase estar fechada. Isso não autoriza enfraquecer contrato de segurança nem remover a integração real do escopo do MVP.
 - Atributo dinâmico por hobby sempre vai em `sessions.attributes` (JSONB), validado contra `hobby_attribute_template`. Nunca criar coluna nova pra atributo específico de hobby.
 - `equipment.category` e `equipment.name` são colunas independentes do mesmo registro — não é chave/valor.
 - Nunca confiar em campo de plano/permissão vindo do client (ex: `isPremium`) — checar sempre contra o banco.
