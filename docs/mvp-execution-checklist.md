@@ -46,23 +46,23 @@
 
 ## 2. Persistência e migrações
 
-- [ ] Criar baseline Flyway do schema MVP real.
-  - [ ] `users`
-  - [ ] `hobby_categories`
-  - [ ] `hobbies`
-  - [ ] `user_hobbies`
-  - [ ] `hobby_attribute_template`
-  - [ ] `sessions`
-  - [ ] `session_photos`
-  - [ ] `places`
-  - [ ] `equipment`
-  - [ ] `session_equipment`
-  - [ ] `backlog_items`
-  - [ ] `hobby_suggestions`
-- [ ] Garantir constraints e índices básicos.
-  - [ ] PKs e FKs alinhadas ao dicionário de dados.
-  - [ ] Unicidade/composição necessária em `user_hobbies` e tabelas de junção.
-  - [ ] Índices em chaves de busca frequente (`user_id`, `hobby_id`, `started_at`, `place_id`).
+- [x] Criar baseline Flyway do schema MVP real.
+  - [x] `users`
+  - [x] `hobby_categories`
+  - [x] `hobbies`
+  - [x] `user_hobbies`
+  - [x] `hobby_attribute_template`
+  - [x] `sessions`
+  - [x] `session_photos`
+  - [x] `places`
+  - [x] `equipment`
+  - [x] `session_equipment`
+  - [x] `backlog_items`
+  - [x] `hobby_suggestions`
+- [x] Garantir constraints e índices básicos.
+  - [x] PKs e FKs alinhadas ao dicionário de dados.
+  - [x] Unicidade/composição necessária em `user_hobbies` e tabelas de junção.
+  - [x] Índices em chaves de busca frequente (`user_id`, `hobby_id`, `started_at`, `place_id`).
 - [ ] Fechar estratégia de mapeamento de `sessions.attributes` (JSONB).
   - [ ] Validar se Hibernate resolve nativamente no stack atual.
   - [ ] Introduzir lib auxiliar só se houver necessidade real.
