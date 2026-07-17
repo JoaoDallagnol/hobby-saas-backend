@@ -15,7 +15,7 @@
 ## Autenticação
 - `spring-boot-starter-security`
 - `firebase-admin` — valida ID token/JWT do Firebase Authentication no backend e também cobre envio via FCM. Backend nunca processa senha.
-- ⚠️ Confirmar na implementação se a validação dos tokens ficará 100% via Firebase Admin SDK ou se parte do fluxo usará integração complementar com Spring Security Resource Server/JWK.
+- Validação de token no backend via Firebase Admin SDK.
 
 ## Segurança / Rate limiting
 - `bucket4j`

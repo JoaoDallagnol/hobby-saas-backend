@@ -1,10 +1,6 @@
 package io.github.joaodallagnol.backend.auth;
 
-import java.util.UUID;
-
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -12,30 +8,25 @@ import org.springframework.util.StringUtils;
 public class AuthenticatedUserExtractor {
 
     public AuthenticatedUser extract(Authentication authentication) {
-        if (!(authentication instanceof JwtAuthenticationToken jwtAuthenticationToken)) {
-            throw new IllegalArgumentException("Authenticated principal is not backed by a JWT token.");
+        if (authentication == null || !(authentication.getPrincipal() instanceof FirebaseAuthenticatedPrincipal principal)) {
+            throw new IllegalArgumentException("Authenticated principal is not backed by a Firebase token.");
         }
-
-        return extract(jwtAuthenticationToken.getToken());
-    }
-
-    public AuthenticatedUser extract(Jwt jwt) {
-        String subject = jwt.getSubject();
-        String email = jwt.getClaimAsString("email");
-        String name = firstNonBlank(jwt.getClaimAsString("name"), jwt.getClaimAsString("preferred_username"));
-        boolean emailVerified = Boolean.TRUE.equals(jwt.getClaim("email_verified"));
+        String subject = principal.id();
+        String email = principal.email();
+        String name = firstNonBlank(principal.name(), fallbackNameFromEmail(email));
+        boolean emailVerified = principal.emailVerified();
 
         if (!StringUtils.hasText(subject)) {
-            throw new IllegalArgumentException("JWT subject is missing.");
+            throw new IllegalArgumentException("Firebase subject/uid is missing.");
         }
         if (!StringUtils.hasText(email)) {
-            throw new IllegalArgumentException("JWT email claim is missing.");
+            throw new IllegalArgumentException("Firebase email claim is missing.");
         }
         if (!StringUtils.hasText(name)) {
-            throw new IllegalArgumentException("JWT name claim is missing.");
+            throw new IllegalArgumentException("Firebase name/display name is missing.");
         }
 
-        return new AuthenticatedUser(UUID.fromString(subject), email, name, emailVerified);
+        return new AuthenticatedUser(subject, email, name, emailVerified);
     }
 
     private String firstNonBlank(String... values) {
@@ -45,5 +36,12 @@ public class AuthenticatedUserExtractor {
             }
         }
         return null;
+    }
+
+    private String fallbackNameFromEmail(String email) {
+        if (!StringUtils.hasText(email) || !email.contains("@")) {
+            return null;
+        }
+        return email.substring(0, email.indexOf('@'));
     }
 }

@@ -5,14 +5,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "users")
 public class ProductUser {
 
     @Id
-    private UUID id;
+    @Column(nullable = false, length = 128)
+    private String id;
 
     @Column(nullable = false, length = 320)
     private String email;
@@ -32,7 +32,7 @@ public class ProductUser {
     protected ProductUser() {
     }
 
-    public ProductUser(UUID id, String email, String name, boolean emailVerified, String bio, OffsetDateTime createdAt) {
+    public ProductUser(String id, String email, String name, boolean emailVerified, String bio, OffsetDateTime createdAt) {
         this.id = id;
         this.email = email;
         this.name = name;
@@ -41,7 +41,7 @@ public class ProductUser {
         this.createdAt = createdAt;
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 

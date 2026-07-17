@@ -29,7 +29,7 @@ erDiagram
     HOBBY_SUGGESTIONS }o--o| HOBBIES : "approved into"
 
     USERS {
-        uuid id PK "= sub/uid do token do Firebase Auth, nao gerado pelo banco"
+        string id PK "= sub/uid do token do Firebase Auth, nao gerado pelo banco"
         string email "sincronizado do Firebase Auth"
         string name "sincronizado do Firebase Auth"
         boolean email_verified "sincronizado do Firebase Auth"
@@ -51,7 +51,7 @@ erDiagram
     }
 
     USER_HOBBIES {
-        uuid user_id FK
+        string user_id FK
         uuid hobby_id FK
         string experience_level
     }
@@ -68,7 +68,7 @@ erDiagram
 
     SESSIONS {
         uuid id PK
-        uuid user_id FK
+        string user_id FK
         uuid hobby_id FK
         string title
         timestamp started_at
@@ -96,7 +96,7 @@ erDiagram
 
     EQUIPMENT {
         uuid id PK
-        uuid user_id FK
+        string user_id FK
         uuid hobby_id FK
         string category
         string name
@@ -104,7 +104,7 @@ erDiagram
 
     BACKLOG_ITEMS {
         uuid id PK
-        uuid user_id FK
+        string user_id FK
         uuid hobby_id FK
         string title
         string status
@@ -113,7 +113,7 @@ erDiagram
 
     HOBBY_SUGGESTIONS {
         uuid id PK
-        uuid user_id FK
+        string user_id FK
         string suggested_name
         string status
         uuid resulting_hobby_id FK
@@ -166,45 +166,45 @@ erDiagram
 
     SESSION_PARTICIPANTS {
         uuid session_id FK
-        uuid user_id FK
+        string user_id FK
     }
 
     USER_FOLLOWS {
-        uuid follower_id FK
-        uuid followed_id FK
+        string follower_id FK
+        string followed_id FK
     }
 
     LOCAL_RECOMMENDATIONS {
         uuid id PK
-        uuid user_id FK
+        string user_id FK
         string place_id FK
         uuid hobby_id FK
         string type
     }
 
     USER_LOCATION {
-        uuid user_id FK
+        string user_id FK
         decimal lat
         decimal lng
         string geohash_bucket
     }
 
     HOBBY_XP {
-        uuid user_id FK
+        string user_id FK
         uuid hobby_id FK
         int xp
         string level_label
     }
 
     SUBSCRIPTIONS {
-        uuid user_id FK
+        string user_id FK
         string plan
         boolean active
     }
 
     GOALS {
         uuid id PK
-        uuid user_id FK
+        string user_id FK
         uuid hobby_id FK
         string description
     }
@@ -216,11 +216,11 @@ erDiagram
 
     FAMILY_GROUP_MEMBERS {
         uuid family_group_id FK
-        uuid user_id FK
+        string user_id FK
     }
 
     USER_BADGES {
-        uuid user_id FK
+        string user_id FK
         string badge_key
     }
 
@@ -239,11 +239,11 @@ erDiagram
 ### MVP
 
 #### `users`
-*Definida em conjunto com a decisão de autenticação (Firebase Authentication). Não existe coluna de senha — credencial nunca é vista/armazenada pela aplicação, fica isolada dentro do provedor de auth.*
+*Definida em conjunto com a decisão de autenticação (Firebase Authentication). Não existe coluna de senha — credencial nunca é vista/armazenada pela aplicação, fica isolada dentro do provedor de auth. Como o Firebase usa `uid` string por padrão, `users.id` e suas FKs relacionadas a usuário também são string.*
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
-| id | uuid | não | — | PK. **É o próprio `sub`/`uid` do token do Firebase Authentication**, não gerado pelo banco — evita coluna de mapeamento separada e mantém as FKs do resto do schema consistentes |
+| id | string | não | — | PK. **É o próprio `sub`/`uid` do token do Firebase Authentication**, não gerado pelo banco — evita coluna de mapeamento separada e mantém as FKs do resto do schema consistentes |
 | email | string | não | — | sincronizado do Firebase Authentication no momento do provisionamento just-in-time |
 | name | string | não | — | sincronizado do Firebase Authentication |
 | email_verified | boolean | não | — | sincronizado do Firebase Authentication; útil pra restringir alguma ação a e-mail confirmado |
@@ -274,7 +274,7 @@ Lista de hobbies do perfil + nível de experiência.
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
-| user_id | uuid | não | `users.id` | PK composta com hobby_id |
+| user_id | string | não | `users.id` | PK composta com hobby_id |
 | hobby_id | uuid | não | `hobbies.id` | |
 | experience_level | string | sim | — | |
 
@@ -296,7 +296,7 @@ Define quais atributos dinâmicos existem por hobby (Alternativa C).
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
 | id | uuid | não | — | PK |
-| user_id | uuid | não | `users.id` | |
+| user_id | string | não | `users.id` | |
 | hobby_id | uuid | não | `hobbies.id` | |
 | title | string | não | — | front sugere default |
 | started_at | timestamp | não | — | |
@@ -332,7 +332,7 @@ Biblioteca de equipamentos do usuário. **Categoria e nome são duas colunas ind
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
 | id | uuid | não | — | PK |
-| user_id | uuid | não | `users.id` | |
+| user_id | string | não | `users.id` | |
 | hobby_id | uuid | sim | `hobbies.id` | vínculo opcional |
 | category | string | não | — | select fixo/curado (lista ainda não enumerada) |
 | name | string | não | — | texto livre, com autocomplete pelo histórico do próprio usuário |
@@ -351,7 +351,7 @@ Fila de projetos (Kanban) — mesma entidade referenciada por `sessions.project_
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
 | id | uuid | não | — | PK |
-| user_id | uuid | não | `users.id` | |
+| user_id | string | não | `users.id` | |
 | hobby_id | uuid | sim | `hobbies.id` | |
 | title | string | não | — | |
 | status | string | não | — | ex: `pending`, `in_progress`, `done` |
@@ -363,7 +363,7 @@ Fila de moderação pra crescimento da taxonomia.
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
 | id | uuid | não | — | PK |
-| user_id | uuid | não | `users.id` | |
+| user_id | string | não | `users.id` | |
 | suggested_name | string | não | — | texto livre |
 | status | string | não | — | `pending`, `approved`, `rejected` |
 | resulting_hobby_id | uuid | sim | `hobbies.id` | preenchido se aprovado |
@@ -378,7 +378,7 @@ Suporte a sessões colaborativas/em grupo.
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
 | session_id | uuid | não | `sessions.id` | PK composta |
-| user_id | uuid | não | `users.id` | participante convidado |
+| user_id | string | não | `users.id` | participante convidado |
 
 ---
 
@@ -389,8 +389,8 @@ Base do feed social.
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
-| follower_id | uuid | não | `users.id` | |
-| followed_id | uuid | não | `users.id` | |
+| follower_id | string | não | `users.id` | |
+| followed_id | string | não | `users.id` | |
 
 #### `local_recommendations`
 "Onde pratico" / "o que indico".
@@ -398,7 +398,7 @@ Base do feed social.
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
 | id | uuid | não | — | PK |
-| user_id | uuid | não | `users.id` | |
+| user_id | string | não | `users.id` | |
 | place_id | string | não | `places.place_id` | |
 | hobby_id | uuid | sim | `hobbies.id` | |
 | type | string | não | — | ex: `pratico`, `indico` |
@@ -408,7 +408,7 @@ Localização atual aproximada, base pra "hobby buddy" e heatmap.
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
-| user_id | uuid | não | `users.id` | PK |
+| user_id | string | não | `users.id` | PK |
 | lat | decimal | sim | — | |
 | lng | decimal | sim | — | |
 | geohash_bucket | string | sim | — | precisão baixa, pra agregação anônima |
@@ -421,7 +421,7 @@ Localização atual aproximada, base pra "hobby buddy" e heatmap.
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
-| user_id | uuid | não | `users.id` | PK composta |
+| user_id | string | não | `users.id` | PK composta |
 | hobby_id | uuid | não | `hobbies.id` | |
 | xp | int | não | — | curva de XP por categoria, ainda não definida |
 | level_label | string | não | — | ex: "Botânico Urbano" |
@@ -434,7 +434,7 @@ Localização atual aproximada, base pra "hobby buddy" e heatmap.
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
-| user_id | uuid | não | `users.id` | PK |
+| user_id | string | não | `users.id` | PK |
 | plan | string | não | — | |
 | active | boolean | não | — | |
 
@@ -444,7 +444,7 @@ Metas avançadas / desafios com IA.
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
 | id | uuid | não | — | PK |
-| user_id | uuid | não | `users.id` | |
+| user_id | string | não | `users.id` | |
 | hobby_id | uuid | sim | `hobbies.id` | |
 | description | text | não | — | |
 
@@ -456,14 +456,14 @@ Multi-perfil de família ou casal.
 | id | uuid | não | — | PK (`family_groups`) |
 | name | string | não | — | |
 | family_group_id | uuid | não | `family_groups.id` | (`family_group_members`) |
-| user_id | uuid | não | `users.id` | (`family_group_members`) |
+| user_id | string | não | `users.id` | (`family_group_members`) |
 
 #### `user_badges`
 Customização de perfil / conquistas.
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
-| user_id | uuid | não | `users.id` | |
+| user_id | string | não | `users.id` | |
 | badge_key | string | não | — | |
 
 #### `maintenance_alerts`

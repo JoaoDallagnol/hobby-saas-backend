@@ -30,7 +30,7 @@
   - [ ] Estruturar módulos/pacotes base do projeto.
   - [ ] Configurar perfis de ambiente (`local`, `test`, `prod` ou equivalente).
   - [ ] Configurar leitura de variáveis de ambiente para secrets e integrações.
-  - [ ] Adicionar dependências base: Web, Validation, Security Resource Server, JPA, Flyway, Postgres, Actuator, testes.
+  - [ ] Adicionar dependências base: Web, Validation, Security, JPA, Flyway, Postgres, Actuator, testes.
 - [ ] Definir contrato inicial da API.
   - [ ] Escolher abordagem de OpenAPI/Swagger para documentação e navegação dos endpoints.
   - [ ] Manter contrato alinhado com comportamento real da API conforme as features forem entrando.
@@ -38,7 +38,7 @@
 - [ ] Subir ambiente local via Docker Compose.
   - [ ] Postgres disponível para a aplicação.
   - [ ] App sobe apontando para os serviços locais.
-  - [ ] Estratégia de auth local definida sem depender de Keycloak (ex: projeto Firebase de dev e/ou fluxo de token de teste controlado).
+  - [ ] Estratégia de auth local definida sem depender de provedor self-hosted (ex: projeto Firebase de dev e/ou fluxo de token de teste controlado).
 - [ ] Configurar observabilidade mínima.
   - [ ] Actuator habilitado com endpoints úteis.
   - [ ] Integração com Sentry preparada ou documentada com placeholders de config.
@@ -87,7 +87,7 @@
 - [ ] Implementar provisionamento just-in-time de `users`.
   - [ ] Criar usuário na primeira request autenticada se não existir.
   - [ ] Sincronizar `sub`, `email`, `name` e `email_verified` a partir do token.
-  - [ ] Nunca gerar `users.id` no banco; usar o `sub`/`uid` do token validado.
+  - [ ] Nunca gerar `users.id` no banco; usar o `sub`/`uid` do token validado como string.
 - [ ] Garantir autorização por recurso.
   - [ ] Usuário só acessa/edita os próprios dados.
   - [ ] Regras não dependem de payload do client para validar posse/permissão.

@@ -1,6 +1,6 @@
 package io.github.joaodallagnol.backend.auth;
 
-public record AuthenticatedUser(
+public record FirebaseAuthenticatedPrincipal(
         String id,
         String email,
         String name,

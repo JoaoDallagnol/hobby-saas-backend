@@ -1,36 +1,25 @@
 package io.github.joaodallagnol.backend.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.github.joaodallagnol.backend.auth.AuthenticatedUser;
+import java.lang.reflect.Proxy;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 class UserProvisioningServiceTest {
-
-    @Mock
-    private ProductUserRepository productUserRepository;
-
-    @InjectMocks
-    private UserProvisioningService userProvisioningService;
 
     @Test
     void shouldCreateUserWhenItDoesNotExist() {
-        UUID userId = UUID.randomUUID();
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser(userId, "user@example.com", "Example User", true);
+        InMemoryUserRepository repositoryState = new InMemoryUserRepository();
+        ProductUserRepository repository = repositoryState.asRepository();
+        UserProvisioningService userProvisioningService = new UserProvisioningService(repository);
 
-        when(productUserRepository.findById(userId)).thenReturn(Optional.empty());
-        when(productUserRepository.save(any(ProductUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        String userId = "firebase-user-123";
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser(userId, "user@example.com", "Example User", true);
 
         ProductUser productUser = userProvisioningService.provisionIfMissing(authenticatedUser);
 
@@ -40,13 +29,13 @@ class UserProvisioningServiceTest {
         assertThat(productUser.isEmailVerified()).isTrue();
         assertThat(productUser.getBio()).isNull();
         assertThat(productUser.getCreatedAt()).isBeforeOrEqualTo(OffsetDateTime.now());
-        verify(productUserRepository).save(any(ProductUser.class));
+        assertThat(repositoryState.storage()).containsKey(userId);
     }
 
     @Test
     void shouldReuseExistingUserWhenAlreadyProvisioned() {
-        UUID userId = UUID.randomUUID();
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser(userId, "user@example.com", "Example User", true);
+        InMemoryUserRepository repositoryState = new InMemoryUserRepository();
+        String userId = "firebase-user-456";
         ProductUser existingUser = new ProductUser(
                 userId,
                 "user@example.com",
@@ -55,11 +44,42 @@ class UserProvisioningServiceTest {
                 "bio",
                 OffsetDateTime.now().minusDays(1)
         );
+        repositoryState.storage().put(userId, existingUser);
+        ProductUserRepository repository = repositoryState.asRepository();
+        UserProvisioningService userProvisioningService = new UserProvisioningService(repository);
 
-        when(productUserRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser(userId, "user@example.com", "Example User", true);
 
         ProductUser productUser = userProvisioningService.provisionIfMissing(authenticatedUser);
 
         assertThat(productUser).isSameAs(existingUser);
+    }
+
+    private static final class InMemoryUserRepository {
+
+        private final Map<String, ProductUser> storage = new HashMap<>();
+
+        Map<String, ProductUser> storage() {
+            return storage;
+        }
+
+        ProductUserRepository asRepository() {
+            return (ProductUserRepository) Proxy.newProxyInstance(
+                    ProductUserRepository.class.getClassLoader(),
+                    new Class<?>[]{ProductUserRepository.class},
+                    (proxy, method, args) -> switch (method.getName()) {
+                        case "findById" -> Optional.ofNullable(storage.get((String) args[0]));
+                        case "save" -> {
+                            ProductUser user = (ProductUser) args[0];
+                            storage.put(user.getId(), user);
+                            yield user;
+                        }
+                        case "equals" -> proxy == args[0];
+                        case "hashCode" -> System.identityHashCode(proxy);
+                        case "toString" -> "InMemoryProductUserRepository";
+                        default -> throw new UnsupportedOperationException("Method not supported in test: " + method.getName());
+                    }
+            );
+        }
     }
 }

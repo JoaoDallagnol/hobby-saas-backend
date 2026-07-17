@@ -41,7 +41,7 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - Se aparecer inconsistência entre documentos, reportar antes de editar e só consolidar a mudança depois da decisão explícita.
 
 ## Regras não óbvias (ler sempre)
-- `users.id` = `sub` do JWT emitido pelo Firebase Authentication. Nunca gerar id próprio, nunca criar coluna de senha em `users`.
+- `users.id` = `sub`/`uid` do Firebase Authentication, armazenado como string. Nunca gerar id próprio, nunca criar coluna de senha em `users`.
 - Provisionamento de `users` é just-in-time na primeira request autenticada; dados-base vêm do token validado do Firebase.
 - Atributo dinâmico por hobby sempre vai em `sessions.attributes` (JSONB), validado contra `hobby_attribute_template`. Nunca criar coluna nova pra atributo específico de hobby.
 - `equipment.category` e `equipment.name` são colunas independentes do mesmo registro — não é chave/valor.

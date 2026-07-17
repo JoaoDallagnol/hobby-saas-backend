@@ -3,63 +3,55 @@ package io.github.joaodallagnol.backend.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.time.Instant;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 class AuthenticatedUserExtractorTest {
 
     private final AuthenticatedUserExtractor extractor = new AuthenticatedUserExtractor();
 
     @Test
-    void shouldExtractAuthenticatedUserFromJwtClaims() {
-        Jwt jwt = jwt(Map.of(
-                "sub", "e1b7ac0b-dc72-4dbf-b6a8-a1a2ef1d93e6",
-                "email", "user@example.com",
-                "name", "Example User",
-                "email_verified", true
-        ));
+    void shouldExtractAuthenticatedUserFromFirebasePrincipal() {
+        FirebaseAuthenticatedPrincipal principal = new FirebaseAuthenticatedPrincipal(
+                "firebase-user-123",
+                "user@example.com",
+                "Example User",
+                true
+        );
 
-        AuthenticatedUser authenticatedUser = extractor.extract(jwt);
+        AuthenticatedUser authenticatedUser = extractor.extract(new UsernamePasswordAuthenticationToken(principal, "token"));
 
+        assertThat(authenticatedUser.id()).isEqualTo("firebase-user-123");
         assertThat(authenticatedUser.email()).isEqualTo("user@example.com");
         assertThat(authenticatedUser.name()).isEqualTo("Example User");
         assertThat(authenticatedUser.emailVerified()).isTrue();
     }
 
     @Test
-    void shouldRejectJwtWithoutEmail() {
-        Jwt jwt = jwt(Map.of(
-                "sub", "e1b7ac0b-dc72-4dbf-b6a8-a1a2ef1d93e6",
-                "name", "Example User"
-        ));
+    void shouldRejectPrincipalWithoutEmail() {
+        FirebaseAuthenticatedPrincipal principal = new FirebaseAuthenticatedPrincipal(
+                "firebase-user-123",
+                null,
+                "Example User",
+                true
+        );
 
-        assertThatThrownBy(() -> extractor.extract(jwt))
+        assertThatThrownBy(() -> extractor.extract(new UsernamePasswordAuthenticationToken(principal, "token")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("email");
     }
 
     @Test
-    void shouldFallbackToPreferredUsernameWhenNameIsMissing() {
-        Jwt jwt = jwt(Map.of(
-                "sub", "e1b7ac0b-dc72-4dbf-b6a8-a1a2ef1d93e6",
-                "email", "user@example.com",
-                "preferred_username", "example-user"
-        ));
-
-        AuthenticatedUser authenticatedUser = extractor.extract(jwt);
-
-        assertThat(authenticatedUser.name()).isEqualTo("example-user");
-    }
-
-    private Jwt jwt(Map<String, Object> claims) {
-        return new Jwt(
-                "token-value",
-                Instant.now(),
-                Instant.now().plusSeconds(3600),
-                Map.of("alg", "none"),
-                claims
+    void shouldFallbackToEmailPrefixWhenNameIsMissing() {
+        FirebaseAuthenticatedPrincipal principal = new FirebaseAuthenticatedPrincipal(
+                "firebase-user-123",
+                "user@example.com",
+                null,
+                true
         );
+
+        AuthenticatedUser authenticatedUser = extractor.extract(new UsernamePasswordAuthenticationToken(principal, "token"));
+
+        assertThat(authenticatedUser.name()).isEqualTo("user");
     }
 }

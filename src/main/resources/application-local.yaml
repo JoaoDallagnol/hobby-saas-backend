@@ -11,12 +11,6 @@ spring:
           time_zone: UTC
   flyway:
     enabled: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/hobby-saas}
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8081/realms/hobby-saas/protocol/openid-connect/certs}
 
 management:
   endpoint:
@@ -25,6 +19,11 @@ management:
         enabled: true
 
 app:
+  auth:
+    firebase:
+      project-id: ${FIREBASE_PROJECT_ID:}
+      service-account-json-base64: ${FIREBASE_SERVICE_ACCOUNT_JSON_BASE64:}
+      service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   integrations:

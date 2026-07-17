@@ -1,10 +1,9 @@
 package io.github.joaodallagnol.backend.user;
 
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 public record CurrentUserProfileResponse(
-        UUID id,
+        String id,
         String email,
         String name,
         boolean emailVerified,

@@ -4,9 +4,3 @@ spring:
       - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
       - org.springframework.boot.orm.jpa.autoconfigure.HibernateJpaAutoConfiguration
       - org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://example.test/realms/hobby-saas
-          jwk-set-uri: http://example.test/realms/hobby-saas/protocol/openid-connect/certs
