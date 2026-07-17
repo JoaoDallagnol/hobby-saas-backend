@@ -19,7 +19,7 @@ Fora do MVP por padrão:
 - XP, premium, metas com IA, manutenção e demais itens posteriores continuam fora de escopo até decisão explícita.
 
 ## Stack
-Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Keycloak (auth), Cloudflare R2 (fotos), Docker Compose numa VPS única. Detalhe completo: `docs/stack.md`.
+Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (auth), Cloudflare R2 (fotos), Docker Compose numa VPS única na Hostinger. Detalhe completo: `docs/stack.md`.
 
 ## Docs de referência (ler sob demanda, não de uma vez)
 - `docs/roadmap.md` — o que estamos construindo e em que ordem (fases, o que cada feature depende).
@@ -41,8 +41,8 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Keycloak (auth), Cloudflare
 - Se aparecer inconsistência entre documentos, reportar antes de editar e só consolidar a mudança depois da decisão explícita.
 
 ## Regras não óbvias (ler sempre)
-- `users.id` = `sub` do JWT do Keycloak. Nunca gerar id próprio, nunca criar coluna de senha em `users`.
-- Provisionamento de `users` é just-in-time na primeira request autenticada; dados-base vêm do JWT/Keycloak.
+- `users.id` = `sub` do JWT emitido pelo Firebase Authentication. Nunca gerar id próprio, nunca criar coluna de senha em `users`.
+- Provisionamento de `users` é just-in-time na primeira request autenticada; dados-base vêm do token validado do Firebase.
 - Atributo dinâmico por hobby sempre vai em `sessions.attributes` (JSONB), validado contra `hobby_attribute_template`. Nunca criar coluna nova pra atributo específico de hobby.
 - `equipment.category` e `equipment.name` são colunas independentes do mesmo registro — não é chave/valor.
 - Nunca confiar em campo de plano/permissão vindo do client (ex: `isPremium`) — checar sempre contra o banco.
@@ -55,6 +55,7 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Keycloak (auth), Cloudflare
 - Modelos marcados como "conceitual" ou pertencentes a fases futuras na documentação não devem ser implementados sem revisão específica.
 - Perfis de ambiente e configuração sensível devem nascer separados desde cedo (`local` e `prod` no mínimo), com valores vindos de env vars/secrets e nunca hardcoded no código.
 - Nenhum secret, token, senha, private key, webhook secret ou credencial de provedor pode ir para o repositório, examples commitados ou documentação com valor real.
+- Sempre que uma integração exigir conta, projeto, billing, credencial, domínio, app registration, chave ou configuração manual em plataforma externa, avisar explicitamente o usuário no momento em que isso virar pré-requisito para dev ou prod funcionar.
 - Toda integração externa deve ser implementada assumindo revisão de segurança: validação de input, autorização por recurso, menor privilégio, rotação de secret possível, logs sem vazamento e falha segura.
 - Ao expor endpoint novo, considerar documentação OpenAPI, autenticação/autorização, validação de payload, tratamento de erro e risco de vazamento de dados.
 - Implementação deve evitar padrões que um pentest básico apontaria: segredo hardcoded, endpoint sem auth esperada, IDOR/BOLA, confiança em dado do client, log de credencial, CORS aberto sem motivo, stacktrace/sensitive data exposta e ausência de validação de input.
@@ -62,7 +63,7 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Keycloak (auth), Cloudflare
 ## Comandos
 - Build: `mvn clean install`
 - Testes: `mvn test`
-- Local: `docker compose up -d` (sobe Spring Boot + Keycloak + Postgres)
+- Local: `docker compose up -d` (sobe Spring Boot + Postgres; auth usa projeto Firebase configurado via env)
 
 ## Não fazer
 - Não tratar presença no schema como autorização para buildar feature de fase futura.
@@ -74,7 +75,7 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Keycloak (auth), Cloudflare
 - Não seguir padrões da linha Spring Boot 3.x (EOL) — baseline é Jakarta EE 11 + Jackson 3.
 - Não persistir/aceitar lat/lng vindos do client.
 - Não receber/uploadar binário de foto pelo backend.
-- Não criar sincronização própria de senha/credencial fora do Keycloak.
+- Não criar sincronização própria de senha/credencial fora do Firebase Authentication.
 
 ## Pendências (não travam trabalho, mas não estão fechadas)
 - Nome do app / domínio.

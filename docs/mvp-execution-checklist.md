@@ -13,7 +13,7 @@
 
 ## Definição de pronto do MVP
 
-- [ ] Usuário consegue autenticar via Keycloak e ser provisionado no banco na primeira request autenticada.
+- [ ] Usuário consegue autenticar via Firebase Authentication e ser provisionado no banco na primeira request autenticada.
 - [ ] Usuário consegue manter perfil básico e hobbies praticados.
 - [ ] Usuário consegue criar, listar e consultar sessões com atributos fixos e dinâmicos por hobby.
 - [ ] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
@@ -37,8 +37,8 @@
   - [ ] Não documentar endpoint inexistente nem deixar endpoint existente sem revisão do contrato quando houver mudança relevante.
 - [ ] Subir ambiente local via Docker Compose.
   - [ ] Postgres disponível para a aplicação.
-  - [ ] Keycloak disponível para autenticação local.
   - [ ] App sobe apontando para os serviços locais.
+  - [ ] Estratégia de auth local definida sem depender de Keycloak (ex: projeto Firebase de dev e/ou fluxo de token de teste controlado).
 - [ ] Configurar observabilidade mínima.
   - [ ] Actuator habilitado com endpoints úteis.
   - [ ] Integração com Sentry preparada ou documentada com placeholders de config.
@@ -81,13 +81,13 @@
 
 ## 4. Autenticação e provisionamento de usuário
 
-- [ ] Configurar Resource Server com JWT do Keycloak.
-  - [ ] Validar issuer/audience conforme ambiente.
+- [ ] Configurar autenticação backend com Firebase Authentication.
+  - [ ] Validar ID token/JWT emitido pelo Firebase conforme ambiente.
   - [ ] Mapear identidade autenticada sem criar modelo próprio de senha.
 - [ ] Implementar provisionamento just-in-time de `users`.
   - [ ] Criar usuário na primeira request autenticada se não existir.
   - [ ] Sincronizar `sub`, `email`, `name` e `email_verified` a partir do token.
-  - [ ] Nunca gerar `users.id` no banco; usar o `sub` do JWT.
+  - [ ] Nunca gerar `users.id` no banco; usar o `sub`/`uid` do token validado.
 - [ ] Garantir autorização por recurso.
   - [ ] Usuário só acessa/edita os próprios dados.
   - [ ] Regras não dependem de payload do client para validar posse/permissão.
@@ -202,6 +202,7 @@
   - [ ] `local`: usar `.env`, variáveis locais ou mecanismo equivalente fora do versionamento.
   - [ ] `prod`: usar secrets/env vars do servidor sem valor sensível commitado.
   - [ ] Manter exemplos seguros versionados sem credenciais reais.
+  - [ ] Separar credenciais/projetos Firebase de `dev` e `prod`.
 - [ ] Garantir perfis/configuração por ambiente.
   - [ ] `application.yaml` base sem secret real.
   - [ ] `application-local.yaml` para desenvolvimento local.
@@ -215,7 +216,13 @@
   - [ ] Script/job documentado ou implementado.
   - [ ] Estratégia de retenção definida.
 - [ ] Documentar restauração mínima do backup.
-- [ ] Configurar SMTP do Keycloak com Brevo no plano de deploy.
+- [ ] Mapear cadastros/configurações manuais necessários por plataforma externa.
+  - [ ] Firebase `dev` e `prod`.
+  - [ ] Hostinger/VPS.
+  - [ ] Cloudflare/R2.
+  - [ ] Google Places.
+  - [ ] Stores mobile quando entrarem no escopo.
+- [ ] Se e-mail transacional próprio entrar no MVP técnico, configurar Brevo com domínio e autenticação de envio.
 - [ ] Criar baseline de revisão de segurança para mudanças novas.
   - [ ] Verificar autenticação e autorização por recurso em cada endpoint novo.
   - [ ] Verificar validação de input e tratamento seguro de erro.

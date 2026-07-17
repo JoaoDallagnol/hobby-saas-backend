@@ -29,10 +29,10 @@ erDiagram
     HOBBY_SUGGESTIONS }o--o| HOBBIES : "approved into"
 
     USERS {
-        uuid id PK "= sub do JWT do Keycloak, nao gerado pelo banco"
-        string email "sincronizado do Keycloak"
-        string name "sincronizado do Keycloak"
-        boolean email_verified "sincronizado do Keycloak"
+        uuid id PK "= sub/uid do token do Firebase Auth, nao gerado pelo banco"
+        string email "sincronizado do Firebase Auth"
+        string name "sincronizado do Firebase Auth"
+        boolean email_verified "sincronizado do Firebase Auth"
         string bio "so existe no banco de produto"
         timestamp created_at "data do primeiro login (criacao via JIT)"
     }
@@ -239,18 +239,18 @@ erDiagram
 ### MVP
 
 #### `users`
-*Definida em conjunto com a decisão de autenticação (Keycloak). Não existe coluna de senha — credencial nunca é vista/armazenada pela aplicação, fica isolada dentro do Keycloak.*
+*Definida em conjunto com a decisão de autenticação (Firebase Authentication). Não existe coluna de senha — credencial nunca é vista/armazenada pela aplicação, fica isolada dentro do provedor de auth.*
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
-| id | uuid | não | — | PK. **É o próprio `sub` do JWT do Keycloak**, não gerado pelo banco — evita coluna de mapeamento separada e mantém as FKs do resto do schema consistentes |
-| email | string | não | — | sincronizado do Keycloak no momento do provisionamento just-in-time |
-| name | string | não | — | sincronizado do Keycloak |
-| email_verified | boolean | não | — | sincronizado do Keycloak; útil pra restringir alguma ação a e-mail confirmado |
+| id | uuid | não | — | PK. **É o próprio `sub`/`uid` do token do Firebase Authentication**, não gerado pelo banco — evita coluna de mapeamento separada e mantém as FKs do resto do schema consistentes |
+| email | string | não | — | sincronizado do Firebase Authentication no momento do provisionamento just-in-time |
+| name | string | não | — | sincronizado do Firebase Authentication |
+| email_verified | boolean | não | — | sincronizado do Firebase Authentication; útil pra restringir alguma ação a e-mail confirmado |
 | bio | string | sim | — | só existe no banco de produto, editado dentro do app |
 | created_at | timestamp | não | — | data do primeiro login (linha criada via provisionamento JIT, não em cadastro separado) |
 
-**Provisionamento**: não há sincronização em background — na primeira requisição autenticada de um usuário, se a linha ainda não existir em `users`, o backend cria ela na hora a partir dos campos do JWT (`sub`, `email`, `name`, `email_verified`).
+**Provisionamento**: não há sincronização em background — na primeira requisição autenticada de um usuário, se a linha ainda não existir em `users`, o backend cria ela na hora a partir dos campos do token validado (`sub`/`uid`, `email`, `name`, `email_verified`).
 
 #### `hobby_categories`
 
