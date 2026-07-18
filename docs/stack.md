@@ -6,6 +6,7 @@
 - **Java 25** (LTS) ✅
 - **Spring Boot 4.1.x** ✅ (Jakarta EE 11, Jackson 3 — não usar padrões da linha 3.x, já EOL desde 30/06/2026)
 - **Maven** ✅
+- `springdoc-openapi-starter-webmvc-ui` 3.0.3 ✅ — OpenAPI gerado a partir dos controllers reais; UI em `/swagger-ui.html`, spec em `/v3/api-docs`. Local habilitado por padrão; produção desabilitada por padrão e só exposta se `SPRINGDOC_ENABLED=true`.
 
 ## Banco de dados
 - `spring-boot-starter-data-jpa`, `postgresql` (driver)
@@ -44,7 +45,7 @@
 - Em `local`, auth controlada de desenvolvimento é aceitável temporariamente para avançar domínio/API antes da integração real com Firebase dev estar concluída.
 
 ## Sugestões extras (não são decisão fechada, só recomendação padrão de mercado)
-- `lombok`, `mapstruct`, `springdoc-openapi`
+- `lombok`, `mapstruct`
 
 ## Notas para mobile (fora de escopo deste doc)
 - Projeto Firebase deve ser **o mesmo** entre backend (Admin SDK) e mobile (SDK cliente).

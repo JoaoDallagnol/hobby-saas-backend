@@ -33,9 +33,9 @@
   - [x] Configurar leitura de variáveis de ambiente para secrets e integrações.
   - [x] Adicionar dependências base: Web, Validation, Security, JPA, Flyway, Postgres, Actuator, testes.
 - [ ] Definir contrato inicial da API.
-  - [ ] Escolher abordagem de OpenAPI/Swagger para documentação e navegação dos endpoints.
-  - [ ] Manter contrato alinhado com comportamento real da API conforme as features forem entrando.
-  - [ ] Não documentar endpoint inexistente nem deixar endpoint existente sem revisão do contrato quando houver mudança relevante.
+  - [x] Escolher abordagem de OpenAPI/Swagger para documentação e navegação dos endpoints.
+  - [x] Manter contrato alinhado com comportamento real da API conforme as features forem entrando.
+  - [x] Não documentar endpoint inexistente nem deixar endpoint existente sem revisão do contrato quando houver mudança relevante.
 - [x] Subir ambiente local via Docker Compose.
   - [x] Postgres disponível para a aplicação.
   - [x] App sobe apontando para os serviços locais.
