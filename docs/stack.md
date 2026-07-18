@@ -21,7 +21,7 @@
 - `bucket4j`
 
 ## Storage de fotos (Cloudflare R2)
-- AWS SDK S3 (`software.amazon.awssdk:s3`) — R2 é S3-compatible, aponta pro endpoint do R2.
+- AWS SDK S3 (`software.amazon.awssdk:s3`) ✅ — R2 é S3-compatible, aponta pro endpoint do R2.
 - ⚠️ Lib de processamento de imagem (resize + WebP + strip EXIF) não confirmada — Thumbnailator resolve resize; conversão WebP em Java incerta, pode acabar sendo binário externo (`cwebp`) via processo.
 
 ## Push

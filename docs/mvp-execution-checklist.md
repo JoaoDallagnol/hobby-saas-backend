@@ -19,7 +19,7 @@
 - [x] Usuário consegue criar, listar e consultar sessões com atributos fixos e dinâmicos por hobby.
 - [x] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
 - [x] Usuário consegue manter backlog/Kanban por hobby e vincular sessão a item/projeto quando aplicável.
-- [ ] Sessão aceita fotos por fluxo de presigned URL direto para R2, sem binário via backend.
+- [x] Sessão aceita fotos por fluxo de presigned URL direto para R2, sem binário via backend.
 - [x] Sessão aceita `place_id`; backend resolve e persiste localização sem confiar em coordenadas do client.
 - [ ] Sistema calcula ou expõe streak de constância no escopo do MVP.
 - [ ] Base mínima de segurança, backup, monitoramento e deploy local está operacional.
@@ -163,12 +163,12 @@
 
 ## 8. Fotos e storage
 
-- [ ] Implementar fluxo de presigned URL para upload direto no R2.
-  - [ ] Endpoint para solicitar upload.
-  - [ ] Geração de chave segura por usuário/sessão/escopo temporário.
-  - [ ] Restrições mínimas de content type e tamanho, se aplicável.
-- [ ] Persistir apenas storage keys/URLs necessárias no banco.
-- [ ] Modelar associação de fotos à sessão.
+- [x] Implementar fluxo de presigned URL para upload direto no R2.
+  - [x] Endpoint para solicitar upload.
+  - [x] Geração de chave segura por usuário/sessão/escopo temporário.
+  - [x] Restrições mínimas de content type e tamanho, se aplicável.
+- [x] Persistir apenas storage keys/URLs necessárias no banco.
+- [x] Modelar associação de fotos à sessão.
 - [ ] Definir processamento assíncrono.
   - [ ] Thumbnail.
   - [ ] Compressão/WebP.
