@@ -64,4 +64,9 @@ public class ProductUser {
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
+
+    public void updateProfile(String name, String bio) {
+        this.name = name;
+        this.bio = bio;
+    }
 }

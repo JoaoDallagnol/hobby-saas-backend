@@ -69,16 +69,16 @@
 
 ## 3. Seed e catálogo base
 
-- [ ] Definir estratégia de seed inicial para hobbies e categorias.
-  - [ ] Importar apenas nomes aproveitáveis do seed externo citado na doc.
-  - [ ] Remover duplicatas antes de persistir.
-  - [ ] Não importar a categorização fraca original como verdade do domínio.
-- [ ] Popular `hobby_categories` com conjunto inicial coerente.
-- [ ] Popular `hobbies` com catálogo inicial suficiente para o MVP.
-- [ ] Popular `hobby_attribute_template` com exemplos reais para hobbies prioritários do MVP.
-  - [ ] Pelo menos um hobby de endurance/exercício.
-  - [ ] Pelo menos um hobby criativo/artístico.
-  - [ ] Pelo menos um hobby intelectual/estudo.
+- [x] Definir estratégia de seed inicial para hobbies e categorias.
+  - [x] Importar apenas nomes aproveitáveis do seed externo citado na doc.
+  - [x] Remover duplicatas antes de persistir.
+  - [x] Não importar a categorização fraca original como verdade do domínio.
+- [x] Popular `hobby_categories` com conjunto inicial coerente.
+- [x] Popular `hobbies` com catálogo inicial suficiente para o MVP.
+- [x] Popular `hobby_attribute_template` com exemplos reais para hobbies prioritários do MVP.
+  - [x] Pelo menos um hobby de endurance/exercício.
+  - [x] Pelo menos um hobby criativo/artístico.
+  - [x] Pelo menos um hobby intelectual/estudo.
 
 ## 4. Autenticação e provisionamento de usuário
 
@@ -97,13 +97,13 @@
 
 ## 5. Perfil do hobbista
 
-- [ ] Implementar leitura e atualização do perfil base do usuário.
-  - [ ] `name` vindo do fluxo definido para o produto.
-  - [ ] `bio` persistida no banco do produto.
-- [ ] Implementar gestão de hobbies do usuário (`user_hobbies`).
-  - [ ] Adicionar hobby ao perfil.
-  - [ ] Remover hobby do perfil.
-  - [ ] Atualizar `experience_level`.
+- [x] Implementar leitura e atualização do perfil base do usuário.
+  - [x] `name` vindo do fluxo definido para o produto.
+  - [x] `bio` persistida no banco do produto.
+- [x] Implementar gestão de hobbies do usuário (`user_hobbies`).
+  - [x] Adicionar hobby ao perfil.
+  - [x] Remover hobby do perfil.
+  - [x] Atualizar `experience_level`.
 - [ ] Definir contrato de API do perfil.
   - [ ] Payloads de leitura.
   - [ ] Payloads de escrita.
