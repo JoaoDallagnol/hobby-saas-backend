@@ -18,7 +18,7 @@
 - [ ] Usuário consegue manter perfil básico e hobbies praticados.
 - [ ] Usuário consegue criar, listar e consultar sessões com atributos fixos e dinâmicos por hobby.
 - [x] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
-- [ ] Usuário consegue manter backlog/Kanban por hobby e vincular sessão a item/projeto quando aplicável.
+- [x] Usuário consegue manter backlog/Kanban por hobby e vincular sessão a item/projeto quando aplicável.
 - [ ] Sessão aceita fotos por fluxo de presigned URL direto para R2, sem binário via backend.
 - [ ] Sessão aceita `place_id`; backend resolve e persiste localização sem confiar em coordenadas do client.
 - [ ] Sistema calcula ou expõe streak de constância no escopo do MVP.
@@ -142,14 +142,14 @@
 
 ## 6B. Backlog/Kanban por hobby
 
-- [ ] Implementar CRUD de `backlog_items`.
-  - [ ] Criar item de backlog.
-  - [ ] Listar itens por usuário e hobby.
-  - [ ] Atualizar título e status.
-  - [ ] Excluir item.
-- [ ] Definir estados válidos de `status` no MVP.
-- [ ] Permitir vínculo opcional de sessão com item/projeto do próprio usuário.
-- [ ] Garantir autorização por recurso também no backlog.
+- [x] Implementar CRUD de `backlog_items`.
+  - [x] Criar item de backlog.
+  - [x] Listar itens por usuário e hobby.
+  - [x] Atualizar título e status.
+  - [x] Excluir item.
+- [x] Definir estados válidos de `status` no MVP.
+- [x] Permitir vínculo opcional de sessão com item/projeto do próprio usuário.
+- [x] Garantir autorização por recurso também no backlog.
 
 ## 7. Atributos dinâmicos por hobby
 
