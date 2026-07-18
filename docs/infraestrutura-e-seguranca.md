@@ -23,6 +23,8 @@
 
 - DDoS: Cloudflare (free) como proxy DNS.
 - Rate limit: Cloudflare (free) + Nginx (`limit_req`) + Bucket4j (por usuário/endpoint no código).
+- CORS do backend deve ser explícito por ambiente via `CORS_ALLOWED_ORIGINS`; não deixar `*` em produção.
+- Headers mínimos no backend/API: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`; permissões do browser restritas para recursos não usados pela API.
 - **Nunca confiar em campo de plano/permissão vindo do cliente** (ex: `isPremium`) — checar sempre contra o banco.
 - Pagamento: status de assinatura só muda via **webhook assinado** do provedor, nunca por chamada do client dizendo "paguei".
 - Autorização por recurso em todo endpoint (`session.user_id == usuário autenticado`, não só "está logado").
@@ -123,6 +125,17 @@
 - `pg_dump` via cron diário → upload pro Cloudflare R2. Retenção rotativa (7 diários + 4 semanais).
 - Backup semanal de VM da Hostinger **não substitui isso** (snapshot pode capturar estado inconsistente do Postgres).
 - Testar restauração pelo menos 1x antes de precisar de verdade.
+- Scripts base do repositório:
+  - `scripts/backup-postgres-to-r2.sh`
+  - `scripts/restore-postgres-backup.sh`
+- Pré-requisitos operacionais do host/job:
+  - `pg_dump`/`psql`
+  - AWS CLI configurado para endpoint S3-compatible do R2
+  - env vars de banco e R2 carregadas fora do git
+- Estratégia mínima de execução:
+  - cron diário no host/VPS
+  - upload para prefixo versionado por data
+  - retenção/limpeza ainda precisa ser automatizada em etapa seguinte
 
 ## Monitoramento 🟢 (esforço baixo, ativar desde já)
 
@@ -162,6 +175,7 @@
 - provisionar VPS final;
 - configurar acesso SSH seguro;
 - instalar Docker e Docker Compose plugin;
+- instalar também utilitários operacionais do backup (`postgresql-client`, AWS CLI ou equivalente);
 - configurar firewall e HTTPS reverso antes de expor produção publicamente;
 - definir onde as env vars/secrets de produção ficarão armazenadas.
 

@@ -213,12 +213,12 @@
   - [x] Definir claramente quais variáveis são obrigatórias em cada ambiente.
 - [ ] Preparar HTTPS/proxy e variáveis esperadas para produção.
 - [ ] Definir estratégia de rate limiting.
-  - [ ] Camada de edge/proxy.
+  - [x] Camada de edge/proxy.
   - [ ] Camada de aplicação com Bucket4j, se entrar já no MVP técnico.
 - [ ] Planejar backup diário do Postgres para R2.
-  - [ ] Script/job documentado ou implementado.
+  - [x] Script/job documentado ou implementado.
   - [ ] Estratégia de retenção definida.
-- [ ] Documentar restauração mínima do backup.
+- [x] Documentar restauração mínima do backup.
 - [ ] Mapear cadastros/configurações manuais necessários por plataforma externa.
   - [x] Firebase `dev` e `prod`.
   - [x] Hostinger/VPS.
