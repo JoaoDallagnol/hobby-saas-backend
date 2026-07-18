@@ -34,6 +34,7 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
 - `name`: texto livre, autocomplete pelo histórico do próprio usuário. Sem validação contra lista externa.
 - `category` e `name` são **duas colunas do mesmo registro**, não chave/valor.
 - Vínculo opcional a um hobby.
+- Se um equipamento já estiver vinculado a sessões históricas, o backend não deve permitir exclusão no MVP; a remoção precisa ser rejeitada para preservar integridade do histórico.
 
 ## Localização
 

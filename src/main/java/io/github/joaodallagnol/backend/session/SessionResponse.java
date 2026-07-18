@@ -1,0 +1,40 @@
+package io.github.joaodallagnol.backend.session;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+public record SessionResponse(
+        UUID id,
+        UUID hobbyId,
+        String hobbyName,
+        String title,
+        OffsetDateTime startedAt,
+        int durationMinutes,
+        String notes,
+        int satisfaction,
+        SessionLocationResponse location,
+        UUID projectId,
+        List<UUID> equipmentIds,
+        List<SessionPhotoResponse> photos,
+        Map<String, Object> attributes
+) {
+    public static SessionResponse from(SessionRecord session) {
+        return new SessionResponse(
+                session.getId(),
+                session.getHobby().getId(),
+                session.getHobby().getName(),
+                session.getTitle(),
+                session.getStartedAt(),
+                session.getDurationMinutes(),
+                session.getNotes(),
+                session.getSatisfaction(),
+                session.getPlaceId() == null ? null : new SessionLocationResponse(session.getPlaceId()),
+                session.getProjectId(),
+                session.getEquipment().stream().map(EquipmentReference::getId).toList(),
+                session.getPhotos().stream().map(SessionPhotoResponse::from).toList(),
+                session.getAttributes()
+        );
+    }
+}

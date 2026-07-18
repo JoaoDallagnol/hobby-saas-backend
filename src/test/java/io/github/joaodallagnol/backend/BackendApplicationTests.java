@@ -2,6 +2,10 @@ package io.github.joaodallagnol.backend;
 
 import io.github.joaodallagnol.backend.auth.FirebaseTokenVerifier;
 import io.github.joaodallagnol.backend.auth.FirebaseVerifiedToken;
+import io.github.joaodallagnol.backend.session.BacklogItemReferenceRepository;
+import io.github.joaodallagnol.backend.session.EquipmentReferenceRepository;
+import io.github.joaodallagnol.backend.session.PlaceReferenceRepository;
+import io.github.joaodallagnol.backend.session.SessionRecordRepository;
 import io.github.joaodallagnol.backend.user.HobbyRepository;
 import io.github.joaodallagnol.backend.user.ProductUserRepository;
 import io.github.joaodallagnol.backend.user.UserHobbyRepository;
@@ -74,6 +78,74 @@ class BackendApplicationTests {
 						case "equals" -> proxy == args[0];
 						case "hashCode" -> System.identityHashCode(proxy);
 						case "toString" -> "TestHobbyRepository";
+						default -> throw new UnsupportedOperationException("Method not supported in test: " + method.getName());
+					}
+			);
+		}
+
+		@Bean
+		@Primary
+		SessionRecordRepository sessionRecordRepository() {
+			return (SessionRecordRepository) Proxy.newProxyInstance(
+					SessionRecordRepository.class.getClassLoader(),
+					new Class<?>[]{SessionRecordRepository.class},
+					(proxy, method, args) -> switch (method.getName()) {
+						case "findByIdAndUserId" -> Optional.empty();
+						case "findAllByUserIdOrderByStartedAtDesc" -> List.of();
+						case "findAllByUserIdAndHobbyIdOrderByStartedAtDesc" -> List.of();
+						case "save" -> args[0];
+						case "delete" -> null;
+						case "equals" -> proxy == args[0];
+						case "hashCode" -> System.identityHashCode(proxy);
+						case "toString" -> "TestSessionRecordRepository";
+						default -> throw new UnsupportedOperationException("Method not supported in test: " + method.getName());
+					}
+			);
+		}
+
+		@Bean
+		@Primary
+		EquipmentReferenceRepository equipmentReferenceRepository() {
+			return (EquipmentReferenceRepository) Proxy.newProxyInstance(
+					EquipmentReferenceRepository.class.getClassLoader(),
+					new Class<?>[]{EquipmentReferenceRepository.class},
+					(proxy, method, args) -> switch (method.getName()) {
+						case "findAllByIdInAndUserId" -> List.of();
+						case "equals" -> proxy == args[0];
+						case "hashCode" -> System.identityHashCode(proxy);
+						case "toString" -> "TestEquipmentReferenceRepository";
+						default -> throw new UnsupportedOperationException("Method not supported in test: " + method.getName());
+					}
+			);
+		}
+
+		@Bean
+		@Primary
+		BacklogItemReferenceRepository backlogItemReferenceRepository() {
+			return (BacklogItemReferenceRepository) Proxy.newProxyInstance(
+					BacklogItemReferenceRepository.class.getClassLoader(),
+					new Class<?>[]{BacklogItemReferenceRepository.class},
+					(proxy, method, args) -> switch (method.getName()) {
+						case "existsByIdAndUserId" -> false;
+						case "equals" -> proxy == args[0];
+						case "hashCode" -> System.identityHashCode(proxy);
+						case "toString" -> "TestBacklogItemReferenceRepository";
+						default -> throw new UnsupportedOperationException("Method not supported in test: " + method.getName());
+					}
+			);
+		}
+
+		@Bean
+		@Primary
+		PlaceReferenceRepository placeReferenceRepository() {
+			return (PlaceReferenceRepository) Proxy.newProxyInstance(
+					PlaceReferenceRepository.class.getClassLoader(),
+					new Class<?>[]{PlaceReferenceRepository.class},
+					(proxy, method, args) -> switch (method.getName()) {
+						case "existsById" -> false;
+						case "equals" -> proxy == args[0];
+						case "hashCode" -> System.identityHashCode(proxy);
+						case "toString" -> "TestPlaceReferenceRepository";
 						default -> throw new UnsupportedOperationException("Method not supported in test: " + method.getName());
 					}
 			);

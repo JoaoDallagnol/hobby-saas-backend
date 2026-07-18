@@ -17,7 +17,7 @@
 - [ ] Usuário consegue autenticar via Firebase Authentication real e ser provisionado no banco na primeira request autenticada.
 - [ ] Usuário consegue manter perfil básico e hobbies praticados.
 - [ ] Usuário consegue criar, listar e consultar sessões com atributos fixos e dinâmicos por hobby.
-- [ ] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
+- [x] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
 - [ ] Usuário consegue manter backlog/Kanban por hobby e vincular sessão a item/projeto quando aplicável.
 - [ ] Sessão aceita fotos por fluxo de presigned URL direto para R2, sem binário via backend.
 - [ ] Sessão aceita `place_id`; backend resolve e persiste localização sem confiar em coordenadas do client.
@@ -111,33 +111,33 @@
 
 ## 6. Tracker de sessão
 
-- [ ] Implementar criação de sessão.
-  - [ ] Validar `title`, `startedAt`, `durationMinutes`, `notes`, `satisfaction`.
-  - [ ] Validar `satisfaction` no backend independentemente do front.
-  - [ ] Garantir que `hobbyId` exista e seja permitido para o usuário conforme regra definida.
-  - [ ] Aceitar `equipmentIds` válidos do usuário quando o fluxo estiver presente.
-  - [ ] Aceitar `projectId` válido do usuário quando o vínculo com backlog estiver presente.
-- [ ] Implementar listagem e detalhe de sessão.
-  - [ ] Ordenação por data.
-  - [ ] Filtros mínimos úteis para o MVP.
-  - [ ] Inclusão de atributos dinâmicos no retorno.
-  - [ ] Inclusão de equipamentos e vínculo com backlog, se aplicável no contrato.
-- [ ] Implementar atualização de sessão.
+- [x] Implementar criação de sessão.
+  - [x] Validar `title`, `startedAt`, `durationMinutes`, `notes`, `satisfaction`.
+  - [x] Validar `satisfaction` no backend independentemente do front.
+  - [x] Garantir que `hobbyId` exista e seja permitido para o usuário conforme regra definida.
+  - [x] Aceitar `equipmentIds` válidos do usuário quando o fluxo estiver presente.
+  - [x] Aceitar `projectId` válido do usuário quando o vínculo com backlog estiver presente.
+- [x] Implementar listagem e detalhe de sessão.
+  - [x] Ordenação por data.
+  - [x] Filtros mínimos úteis para o MVP.
+  - [x] Inclusão de atributos dinâmicos no retorno.
+  - [x] Inclusão de equipamentos e vínculo com backlog, se aplicável no contrato.
+- [x] Implementar atualização de sessão.
   - [ ] Revalidar atributos fixos e dinâmicos.
-  - [ ] Reforçar posse do recurso.
-- [ ] Implementar exclusão de sessão.
-  - [ ] Definir comportamento para fotos e vínculos relacionados.
+  - [x] Reforçar posse do recurso.
+- [x] Implementar exclusão de sessão.
+  - [x] Definir comportamento para fotos e vínculos relacionados.
 - [ ] Decidir se o MVP precisa de paginação desde o início.
 
 ## 6A. Biblioteca de equipamentos
 
-- [ ] Implementar CRUD de equipamentos do usuário.
-  - [ ] Criar equipamento com `category` e `name`.
-  - [ ] Listar equipamentos do usuário.
-  - [ ] Atualizar equipamento.
-  - [ ] Excluir equipamento com regra clara para vínculos históricos.
-- [ ] Garantir que `category` e `name` sejam tratados como colunas independentes.
-- [ ] Garantir que sessão nunca aceite equipamento como texto livre.
+- [x] Implementar CRUD de equipamentos do usuário.
+  - [x] Criar equipamento com `category` e `name`.
+  - [x] Listar equipamentos do usuário.
+  - [x] Atualizar equipamento.
+  - [x] Excluir equipamento com regra clara para vínculos históricos.
+- [x] Garantir que `category` e `name` sejam tratados como colunas independentes.
+- [x] Garantir que sessão nunca aceite equipamento como texto livre.
 - [ ] Definir contrato de API para autocomplete/histórico, se entrar no MVP inicial.
 
 ## 6B. Backlog/Kanban por hobby
