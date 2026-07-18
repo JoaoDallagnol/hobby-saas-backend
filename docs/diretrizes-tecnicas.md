@@ -43,6 +43,8 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
 - Backend: chama Place Details com `FieldMask` restrito a Essentials (`place_id`, nome, endereço, geometria) — nunca campos Pro/Enterprise.
 - Backend nunca confia em lat/lng vindo do cliente.
 - Cache: tabela `places(place_id PK, name, lat, lng)`, evita chamada repetida.
+- Se o `place_id` já estiver em cache, backend reutiliza sem nova chamada externa; se não estiver, resolve via Google Place Details e persiste no cache antes de salvar a sessão.
+- Resposta de sessão pode expor `location` com `placeId`, `name`, `lat` e `lng` a partir do cache do backend.
 - Privacidade: sessão em casa não expõe endereço exato, só agrega em nível de bairro. Heatmap sempre agrega por "balde" geográfico, nunca ponto exato.
 
 ## Fotos

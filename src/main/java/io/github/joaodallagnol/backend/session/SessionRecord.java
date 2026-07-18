@@ -54,6 +54,10 @@ public class SessionRecord {
     @Column(name = "place_id", length = 255)
     private String placeId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_id", referencedColumnName = "place_id", insertable = false, updatable = false)
+    private PlaceReference place;
+
     @Column(name = "project_id")
     private UUID projectId;
 
@@ -138,6 +142,10 @@ public class SessionRecord {
 
     public UUID getProjectId() {
         return projectId;
+    }
+
+    public PlaceReference getPlace() {
+        return place;
     }
 
     public Map<String, Object> getAttributes() {

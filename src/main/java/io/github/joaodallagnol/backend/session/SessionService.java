@@ -25,6 +25,7 @@ public class SessionService {
     private final BacklogItemReferenceRepository backlogItemReferenceRepository;
     private final PlaceReferenceRepository placeReferenceRepository;
     private final HobbyAttributeTemplateService hobbyAttributeTemplateService;
+    private final PlaceResolutionService placeResolutionService;
 
     public SessionService(
             AuthenticatedUserExtractor authenticatedUserExtractor,
@@ -34,7 +35,8 @@ public class SessionService {
             EquipmentReferenceRepository equipmentReferenceRepository,
             BacklogItemReferenceRepository backlogItemReferenceRepository,
             PlaceReferenceRepository placeReferenceRepository,
-            HobbyAttributeTemplateService hobbyAttributeTemplateService
+            HobbyAttributeTemplateService hobbyAttributeTemplateService,
+            PlaceResolutionService placeResolutionService
     ) {
         this.authenticatedUserExtractor = authenticatedUserExtractor;
         this.sessionRecordRepository = sessionRecordRepository;
@@ -44,6 +46,7 @@ public class SessionService {
         this.backlogItemReferenceRepository = backlogItemReferenceRepository;
         this.placeReferenceRepository = placeReferenceRepository;
         this.hobbyAttributeTemplateService = hobbyAttributeTemplateService;
+        this.placeResolutionService = placeResolutionService;
     }
 
     @Transactional
@@ -52,7 +55,7 @@ public class SessionService {
         Hobby hobby = resolveAllowedHobby(user.id(), request.hobbyId());
         hobbyAttributeTemplateService.validateAttributes(user.id(), hobby.getId(), request.attributes());
         validateProjectOwnership(request.projectId(), user.id());
-        validatePlace(request.location());
+        PlaceReference place = resolvePlace(request.location());
         Set<EquipmentReference> equipment = resolveEquipment(request.equipmentIds(), user.id());
 
         SessionRecord session = new SessionRecord(
@@ -63,7 +66,7 @@ public class SessionService {
                 request.durationMinutes(),
                 request.notes(),
                 request.satisfaction(),
-                request.location() == null ? null : request.location().placeId(),
+                place == null ? null : place.getPlaceId(),
                 request.projectId(),
                 request.attributes()
         );
@@ -80,7 +83,7 @@ public class SessionService {
         Hobby hobby = resolveAllowedHobby(user.id(), request.hobbyId());
         hobbyAttributeTemplateService.validateAttributes(user.id(), hobby.getId(), request.attributes());
         validateProjectOwnership(request.projectId(), user.id());
-        validatePlace(request.location());
+        PlaceReference place = resolvePlace(request.location());
         Set<EquipmentReference> equipment = resolveEquipment(request.equipmentIds(), user.id());
 
         session.update(
@@ -90,7 +93,7 @@ public class SessionService {
                 request.durationMinutes(),
                 request.notes(),
                 request.satisfaction(),
-                request.location() == null ? null : request.location().placeId(),
+                place == null ? null : place.getPlaceId(),
                 request.projectId(),
                 request.attributes()
         );
@@ -141,10 +144,11 @@ public class SessionService {
         }
     }
 
-    private void validatePlace(SessionLocationRequest location) {
-        if (location != null && !placeReferenceRepository.existsById(location.placeId())) {
-            throw new IllegalArgumentException("Place is not available in cache yet.");
+    private PlaceReference resolvePlace(SessionLocationRequest location) {
+        if (location == null) {
+            return null;
         }
+        return placeResolutionService.resolveOrCreate(location.placeId());
     }
 
     private Set<EquipmentReference> resolveEquipment(List<UUID> requestedIds, String userId) {

@@ -8,12 +8,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SessionRecordRepository extends JpaRepository<SessionRecord, UUID> {
 
-    @EntityGraph(attributePaths = {"hobby", "hobby.category", "photos", "equipment"})
+    @EntityGraph(attributePaths = {"hobby", "hobby.category", "photos", "equipment", "place"})
     List<SessionRecord> findAllByUserIdOrderByStartedAtDesc(String userId);
 
-    @EntityGraph(attributePaths = {"hobby", "hobby.category", "photos", "equipment"})
+    @EntityGraph(attributePaths = {"hobby", "hobby.category", "photos", "equipment", "place"})
     List<SessionRecord> findAllByUserIdAndHobbyIdOrderByStartedAtDesc(String userId, UUID hobbyId);
 
-    @EntityGraph(attributePaths = {"hobby", "hobby.category", "photos", "equipment"})
+    @EntityGraph(attributePaths = {"hobby", "hobby.category", "photos", "equipment", "place"})
     Optional<SessionRecord> findByIdAndUserId(UUID id, String userId);
 }

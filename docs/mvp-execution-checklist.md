@@ -20,7 +20,7 @@
 - [x] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
 - [x] Usuário consegue manter backlog/Kanban por hobby e vincular sessão a item/projeto quando aplicável.
 - [ ] Sessão aceita fotos por fluxo de presigned URL direto para R2, sem binário via backend.
-- [ ] Sessão aceita `place_id`; backend resolve e persiste localização sem confiar em coordenadas do client.
+- [x] Sessão aceita `place_id`; backend resolve e persiste localização sem confiar em coordenadas do client.
 - [ ] Sistema calcula ou expõe streak de constância no escopo do MVP.
 - [ ] Base mínima de segurança, backup, monitoramento e deploy local está operacional.
 - [ ] Tudo essencial do MVP está coberto por testes suficientes para evoluir sem quebrar regra central do produto.
@@ -177,13 +177,13 @@
 
 ## 9. Localização
 
-- [ ] Implementar recebimento de `place_id` vindo do client.
-- [ ] Integrar com Google Place Details usando apenas Essentials FieldMask.
-- [ ] Implementar cache em `places`.
-  - [ ] Reutilizar lugar já resolvido.
-  - [ ] Persistir `place_id`, `name`, `lat`, `lng`.
-- [ ] Garantir que o backend ignore/rejeite coordenadas enviadas pelo client.
-- [ ] Definir representação de localização nas APIs de sessão.
+- [x] Implementar recebimento de `place_id` vindo do client.
+- [x] Integrar com Google Place Details usando apenas Essentials FieldMask.
+- [x] Implementar cache em `places`.
+  - [x] Reutilizar lugar já resolvido.
+  - [x] Persistir `place_id`, `name`, `lat`, `lng`.
+- [x] Garantir que o backend ignore/rejeite coordenadas enviadas pelo client.
+- [x] Definir representação de localização nas APIs de sessão.
 
 ## 10. Streak
 

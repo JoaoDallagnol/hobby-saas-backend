@@ -63,7 +63,10 @@ class SessionServiceTest {
                         hobbies.asRepository(),
                         userHobbies.asRepository(),
                         templateRepository.asRepository()
-                )
+                ),
+                new PlaceResolutionService(placeRepository.asRepository(), placeId -> {
+                    throw new UnsupportedOperationException("Should not fetch uncached place in this test.");
+                })
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -131,7 +134,10 @@ class SessionServiceTest {
                         hobbies.asRepository(),
                         userHobbies.asRepository(),
                         templateRepository.asRepository()
-                )
+                ),
+                new PlaceResolutionService(new InMemoryPlaceReferenceRepository().asRepository(), placeId -> {
+                    throw new UnsupportedOperationException("No place resolution expected.");
+                })
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -178,7 +184,10 @@ class SessionServiceTest {
                         hobbies.asRepository(),
                         userHobbies.asRepository(),
                         templateRepository.asRepository()
-                )
+                ),
+                new PlaceResolutionService(new InMemoryPlaceReferenceRepository().asRepository(), placeId -> {
+                    throw new UnsupportedOperationException("No place resolution expected.");
+                })
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -223,7 +232,10 @@ class SessionServiceTest {
                         hobbies.asRepository(),
                         userHobbies.asRepository(),
                         templateRepository.asRepository()
-                )
+                ),
+                new PlaceResolutionService(new InMemoryPlaceReferenceRepository().asRepository(), placeId -> {
+                    throw new UnsupportedOperationException("No place resolution expected.");
+                })
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -268,7 +280,10 @@ class SessionServiceTest {
                         hobbies.asRepository(),
                         userHobbies.asRepository(),
                         templateRepository.asRepository()
-                )
+                ),
+                new PlaceResolutionService(new InMemoryPlaceReferenceRepository().asRepository(), placeId -> {
+                    throw new UnsupportedOperationException("No place resolution expected.");
+                })
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -436,10 +451,15 @@ class SessionServiceTest {
     }
 
     private static final class InMemoryPlaceReferenceRepository {
-        private final Set<String> placeIds = new LinkedHashSet<>();
+        private final Map<String, PlaceReference> storage = new HashMap<>();
 
         void add(String placeId) {
-            placeIds.add(placeId);
+            storage.put(placeId, new PlaceReference(
+                    placeId,
+                    "Central Park",
+                    java.math.BigDecimal.valueOf(-23.550520),
+                    java.math.BigDecimal.valueOf(-46.633308)
+            ));
         }
 
         PlaceReferenceRepository asRepository() {
@@ -447,7 +467,13 @@ class SessionServiceTest {
                     PlaceReferenceRepository.class.getClassLoader(),
                     new Class<?>[]{PlaceReferenceRepository.class},
                     (proxy, method, args) -> switch (method.getName()) {
-                        case "existsById" -> placeIds.contains(args[0]);
+                        case "existsById" -> storage.containsKey(args[0]);
+                        case "findById" -> Optional.ofNullable(storage.get(args[0]));
+                        case "save" -> {
+                            PlaceReference place = (PlaceReference) args[0];
+                            storage.put(place.getPlaceId(), place);
+                            yield place;
+                        }
                         case "equals" -> proxy == args[0];
                         case "hashCode" -> System.identityHashCode(proxy);
                         case "toString" -> "InMemoryPlaceReferenceRepository";

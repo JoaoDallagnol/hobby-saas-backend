@@ -30,7 +30,12 @@ public record SessionResponse(
                 session.getDurationMinutes(),
                 session.getNotes(),
                 session.getSatisfaction(),
-                session.getPlaceId() == null ? null : new SessionLocationResponse(session.getPlaceId()),
+                session.getPlaceId() == null ? null : new SessionLocationResponse(
+                        session.getPlaceId(),
+                        session.getPlace() == null ? null : session.getPlace().getName(),
+                        session.getPlace() == null ? null : session.getPlace().getLat(),
+                        session.getPlace() == null ? null : session.getPlace().getLng()
+                ),
                 session.getProjectId(),
                 session.getEquipment().stream().map(EquipmentReference::getId).toList(),
                 session.getPhotos().stream().map(SessionPhotoResponse::from).toList(),
