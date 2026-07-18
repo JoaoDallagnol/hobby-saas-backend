@@ -40,6 +40,7 @@ class SessionServiceTest {
         InMemoryEquipmentReferenceRepository equipmentRepository = new InMemoryEquipmentReferenceRepository();
         InMemoryBacklogItemReferenceRepository backlogRepository = new InMemoryBacklogItemReferenceRepository();
         InMemoryPlaceReferenceRepository placeRepository = new InMemoryPlaceReferenceRepository();
+        InMemoryHobbyAttributeTemplateRepository templateRepository = new InMemoryHobbyAttributeTemplateRepository();
 
         UUID hobbyId = UUID.fromString("1f1f49ea-6b5d-4c2e-9ce7-3e621f081001");
         Hobby hobby = hobbies.createHobby(hobbyId, "Running", "Sports & Movement");
@@ -47,6 +48,7 @@ class SessionServiceTest {
         EquipmentReference equipment = equipmentRepository.create("firebase-user-1");
         UUID projectId = backlogRepository.create("firebase-user-1");
         placeRepository.add("place-123");
+        templateRepository.add(hobby, UUID.fromString("2f1f49ea-6b5d-4c2e-9ce7-3e621f081001"), "distance_km", "Distance", "number", "km", 1);
 
         SessionService service = new SessionService(
                 new AuthenticatedUserExtractor(),
@@ -55,7 +57,13 @@ class SessionServiceTest {
                 userHobbies.asRepository(),
                 equipmentRepository.asRepository(),
                 backlogRepository.asRepository(),
-                placeRepository.asRepository()
+                placeRepository.asRepository(),
+                new HobbyAttributeTemplateService(
+                        new AuthenticatedUserExtractor(),
+                        hobbies.asRepository(),
+                        userHobbies.asRepository(),
+                        templateRepository.asRepository()
+                )
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -105,6 +113,8 @@ class SessionServiceTest {
     void shouldRejectSessionForHobbyOutsideUserProfile() {
         InMemorySessionRecordRepository sessions = new InMemorySessionRecordRepository();
         InMemoryHobbyRepository hobbies = new InMemoryHobbyRepository();
+        InMemoryUserHobbyRepository userHobbies = new InMemoryUserHobbyRepository();
+        InMemoryHobbyAttributeTemplateRepository templateRepository = new InMemoryHobbyAttributeTemplateRepository();
         UUID hobbyId = UUID.fromString("1f1f49ea-6b5d-4c2e-9ce7-3e621f081001");
         hobbies.createHobby(hobbyId, "Running", "Sports & Movement");
 
@@ -112,10 +122,16 @@ class SessionServiceTest {
                 new AuthenticatedUserExtractor(),
                 sessions.asRepository(),
                 hobbies.asRepository(),
-                new InMemoryUserHobbyRepository().asRepository(),
+                userHobbies.asRepository(),
                 new InMemoryEquipmentReferenceRepository().asRepository(),
                 new InMemoryBacklogItemReferenceRepository().asRepository(),
-                new InMemoryPlaceReferenceRepository().asRepository()
+                new InMemoryPlaceReferenceRepository().asRepository(),
+                new HobbyAttributeTemplateService(
+                        new AuthenticatedUserExtractor(),
+                        hobbies.asRepository(),
+                        userHobbies.asRepository(),
+                        templateRepository.asRepository()
+                )
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -141,11 +157,13 @@ class SessionServiceTest {
         InMemoryHobbyRepository hobbies = new InMemoryHobbyRepository();
         InMemoryUserHobbyRepository userHobbies = new InMemoryUserHobbyRepository();
         InMemoryEquipmentReferenceRepository equipmentRepository = new InMemoryEquipmentReferenceRepository();
+        InMemoryHobbyAttributeTemplateRepository templateRepository = new InMemoryHobbyAttributeTemplateRepository();
 
         UUID hobbyId = UUID.fromString("1f1f49ea-6b5d-4c2e-9ce7-3e621f081001");
-        hobbies.createHobby(hobbyId, "Running", "Sports & Movement");
+        Hobby hobby = hobbies.createHobby(hobbyId, "Running", "Sports & Movement");
         userHobbies.link("firebase-user-1", hobbyId);
         EquipmentReference equipment = equipmentRepository.create("other-user");
+        templateRepository.add(hobby, UUID.fromString("2f1f49ea-6b5d-4c2e-9ce7-3e621f081001"), "distance_km", "Distance", "number", "km", 1);
 
         SessionService service = new SessionService(
                 new AuthenticatedUserExtractor(),
@@ -154,7 +172,13 @@ class SessionServiceTest {
                 userHobbies.asRepository(),
                 equipmentRepository.asRepository(),
                 new InMemoryBacklogItemReferenceRepository().asRepository(),
-                new InMemoryPlaceReferenceRepository().asRepository()
+                new InMemoryPlaceReferenceRepository().asRepository(),
+                new HobbyAttributeTemplateService(
+                        new AuthenticatedUserExtractor(),
+                        hobbies.asRepository(),
+                        userHobbies.asRepository(),
+                        templateRepository.asRepository()
+                )
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -172,6 +196,96 @@ class SessionServiceTest {
                 null
         ))).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("equipment ids are invalid");
+    }
+
+    @Test
+    void shouldRejectAttributeKeyOutsideHobbyTemplate() {
+        InMemorySessionRecordRepository sessions = new InMemorySessionRecordRepository();
+        InMemoryHobbyRepository hobbies = new InMemoryHobbyRepository();
+        InMemoryUserHobbyRepository userHobbies = new InMemoryUserHobbyRepository();
+        InMemoryHobbyAttributeTemplateRepository templateRepository = new InMemoryHobbyAttributeTemplateRepository();
+
+        UUID hobbyId = UUID.fromString("1f1f49ea-6b5d-4c2e-9ce7-3e621f081001");
+        Hobby hobby = hobbies.createHobby(hobbyId, "Running", "Sports & Movement");
+        userHobbies.link("firebase-user-1", hobbyId);
+        templateRepository.add(hobby, UUID.fromString("2f1f49ea-6b5d-4c2e-9ce7-3e621f081001"), "distance_km", "Distance", "number", "km", 1);
+
+        SessionService service = new SessionService(
+                new AuthenticatedUserExtractor(),
+                sessions.asRepository(),
+                hobbies.asRepository(),
+                userHobbies.asRepository(),
+                new InMemoryEquipmentReferenceRepository().asRepository(),
+                new InMemoryBacklogItemReferenceRepository().asRepository(),
+                new InMemoryPlaceReferenceRepository().asRepository(),
+                new HobbyAttributeTemplateService(
+                        new AuthenticatedUserExtractor(),
+                        hobbies.asRepository(),
+                        userHobbies.asRepository(),
+                        templateRepository.asRepository()
+                )
+        );
+        authenticate("firebase-user-1", "user@example.com", "User");
+
+        assertThatThrownBy(() -> service.createSession(new CreateSessionRequest(
+                hobbyId,
+                "Run",
+                OffsetDateTime.parse("2026-07-18T07:30:00Z"),
+                45,
+                null,
+                4,
+                null,
+                null,
+                null,
+                null,
+                Map.of("pages_read", 12)
+        ))).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not allowed");
+    }
+
+    @Test
+    void shouldRejectAttributeTypeMismatch() {
+        InMemorySessionRecordRepository sessions = new InMemorySessionRecordRepository();
+        InMemoryHobbyRepository hobbies = new InMemoryHobbyRepository();
+        InMemoryUserHobbyRepository userHobbies = new InMemoryUserHobbyRepository();
+        InMemoryHobbyAttributeTemplateRepository templateRepository = new InMemoryHobbyAttributeTemplateRepository();
+
+        UUID hobbyId = UUID.fromString("1f1f49ea-6b5d-4c2e-9ce7-3e621f081001");
+        Hobby hobby = hobbies.createHobby(hobbyId, "Running", "Sports & Movement");
+        userHobbies.link("firebase-user-1", hobbyId);
+        templateRepository.add(hobby, UUID.fromString("2f1f49ea-6b5d-4c2e-9ce7-3e621f081001"), "distance_km", "Distance", "number", "km", 1);
+
+        SessionService service = new SessionService(
+                new AuthenticatedUserExtractor(),
+                sessions.asRepository(),
+                hobbies.asRepository(),
+                userHobbies.asRepository(),
+                new InMemoryEquipmentReferenceRepository().asRepository(),
+                new InMemoryBacklogItemReferenceRepository().asRepository(),
+                new InMemoryPlaceReferenceRepository().asRepository(),
+                new HobbyAttributeTemplateService(
+                        new AuthenticatedUserExtractor(),
+                        hobbies.asRepository(),
+                        userHobbies.asRepository(),
+                        templateRepository.asRepository()
+                )
+        );
+        authenticate("firebase-user-1", "user@example.com", "User");
+
+        assertThatThrownBy(() -> service.createSession(new CreateSessionRequest(
+                hobbyId,
+                "Run",
+                OffsetDateTime.parse("2026-07-18T07:30:00Z"),
+                45,
+                null,
+                4,
+                null,
+                null,
+                null,
+                null,
+                Map.of("distance_km", "far")
+        ))).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("invalid type");
     }
 
     private void authenticate(String userId, String email, String name) {
@@ -343,6 +457,31 @@ class SessionServiceTest {
         }
     }
 
+    private static final class InMemoryHobbyAttributeTemplateRepository {
+        private final List<HobbyAttributeTemplate> storage = new ArrayList<>();
+
+        void add(Hobby hobby, UUID id, String key, String label, String type, String unit, int displayOrder) {
+            storage.add(ReflectionFactory.createTemplate(id, hobby, key, label, type, unit, displayOrder));
+        }
+
+        HobbyAttributeTemplateRepository asRepository() {
+            return (HobbyAttributeTemplateRepository) Proxy.newProxyInstance(
+                    HobbyAttributeTemplateRepository.class.getClassLoader(),
+                    new Class<?>[]{HobbyAttributeTemplateRepository.class},
+                    (proxy, method, args) -> switch (method.getName()) {
+                        case "findAllByHobbyIdOrderByDisplayOrderAsc" -> storage.stream()
+                                .filter(item -> item.getHobby().getId().equals(args[0]))
+                                .sorted(Comparator.comparing(HobbyAttributeTemplate::getDisplayOrder))
+                                .toList();
+                        case "equals" -> proxy == args[0];
+                        case "hashCode" -> System.identityHashCode(proxy);
+                        case "toString" -> "InMemoryHobbyAttributeTemplateRepository";
+                        default -> throw new UnsupportedOperationException(method.getName());
+                    }
+            );
+        }
+    }
+
     private static final class ReflectionFactory {
         static HobbyCategory createHobbyCategory(UUID id, String name) {
             try {
@@ -393,6 +532,24 @@ class SessionServiceTest {
                 setField(BacklogItemReference.class, item, "id", id);
                 setField(BacklogItemReference.class, item, "userId", userId);
                 return item;
+            } catch (Exception ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+
+        static HobbyAttributeTemplate createTemplate(UUID id, Hobby hobby, String key, String label, String type, String unit, int displayOrder) {
+            try {
+                var constructor = HobbyAttributeTemplate.class.getDeclaredConstructor();
+                constructor.setAccessible(true);
+                HobbyAttributeTemplate template = constructor.newInstance();
+                setField(HobbyAttributeTemplate.class, template, "id", id);
+                setField(HobbyAttributeTemplate.class, template, "hobby", hobby);
+                setField(HobbyAttributeTemplate.class, template, "key", key);
+                setField(HobbyAttributeTemplate.class, template, "label", label);
+                setField(HobbyAttributeTemplate.class, template, "type", type);
+                setField(HobbyAttributeTemplate.class, template, "unit", unit);
+                setField(HobbyAttributeTemplate.class, template, "displayOrder", displayOrder);
+                return template;
             } catch (Exception ex) {
                 throw new IllegalStateException(ex);
             }

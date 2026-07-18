@@ -4,6 +4,7 @@ import io.github.joaodallagnol.backend.auth.FirebaseTokenVerifier;
 import io.github.joaodallagnol.backend.auth.FirebaseVerifiedToken;
 import io.github.joaodallagnol.backend.session.BacklogItemReferenceRepository;
 import io.github.joaodallagnol.backend.session.EquipmentReferenceRepository;
+import io.github.joaodallagnol.backend.session.HobbyAttributeTemplateRepository;
 import io.github.joaodallagnol.backend.session.PlaceReferenceRepository;
 import io.github.joaodallagnol.backend.session.SessionRecordRepository;
 import io.github.joaodallagnol.backend.user.HobbyRepository;
@@ -146,6 +147,22 @@ class BackendApplicationTests {
 						case "equals" -> proxy == args[0];
 						case "hashCode" -> System.identityHashCode(proxy);
 						case "toString" -> "TestPlaceReferenceRepository";
+						default -> throw new UnsupportedOperationException("Method not supported in test: " + method.getName());
+					}
+			);
+		}
+
+		@Bean
+		@Primary
+		HobbyAttributeTemplateRepository hobbyAttributeTemplateRepository() {
+			return (HobbyAttributeTemplateRepository) Proxy.newProxyInstance(
+					HobbyAttributeTemplateRepository.class.getClassLoader(),
+					new Class<?>[]{HobbyAttributeTemplateRepository.class},
+					(proxy, method, args) -> switch (method.getName()) {
+						case "findAllByHobbyIdOrderByDisplayOrderAsc" -> List.of();
+						case "equals" -> proxy == args[0];
+						case "hashCode" -> System.identityHashCode(proxy);
+						case "toString" -> "TestHobbyAttributeTemplateRepository";
 						default -> throw new UnsupportedOperationException("Method not supported in test: " + method.getName());
 					}
 			);

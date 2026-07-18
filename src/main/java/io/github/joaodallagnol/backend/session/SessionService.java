@@ -24,6 +24,7 @@ public class SessionService {
     private final EquipmentReferenceRepository equipmentReferenceRepository;
     private final BacklogItemReferenceRepository backlogItemReferenceRepository;
     private final PlaceReferenceRepository placeReferenceRepository;
+    private final HobbyAttributeTemplateService hobbyAttributeTemplateService;
 
     public SessionService(
             AuthenticatedUserExtractor authenticatedUserExtractor,
@@ -32,7 +33,8 @@ public class SessionService {
             UserHobbyRepository userHobbyRepository,
             EquipmentReferenceRepository equipmentReferenceRepository,
             BacklogItemReferenceRepository backlogItemReferenceRepository,
-            PlaceReferenceRepository placeReferenceRepository
+            PlaceReferenceRepository placeReferenceRepository,
+            HobbyAttributeTemplateService hobbyAttributeTemplateService
     ) {
         this.authenticatedUserExtractor = authenticatedUserExtractor;
         this.sessionRecordRepository = sessionRecordRepository;
@@ -41,12 +43,14 @@ public class SessionService {
         this.equipmentReferenceRepository = equipmentReferenceRepository;
         this.backlogItemReferenceRepository = backlogItemReferenceRepository;
         this.placeReferenceRepository = placeReferenceRepository;
+        this.hobbyAttributeTemplateService = hobbyAttributeTemplateService;
     }
 
     @Transactional
     public SessionResponse createSession(CreateSessionRequest request) {
         AuthenticatedUser user = getAuthenticatedUser();
         Hobby hobby = resolveAllowedHobby(user.id(), request.hobbyId());
+        hobbyAttributeTemplateService.validateAttributes(user.id(), hobby.getId(), request.attributes());
         validateProjectOwnership(request.projectId(), user.id());
         validatePlace(request.location());
         Set<EquipmentReference> equipment = resolveEquipment(request.equipmentIds(), user.id());
@@ -74,6 +78,7 @@ public class SessionService {
         AuthenticatedUser user = getAuthenticatedUser();
         SessionRecord session = getOwnedSession(sessionId, user.id());
         Hobby hobby = resolveAllowedHobby(user.id(), request.hobbyId());
+        hobbyAttributeTemplateService.validateAttributes(user.id(), hobby.getId(), request.attributes());
         validateProjectOwnership(request.projectId(), user.id());
         validatePlace(request.location());
         Set<EquipmentReference> equipment = resolveEquipment(request.equipmentIds(), user.id());

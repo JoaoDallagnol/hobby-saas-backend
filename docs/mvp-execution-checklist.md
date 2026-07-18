@@ -16,7 +16,7 @@
 
 - [ ] Usuário consegue autenticar via Firebase Authentication real e ser provisionado no banco na primeira request autenticada.
 - [ ] Usuário consegue manter perfil básico e hobbies praticados.
-- [ ] Usuário consegue criar, listar e consultar sessões com atributos fixos e dinâmicos por hobby.
+- [x] Usuário consegue criar, listar e consultar sessões com atributos fixos e dinâmicos por hobby.
 - [x] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
 - [x] Usuário consegue manter backlog/Kanban por hobby e vincular sessão a item/projeto quando aplicável.
 - [ ] Sessão aceita fotos por fluxo de presigned URL direto para R2, sem binário via backend.
@@ -153,13 +153,13 @@
 
 ## 7. Atributos dinâmicos por hobby
 
-- [ ] Implementar leitura de templates por hobby.
-- [ ] Validar `sessions.attributes` contra `hobby_attribute_template`.
-  - [ ] Rejeitar chave inexistente para o hobby.
-  - [ ] Rejeitar tipo incompatível.
+- [x] Implementar leitura de templates por hobby.
+- [x] Validar `sessions.attributes` contra `hobby_attribute_template`.
+  - [x] Rejeitar chave inexistente para o hobby.
+  - [x] Rejeitar tipo incompatível.
   - [ ] Respeitar campos obrigatórios se essa regra existir.
-- [ ] Garantir persistência em JSONB sem abrir exceção para coluna dedicada por hobby.
-- [ ] Cobrir com testes de validação positiva e negativa.
+- [x] Garantir persistência em JSONB sem abrir exceção para coluna dedicada por hobby.
+- [x] Cobrir com testes de validação positiva e negativa.
 
 ## 8. Fotos e storage
 
