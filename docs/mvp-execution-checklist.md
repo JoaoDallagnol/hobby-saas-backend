@@ -202,15 +202,15 @@
 
 - [ ] Garantir que segredos fiquem fora do código.
 - [ ] Definir estratégia de gestão de secrets por ambiente.
-  - [ ] `local`: usar `.env`, variáveis locais ou mecanismo equivalente fora do versionamento.
-  - [ ] `prod`: usar secrets/env vars do servidor sem valor sensível commitado.
-  - [ ] Manter exemplos seguros versionados sem credenciais reais.
-  - [ ] Separar credenciais/projetos Firebase de `dev` e `prod`.
+  - [x] `local`: usar `.env`, variáveis locais ou mecanismo equivalente fora do versionamento.
+  - [x] `prod`: usar secrets/env vars do servidor sem valor sensível commitado.
+  - [x] Manter exemplos seguros versionados sem credenciais reais.
+  - [x] Separar credenciais/projetos Firebase de `dev` e `prod`.
 - [ ] Garantir perfis/configuração por ambiente.
-  - [ ] `application.yaml` base sem secret real.
-  - [ ] `application-local.yaml` para desenvolvimento local.
-  - [ ] `application-prod.yaml` para comportamento de produção.
-  - [ ] Definir claramente quais variáveis são obrigatórias em cada ambiente.
+  - [x] `application.yaml` base sem secret real.
+  - [x] `application-local.yaml` para desenvolvimento local.
+  - [x] `application-prod.yaml` para comportamento de produção.
+  - [x] Definir claramente quais variáveis são obrigatórias em cada ambiente.
 - [ ] Preparar HTTPS/proxy e variáveis esperadas para produção.
 - [ ] Definir estratégia de rate limiting.
   - [ ] Camada de edge/proxy.
@@ -220,18 +220,18 @@
   - [ ] Estratégia de retenção definida.
 - [ ] Documentar restauração mínima do backup.
 - [ ] Mapear cadastros/configurações manuais necessários por plataforma externa.
-  - [ ] Firebase `dev` e `prod`.
-  - [ ] Hostinger/VPS.
-  - [ ] Cloudflare/R2.
-  - [ ] Google Places.
+  - [x] Firebase `dev` e `prod`.
+  - [x] Hostinger/VPS.
+  - [x] Cloudflare/R2.
+  - [x] Google Places.
   - [ ] Stores mobile quando entrarem no escopo.
 - [ ] Se e-mail transacional próprio entrar no MVP técnico, configurar Brevo com domínio e autenticação de envio.
 - [ ] Criar baseline de revisão de segurança para mudanças novas.
-  - [ ] Verificar autenticação e autorização por recurso em cada endpoint novo.
-  - [ ] Verificar validação de input e tratamento seguro de erro.
-  - [ ] Verificar ausência de segredo hardcoded ou log sensível.
-  - [ ] Verificar exposição indevida de dados, IDOR/BOLA e confiança excessiva em payload do client.
-  - [ ] Verificar CORS, headers e comportamento de produção conforme necessidade real.
+  - [x] Verificar autenticação e autorização por recurso em cada endpoint novo.
+  - [x] Verificar validação de input e tratamento seguro de erro.
+  - [x] Verificar ausência de segredo hardcoded ou log sensível.
+  - [x] Verificar exposição indevida de dados, IDOR/BOLA e confiança excessiva em payload do client.
+  - [x] Verificar CORS, headers e comportamento de produção conforme necessidade real.
 
 ## 12. Testes
 

@@ -32,6 +32,78 @@
 - Mobile: token em Keychain/Keystore nativo; API key do Google Places restrita por package/bundle ID + assinatura; nenhum segredo real embutido no app.
 - 🔵 Certificate pinning e detecção de root/jailbreak: não agora.
 
+## Configuração por ambiente 🟢
+
+- Perfis mínimos obrigatórios: `local` e `prod`.
+- `application.yaml` fica como base neutra, sem segredo real.
+- `application-local.yaml` suporta desenvolvimento local, com defaults seguros e integrações opcionais temporariamente vazias.
+- `application-prod.yaml` assume variáveis obrigatórias para produção e não deve depender de fallback inseguro.
+- OpenAPI/Swagger:
+  - `local`: habilitado por padrão (`SPRINGDOC_ENABLED=true`).
+  - `prod`: desabilitado por padrão (`SPRINGDOC_ENABLED=false`) e só exposto quando houver necessidade explícita.
+- Nunca usar a mesma credencial/projeto Firebase, R2 ou Google Places entre `dev` e `prod`.
+- Nenhum secret, JSON de service account, token, private key ou senha deve ser commitado em `.env`, compose, código, docs ou examples com valor real.
+
+### Variáveis de ambiente por tipo
+
+#### Base local
+
+- `SPRING_PROFILES_ACTIVE=local`
+- `SPRINGDOC_ENABLED=true`
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `CORS_ALLOWED_ORIGINS`
+
+#### Integrações opcionais enquanto o backend central evolui
+
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_SERVICE_ACCOUNT_JSON_BASE64` ou `FIREBASE_SERVICE_ACCOUNT_PATH`
+- `R2_ENDPOINT`
+- `R2_BUCKET`
+- `R2_ACCESS_KEY`
+- `R2_SECRET_KEY`
+- `GOOGLE_PLACES_API_KEY`
+- `SENTRY_DSN`
+- `BREVO_SMTP_USERNAME`
+- `BREVO_SMTP_PASSWORD`
+
+#### Produção mínima
+
+- `SPRING_PROFILES_ACTIVE=prod`
+- `SPRINGDOC_ENABLED=false`
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `CORS_ALLOWED_ORIGINS`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_SERVICE_ACCOUNT_JSON_BASE64` ou `FIREBASE_SERVICE_ACCOUNT_PATH`
+
+#### Produção quando a feature correspondente estiver ativa
+
+- Fotos R2: `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`
+- Localização Google Places: `GOOGLE_PLACES_API_KEY`
+- Erros em produção: `SENTRY_DSN`
+- E-mail transacional próprio: `BREVO_SMTP_USERNAME`, `BREVO_SMTP_PASSWORD`
+
+## Gestão de secrets 🟢
+
+- `local`:
+  - usar shell local, `.env` não versionado ou mecanismo equivalente fora do git;
+  - manter `.env.example` só com placeholders;
+  - se precisar service account do Firebase, preferir arquivo local fora do repositório ou variável base64 injetada só no ambiente do dev.
+- `prod`:
+  - usar env vars do servidor/compose final ou secret file fora do repositório;
+  - restringir acesso aos secrets ao menor conjunto de usuários/processos possível;
+  - separar credenciais por ambiente e por serviço;
+  - preparar rotação sem alteração de código.
+- Logs e erros:
+  - não logar bearer token, API key, DSN com credencial, senha SMTP, segredo R2 ou JSON completo de service account;
+  - erros devem falhar de forma segura sem despejar config sensível na resposta HTTP.
+
 ## E-mail transacional 🟢
 
 - **Brevo**: 300 e-mails/dia, free permanente, sem cartão.
@@ -74,6 +146,38 @@
   - Projeto Google Places com billing habilitado e chaves restritas.
   - Contas de loja mobile (Google Play e Apple) quando publicação virar escopo.
 - Não assumir que cadastro externo já existe só porque a integração está documentada.
+
+### Checklist operacional de cadastro/configuração
+
+#### Firebase Authentication
+
+- criar projeto `dev` e projeto `prod`;
+- habilitar método(s) de login necessários;
+- gerar service account para o backend;
+- registrar apps clientes quando mobile/web real entrarem no fluxo;
+- guardar `project_id` e credencial fora do git.
+
+#### Hostinger / VPS
+
+- provisionar VPS final;
+- configurar acesso SSH seguro;
+- instalar Docker e Docker Compose plugin;
+- configurar firewall e HTTPS reverso antes de expor produção publicamente;
+- definir onde as env vars/secrets de produção ficarão armazenadas.
+
+#### Cloudflare / R2
+
+- criar conta e zona DNS do domínio quando o nome do app fechar;
+- criar bucket R2 separado por ambiente ou política equivalente de isolamento;
+- gerar credenciais com menor privilégio possível;
+- configurar domínio público/CDN das imagens só quando o fluxo de exibição estiver pronto.
+
+#### Google Places
+
+- criar projeto com billing habilitado;
+- ativar Places API necessária;
+- restringir chave por uso e revisar escopo;
+- manter chave separada por ambiente se necessário.
 
 ## Domínio/DNS ⚠️ pendente (nome do app não decidido)
 
