@@ -21,7 +21,7 @@
 - [x] Usuário consegue manter backlog/Kanban por hobby e vincular sessão a item/projeto quando aplicável.
 - [x] Sessão aceita fotos por fluxo de presigned URL direto para R2, sem binário via backend.
 - [x] Sessão aceita `place_id`; backend resolve e persiste localização sem confiar em coordenadas do client.
-- [ ] Sistema calcula ou expõe streak de constância no escopo do MVP.
+- [x] Sistema calcula ou expõe streak de constância no escopo do MVP.
 - [ ] Base mínima de segurança, backup, monitoramento e deploy local está operacional.
 - [ ] Tudo essencial do MVP está coberto por testes suficientes para evoluir sem quebrar regra central do produto.
 
@@ -187,16 +187,16 @@
 
 ## 10. Streak
 
-- [ ] Definir regra de negócio exata do streak do MVP.
-  - [ ] Diário corrido.
+- [x] Definir regra de negócio exata do streak do MVP.
+  - [x] Diário corrido.
   - [ ] Por hobby.
   - [ ] Regra híbrida.
-- [ ] Implementar cálculo de streak.
-  - [ ] Regra para dias sem sessão.
-  - [ ] Regra para múltiplas sessões no mesmo dia.
-  - [ ] Timezone de referência.
-- [ ] Expor streak na API adequada.
-- [ ] Cobrir edge cases em testes.
+- [x] Implementar cálculo de streak.
+  - [x] Regra para dias sem sessão.
+  - [x] Regra para múltiplas sessões no mesmo dia.
+  - [x] Timezone de referência.
+- [x] Expor streak na API adequada.
+- [x] Cobrir edge cases em testes.
 
 ## 11. Segurança e operação mínima
 

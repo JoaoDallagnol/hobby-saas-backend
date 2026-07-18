@@ -14,7 +14,7 @@ O **Registro de Sessões**, ou tracker, é a funcionalidade central do app: um b
 
 Os **atributos dinâmicos por hobby** são o que evita o app parecer raso demais comparado a um app especializado: em vez de todo hobby usar os mesmos campos genéricos, cada tipo de hobby pode ter campos extras próprios — corrida ganha um campo de distância, leitura ganha um campo de páginas lidas, marcenaria ganha um campo de material usado, e assim por diante. Isso é o que dá ao app profundidade equivalente à de um app nichado, sem abrir mão de cobrir qualquer hobby.
 
-O **streak de constância** é um contador de dias seguidos em que o usuário registrou qualquer atividade, independente de qual hobby — é uma mecânica de hábito pura, que não depende de nenhum outro usuário do app, e serve como o principal gatilho de retorno diário.
+O **streak de constância** é um contador de dias seguidos em que o usuário registrou qualquer atividade, independente de qual hobby — é uma mecânica de hábito pura, que não depende de nenhum outro usuário do app, e serve como o principal gatilho de retorno diário. No MVP, o streak é **global** (não por hobby), conta **dias únicos** de atividade e usa **UTC como referência**, porque o produto ainda não tem timezone do usuário no modelo.
 
 A **biblioteca de equipamentos** permite ao usuário cadastrar os itens que usa em cada hobby — uma câmera, um par de tênis de corrida, um kit de pincéis — e associar esses itens às sessões em que foram usados. Isso não depende de nenhum outro usuário do app e por isso entra já no MVP, junto com o restante.
 
