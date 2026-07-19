@@ -182,6 +182,11 @@ public class SessionRecord {
         this.attributes = attributes;
     }
 
+    public void assignPlace(PlaceReference place) {
+        this.place = place;
+        this.placeId = place == null ? null : place.getPlaceId();
+    }
+
     public void replaceEquipment(Set<EquipmentReference> equipment) {
         this.equipment.clear();
         this.equipment.addAll(equipment);

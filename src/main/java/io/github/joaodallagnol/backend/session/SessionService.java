@@ -70,6 +70,7 @@ public class SessionService {
                 request.projectId(),
                 request.attributes()
         );
+        session.assignPlace(place);
         session.replaceEquipment(equipment);
         session.replacePhotos(extractPhotoKeys(request.photos()));
 
@@ -97,6 +98,7 @@ public class SessionService {
                 request.projectId(),
                 request.attributes()
         );
+        session.assignPlace(place);
         session.replaceEquipment(equipment);
         session.replacePhotos(extractPhotoKeys(request.photos()));
 

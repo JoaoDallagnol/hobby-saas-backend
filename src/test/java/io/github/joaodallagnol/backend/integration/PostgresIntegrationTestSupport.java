@@ -2,6 +2,9 @@ package io.github.joaodallagnol.backend.integration;
 
 import io.github.joaodallagnol.backend.auth.FirebaseTokenVerifier;
 import io.github.joaodallagnol.backend.auth.FirebaseVerifiedToken;
+import io.github.joaodallagnol.backend.session.GooglePlaceDetailsClient;
+import io.github.joaodallagnol.backend.session.ResolvedPlace;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -59,8 +62,20 @@ public abstract class PostgresIntegrationTestSupport {
             return idToken -> switch (idToken) {
                 case "valid-token" -> new FirebaseVerifiedToken("test-user", "user@example.com", "Example User", true);
                 case "other-user-token" -> new FirebaseVerifiedToken("other-user", "other@example.com", "Other User", true);
+                case "jit-token" -> new FirebaseVerifiedToken("jit-user", "jit@example.com", "Jit User", true);
                 default -> throw new IllegalArgumentException("Token is invalid.");
             };
+        }
+
+        @Bean
+        @Primary
+        GooglePlaceDetailsClient googlePlaceDetailsClient() {
+            return placeId -> new ResolvedPlace(
+                    placeId,
+                    "Resolved " + placeId,
+                    BigDecimal.valueOf(-23.550520),
+                    BigDecimal.valueOf(-46.633308)
+            );
         }
     }
 }

@@ -241,8 +241,8 @@
   - [x] Usuário não acessa recurso de outro usuário.
   - [x] JWT inválido/ausente falha corretamente.
 - [ ] Testes de validação de atributos dinâmicos.
-- [ ] Testes do fluxo de provisionamento JIT.
-- [ ] Testes do fluxo de localização.
+- [x] Testes do fluxo de provisionamento JIT.
+- [x] Testes do fluxo de localização.
 - [ ] Testes do contrato das APIs principais.
 
 ## 13. Documentação viva
