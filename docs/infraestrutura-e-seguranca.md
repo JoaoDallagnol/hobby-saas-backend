@@ -132,6 +132,7 @@
   - restringir acesso aos secrets ao menor conjunto de usuários/processos possível;
   - separar credenciais por ambiente e por serviço;
   - preparar rotação sem alteração de código.
+  - template operacional versionado: `deploy/production.env.example`; copiar para path fora do git (ex: `/opt/hobby-saas/prod.env`), aplicar permissão restrita (`chmod 600`) e subir o compose com `--env-file`.
 - Logs e erros:
   - não logar bearer token, API key, DSN com credencial, senha SMTP, segredo R2 ou JSON completo de service account;
   - erros devem falhar de forma segura sem despejar config sensível na resposta HTTP.
