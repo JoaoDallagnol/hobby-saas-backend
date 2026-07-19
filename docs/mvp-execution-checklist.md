@@ -236,7 +236,7 @@
 ## 12. Testes
 
 - [ ] Testes unitários para regras de domínio críticas.
-- [ ] Testes de integração com Postgres real via Testcontainers.
+- [x] Testes de integração com Postgres real via Testcontainers.
 - [x] Testes de segurança/autorização.
   - [x] Usuário não acessa recurso de outro usuário.
   - [x] JWT inválido/ausente falha corretamente.

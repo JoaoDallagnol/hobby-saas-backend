@@ -40,7 +40,7 @@
 
 ## Testes
 - `spring-boot-starter-test` (JUnit 5, Mockito, AssertJ)
-- `testcontainers` (+ Postgres) — testes de integração com banco real.
+- `testcontainers-junit-jupiter` + `testcontainers-postgresql` ✅ — testes de integração com Postgres real via Docker/Testcontainers.
 - Mock/stub de autenticação: simular claims/token validado do Firebase nos testes; não subir provedor real de auth em teste automatizado.
 - Em `local`, auth controlada de desenvolvimento é aceitável temporariamente para avançar domínio/API antes da integração real com Firebase dev estar concluída.
 
