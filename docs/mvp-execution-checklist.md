@@ -63,9 +63,9 @@
   - [x] PKs e FKs alinhadas ao dicionário de dados.
   - [x] Unicidade/composição necessária em `user_hobbies` e tabelas de junção.
   - [x] Índices em chaves de busca frequente (`user_id`, `hobby_id`, `started_at`, `place_id`).
-- [ ] Fechar estratégia de mapeamento de `sessions.attributes` (JSONB).
-  - [ ] Validar se Hibernate resolve nativamente no stack atual.
-  - [ ] Introduzir lib auxiliar só se houver necessidade real.
+- [x] Fechar estratégia de mapeamento de `sessions.attributes` (JSONB).
+  - [x] Validar se Hibernate resolve nativamente no stack atual.
+  - [x] Introduzir lib auxiliar só se houver necessidade real.
 
 ## 3. Seed e catálogo base
 

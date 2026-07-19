@@ -127,6 +127,7 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
 
 - `hobby_attribute_template(id, hobby_id, key, label, type, unit, display_order)` — metadado, define o que existe por hobby.
 - `sessions.attributes` (JSONB) — valores reais, validados contra o template antes de persistir.
+- Implementação atual do backend: Hibernate ORM nativo com `@JdbcTypeCode(SqlTypes.JSON)` sobre `Map<String, Object>` em `SessionRecord`; sem Hypersistence Utils nem outra lib auxiliar neste estágio.
 - Todos os atributos dinâmicos ficam **free tier** (split premium/free foi considerado e descartado).
 - Trade-off aceito: agregação de um atributo específico (ex: soma de `distance_km`) exige extração de JSON em SQL; endereçar com índice de expressão só se virar gargalo.
 

@@ -11,7 +11,7 @@
 ## Banco de dados
 - `spring-boot-starter-data-jpa`, `postgresql` (driver)
 - `flyway-core` ✅ — migração de schema
-- ⚠️ Mapeamento de `sessions.attributes` (JSONB) — confirmar se precisa de lib extra (ex: Hypersistence Utils) ou se Hibernate 6 resolve nativo.
+- `sessions.attributes` em JSONB ✅ — mapeamento atual usa Hibernate ORM nativo com `@JdbcTypeCode(SqlTypes.JSON)` sobre `Map<String, Object>` e coluna `jsonb`; não foi necessária lib auxiliar.
 
 ## Autenticação
 - `spring-boot-starter-security`

@@ -307,6 +307,8 @@ Define quais atributos dinâmicos existem por hobby (Alternativa C).
 | project_id | uuid | sim | `backlog_items.id` | opcional |
 | attributes | jsonb | sim | — | valores dos atributos dinâmicos, validados contra `hobby_attribute_template` |
 
+**Mapeamento atual na aplicação**: `sessions.attributes` está mapeado no backend como `Map<String, Object>` usando Hibernate ORM nativo com `@JdbcTypeCode(SqlTypes.JSON)` e coluna PostgreSQL `jsonb`. Até o estado atual do projeto, esse caminho atende ao MVP sem dependência de lib extra.
+
 #### `session_photos`
 
 | Coluna | Tipo | Nulo | FK | Observação |
