@@ -17,6 +17,110 @@ DB e código: inglês. Tradução (pt-BR e outros): futuro, fora de escopo agora
 | projectId | uuid opcional | ref pro backlog Kanban (mesma entidade) |
 | photos | object[] | só storage keys já enviadas, nunca binário no payload |
 
+## Contrato de API — perfil do hobbista
+
+### Leitura do perfil atual
+
+- `GET /api/me`
+- Retorna o perfil já provisionado do usuário autenticado.
+- Payload de resposta:
+
+```json
+{
+  "id": "firebase-user-123",
+  "email": "user@example.com",
+  "name": "Example User",
+  "emailVerified": true,
+  "bio": "Corro, leio e fotografo.",
+  "createdAt": "2026-07-19T12:00:00Z"
+}
+```
+
+Regras:
+- `id` é sempre o `sub`/`uid` do Firebase Authentication.
+- `email`, `name` e `emailVerified` vêm do registro persistido do usuário provisionado via token válido.
+- `bio` pertence só ao banco do produto e pode ser `null`.
+
+### Atualização do perfil atual
+
+- `PATCH /api/me`
+- Payload de escrita:
+
+```json
+{
+  "name": "Example User",
+  "bio": "Corro, leio e fotografo."
+}
+```
+
+Validações:
+- `name` obrigatório, não pode ser blank.
+- `name` máximo de 255 caracteres.
+- `bio` opcional.
+- `bio` máximo de 2000 caracteres.
+- Implementação faz `trim()` em `name` antes de persistir.
+
+Observação de produto:
+- No estado atual do backend, o usuário pode editar `name` e `bio` no banco do produto.
+- Como o usuário também tem `name` vindo do token do Firebase no provisionamento JIT, qualquer mudança futura nessa política precisa revisar explicitamente sincronização token ↔ perfil para evitar divergência de comportamento/documentação.
+
+### Leitura dos hobbies do perfil
+
+- `GET /api/me/hobbies`
+- Retorna hobbies já associados ao usuário autenticado.
+- Payload de resposta:
+
+```json
+[
+  {
+    "hobbyId": "550e8400-e29b-41d4-a716-446655440000",
+    "hobbyName": "Running",
+    "categoryName": "Sports & Movement",
+    "icon": "shoe",
+    "experienceLevel": "intermediate"
+  }
+]
+```
+
+### Inclusão de hobby no perfil
+
+- `POST /api/me/hobbies`
+- Payload:
+
+```json
+{
+  "hobbyId": "550e8400-e29b-41d4-a716-446655440000",
+  "experienceLevel": "intermediate"
+}
+```
+
+Validações e regras:
+- `hobbyId` obrigatório.
+- `experienceLevel` opcional, máximo de 50 caracteres.
+- Não aceitar hobby duplicado no mesmo perfil.
+- `hobbyId` precisa existir no catálogo oficial.
+
+### Atualização de hobby no perfil
+
+- `PATCH /api/me/hobbies/{hobbyId}`
+- Payload:
+
+```json
+{
+  "experienceLevel": "advanced"
+}
+```
+
+Validações e regras:
+- `experienceLevel` opcional, máximo de 50 caracteres.
+- `hobbyId` precisa já pertencer ao usuário autenticado.
+
+### Remoção de hobby do perfil
+
+- `DELETE /api/me/hobbies/{hobbyId}`
+- Remove o vínculo em `user_hobbies`.
+- Regra atual: se o hobby não pertencer ao usuário autenticado, a operação falha.
+
 ## Atributos dinâmicos por hobby
 
 Modelo: **template + JSON** (não EAV, não coluna própria por atributo).

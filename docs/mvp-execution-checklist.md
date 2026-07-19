@@ -104,10 +104,10 @@
   - [x] Adicionar hobby ao perfil.
   - [x] Remover hobby do perfil.
   - [x] Atualizar `experience_level`.
-- [ ] Definir contrato de API do perfil.
-  - [ ] Payloads de leitura.
-  - [ ] Payloads de escrita.
-  - [ ] Regras de validação.
+- [x] Definir contrato de API do perfil.
+  - [x] Payloads de leitura.
+  - [x] Payloads de escrita.
+  - [x] Regras de validação.
 
 ## 6. Tracker de sessão
 

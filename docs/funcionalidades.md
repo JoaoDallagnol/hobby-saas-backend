@@ -10,6 +10,8 @@ O objetivo dessa fase é validar se as pessoas criam o hábito de registrar seus
 
 O **Perfil do Hobbista** é o espaço onde o usuário lista os hobbies que pratica atualmente, define um nível de experiência em cada um e escreve uma breve biografia sobre si.
 
+No MVP atual de backend, esse perfil é exposto por um contrato simples: leitura do perfil atual, edição de `name` e `bio`, leitura dos hobbies vinculados, inclusão de hobby no perfil, atualização de `experience_level` e remoção do vínculo com hobby. O escopo continua estritamente individual — nada de comparação entre perfis, descoberta ou estatística social nesta fase.
+
 O **Registro de Sessões**, ou tracker, é a funcionalidade central do app: um botão simples para iniciar um cronômetro durante a prática de um hobby, ou registrar manualmente uma atividade que já aconteceu. Cada sessão tem título, data, tempo gasto, foto e um campo de notas em texto livre — esse campo de notas também absorve o que originalmente seria um "diário de reflexão" separado, permitindo que o usuário escreva o que aprendeu ou o que pretende tentar diferente da próxima vez, sem ter dois campos parecidos competindo pela atenção.
 
 Os **atributos dinâmicos por hobby** são o que evita o app parecer raso demais comparado a um app especializado: em vez de todo hobby usar os mesmos campos genéricos, cada tipo de hobby pode ter campos extras próprios — corrida ganha um campo de distância, leitura ganha um campo de páginas lidas, marcenaria ganha um campo de material usado, e assim por diante. Isso é o que dá ao app profundidade equivalente à de um app nichado, sem abrir mão de cobrir qualquer hobby.
