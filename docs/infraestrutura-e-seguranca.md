@@ -11,6 +11,7 @@
 - Separar projeto/credenciais de `dev` e `prod` no Firebase desde cedo. Não reutilizar configuração de produção em ambiente local.
 - Quando a integração real virar pré-requisito, orientar o usuário sobre criação de projeto, apps, métodos de login, service account, restrições e secrets antes de fechar a entrega.
 - Ordem pragmática permitida: backend pode evoluir primeiro em domínio, banco, contratos e regras de negócio com auth controlada de `local`/`test`; integração real com Firebase continua obrigatória antes de fechar MVP funcional end-to-end ou publicar clientes.
+- Em `local`, existe suporte explícito a bearer token estático controlado por env (`LOCAL_AUTH_*`) para desenvolvimento do backend sem projeto Firebase pronto. Esse modo é aceito só no profile `local` e não substitui a validação real do Firebase em `dev`/`prod`.
 
 ## Hospedagem 🟢
 
@@ -64,6 +65,12 @@
 
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_SERVICE_ACCOUNT_JSON_BASE64` ou `FIREBASE_SERVICE_ACCOUNT_PATH`
+- `LOCAL_AUTH_ENABLED`
+- `LOCAL_AUTH_TOKEN`
+- `LOCAL_AUTH_USER_ID`
+- `LOCAL_AUTH_EMAIL`
+- `LOCAL_AUTH_NAME`
+- `LOCAL_AUTH_EMAIL_VERIFIED`
 - `R2_ENDPOINT`
 - `R2_BUCKET`
 - `R2_ACCESS_KEY`
@@ -96,6 +103,7 @@
 - `local`:
   - usar shell local, `.env` não versionado ou mecanismo equivalente fora do git;
   - manter `.env.example` só com placeholders;
+  - se usar auth local temporária, ativar `LOCAL_AUTH_ENABLED=true`, definir `LOCAL_AUTH_TOKEN` forte e usar esse bearer só em ambiente de desenvolvimento;
   - se precisar service account do Firebase, preferir arquivo local fora do repositório ou variável base64 injetada só no ambiente do dev.
 - `prod`:
   - usar env vars do servidor/compose final ou secret file fora do repositório;

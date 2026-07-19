@@ -17,6 +17,7 @@
 - `spring-boot-starter-security`
 - `firebase-admin` — valida ID token/JWT do Firebase Authentication no backend e também cobre envio via FCM. Backend nunca processa senha.
 - Validação de token no backend via Firebase Admin SDK.
+- Em `local`, existe fallback opcional para bearer token estático controlado por env (`LOCAL_AUTH_*`) só para destravar desenvolvimento e teste manual dos endpoints protegidos antes da configuração real do Firebase.
 
 ## Segurança / Rate limiting
 - `bucket4j`
@@ -43,7 +44,7 @@
 - `spring-boot-webmvc-test` ✅ — testes de contrato/controller slice para travar payloads, status HTTP e shape das APIs principais sem depender do banco.
 - `testcontainers-junit-jupiter` + `testcontainers-postgresql` ✅ — testes de integração com Postgres real via Docker/Testcontainers.
 - Mock/stub de autenticação: simular claims/token validado do Firebase nos testes; não subir provedor real de auth em teste automatizado.
-- Em `local`, auth controlada de desenvolvimento é aceitável temporariamente para avançar domínio/API antes da integração real com Firebase dev estar concluída.
+- Em `local`, auth controlada de desenvolvimento é aceitável temporariamente para avançar domínio/API antes da integração real com Firebase dev estar concluída; o projeto já expõe um bearer estático opcional via env para esse fluxo.
 
 ## Sugestões extras (não são decisão fechada, só recomendação padrão de mercado)
 - `lombok`, `mapstruct`

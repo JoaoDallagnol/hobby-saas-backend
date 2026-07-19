@@ -39,7 +39,7 @@
 - [x] Subir ambiente local via Docker Compose.
   - [x] Postgres disponível para a aplicação.
   - [x] App sobe apontando para os serviços locais.
-  - [ ] Estratégia de auth local definida sem depender de provedor self-hosted (ex: projeto Firebase de dev e/ou fluxo de token de teste controlado).
+  - [x] Estratégia de auth local definida sem depender de provedor self-hosted (ex: projeto Firebase de dev e/ou fluxo de token de teste controlado).
 - [x] Configurar observabilidade mínima.
   - [x] Actuator habilitado com endpoints úteis.
   - [x] Integração com Sentry preparada ou documentada com placeholders de config.
@@ -92,8 +92,8 @@
   - [x] Sincronizar `sub`, `email`, `name` e `email_verified` a partir do token.
   - [x] Nunca gerar `users.id` no banco; usar o `sub`/`uid` do token validado como string.
 - [ ] Garantir autorização por recurso.
-  - [ ] Usuário só acessa/edita os próprios dados.
-  - [ ] Regras não dependem de payload do client para validar posse/permissão.
+  - [x] Usuário só acessa/edita os próprios dados.
+  - [x] Regras não dependem de payload do client para validar posse/permissão.
 
 ## 5. Perfil do hobbista
 
@@ -123,7 +123,7 @@
   - [x] Inclusão de atributos dinâmicos no retorno.
   - [x] Inclusão de equipamentos e vínculo com backlog, se aplicável no contrato.
 - [x] Implementar atualização de sessão.
-  - [ ] Revalidar atributos fixos e dinâmicos.
+  - [x] Revalidar atributos fixos e dinâmicos.
   - [x] Reforçar posse do recurso.
 - [x] Implementar exclusão de sessão.
   - [x] Definir comportamento para fotos e vínculos relacionados.

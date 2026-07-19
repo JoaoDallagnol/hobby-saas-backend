@@ -6,6 +6,8 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import io.github.joaodallagnol.backend.auth.FirebaseAdminTokenVerifier;
 import io.github.joaodallagnol.backend.auth.FirebaseTokenVerifier;
+import io.github.joaodallagnol.backend.auth.FirebaseVerifiedToken;
+import io.github.joaodallagnol.backend.auth.LocalDevelopmentTokenVerifier;
 import io.github.joaodallagnol.backend.auth.MissingFirebaseConfigurationTokenVerifier;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -13,6 +15,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,10 +29,35 @@ public class FirebaseAdminConfig {
 
     @Bean
     FirebaseTokenVerifier firebaseTokenVerifier(
+            Environment environment,
             @Value("${app.auth.firebase.project-id:}") String projectId,
             @Value("${app.auth.firebase.service-account-json-base64:}") String serviceAccountJsonBase64,
-            @Value("${app.auth.firebase.service-account-path:}") String serviceAccountPath
+            @Value("${app.auth.firebase.service-account-path:}") String serviceAccountPath,
+            @Value("${app.auth.local.enabled:false}") boolean localAuthEnabled,
+            @Value("${app.auth.local.token:}") String localToken,
+            @Value("${app.auth.local.user-id:local-dev-user}") String localUserId,
+            @Value("${app.auth.local.email:local-dev@example.com}") String localEmail,
+            @Value("${app.auth.local.name:Local Dev User}") String localName,
+            @Value("${app.auth.local.email-verified:true}") boolean localEmailVerified
     ) {
+        if (localAuthEnabled) {
+            if (!environment.acceptsProfiles(Profiles.of("local"))) {
+                throw new IllegalStateException("Local development auth can only be enabled with the local profile.");
+            }
+            if (!StringUtils.hasText(localToken)) {
+                return new MissingFirebaseConfigurationTokenVerifier("Local development auth is enabled but LOCAL_AUTH_TOKEN is missing.");
+            }
+            return new LocalDevelopmentTokenVerifier(
+                    localToken.trim(),
+                    new FirebaseVerifiedToken(
+                            localUserId.trim(),
+                            localEmail.trim(),
+                            localName.trim(),
+                            localEmailVerified
+                    )
+            );
+        }
+
         try {
             GoogleCredentials credentials = resolveCredentials(serviceAccountJsonBase64, serviceAccountPath);
             if (credentials == null) {
