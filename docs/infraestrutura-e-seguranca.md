@@ -47,6 +47,9 @@
   - `prod`: desabilitado por padrão (`SPRINGDOC_ENABLED=false`) e só exposto quando houver necessidade explícita.
 - Nunca usar a mesma credencial/projeto Firebase, R2 ou Google Places entre `dev` e `prod`.
 - Nenhum secret, JSON de service account, token, private key ou senha deve ser commitado em `.env`, compose, código, docs ou examples com valor real.
+- O repositório protege contra vazamento acidental com:
+  - `.gitignore` cobrindo `.env`, certificados/TLS e arquivos típicos de service account;
+  - `scripts/check-no-secrets.sh` para varredura rápida de padrões óbvios antes de commit/review.
 
 ### Variáveis de ambiente por tipo
 
@@ -123,6 +126,7 @@
   - se usar auth local temporária, ativar `LOCAL_AUTH_ENABLED=true`, definir `LOCAL_AUTH_TOKEN` forte e usar esse bearer só em ambiente de desenvolvimento;
   - se quiser validar throttling localmente, ativar `RATE_LIMIT_ENABLED=true` e ajustar `RATE_LIMIT_*` conforme o volume de teste;
   - se precisar service account do Firebase, preferir arquivo local fora do repositório ou variável base64 injetada só no ambiente do dev.
+  - se usar certificado local de teste ou service account em arquivo, manter fora do git e fora de paths versionados não ignorados.
 - `prod`:
   - usar env vars do servidor/compose final ou secret file fora do repositório;
   - restringir acesso aos secrets ao menor conjunto de usuários/processos possível;

@@ -200,7 +200,7 @@
 
 ## 11. Segurança e operação mínima
 
-- [ ] Garantir que segredos fiquem fora do código.
+- [x] Garantir que segredos fiquem fora do código.
 - [ ] Definir estratégia de gestão de secrets por ambiente.
   - [x] `local`: usar `.env`, variáveis locais ou mecanismo equivalente fora do versionamento.
   - [x] `prod`: usar secrets/env vars do servidor sem valor sensível commitado.
