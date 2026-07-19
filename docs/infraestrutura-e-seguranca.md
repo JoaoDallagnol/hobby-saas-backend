@@ -185,6 +185,7 @@
 ## Cadastros e contas operacionais ⚠️
 
 - Quando qualquer integração sair do papel e virar dependência real de dev/prod, parar e orientar explicitamente o usuário sobre o cadastro/configuração necessária.
+- Runbook operacional consolidado: `docs/cadastros-e-configuracoes-externas.md`.
 - Cadastros que provavelmente serão necessários neste projeto:
   - Projeto Firebase `dev` e `prod`, com método de login habilitado e service account para backend.
   - Conta Hostinger/VPS para produção.
