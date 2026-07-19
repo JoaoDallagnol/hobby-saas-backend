@@ -23,7 +23,7 @@
 ## Segurança 🟢
 
 - DDoS: Cloudflare (free) como proxy DNS.
-- Rate limit: Cloudflare (free) + Nginx (`limit_req`) + Bucket4j (por usuário/endpoint no código).
+- Rate limit: Cloudflare (free) + Nginx (`limit_req`) + filtro em memória no backend por usuário autenticado (fallback por IP). Bucket4j fica como opção futura se o limite em aplicação precisar evoluir.
 - CORS do backend deve ser explícito por ambiente via `CORS_ALLOWED_ORIGINS`; não deixar `*` em produção.
 - Headers mínimos no backend/API: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`; permissões do browser restritas para recursos não usados pela API.
 - **Nunca confiar em campo de plano/permissão vindo do cliente** (ex: `isPremium`) — checar sempre contra o banco.
@@ -60,6 +60,10 @@
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `CORS_ALLOWED_ORIGINS`
+- `RATE_LIMIT_ENABLED`
+- `RATE_LIMIT_CAPACITY`
+- `RATE_LIMIT_REFILL_TOKENS`
+- `RATE_LIMIT_REFILL_MINUTES`
 
 #### Integrações opcionais enquanto o backend central evolui
 
@@ -88,6 +92,10 @@
 - `DB_USERNAME`
 - `DB_PASSWORD`
 - `CORS_ALLOWED_ORIGINS`
+- `RATE_LIMIT_ENABLED`
+- `RATE_LIMIT_CAPACITY`
+- `RATE_LIMIT_REFILL_TOKENS`
+- `RATE_LIMIT_REFILL_MINUTES`
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_SERVICE_ACCOUNT_JSON_BASE64` ou `FIREBASE_SERVICE_ACCOUNT_PATH`
 
@@ -104,6 +112,7 @@
   - usar shell local, `.env` não versionado ou mecanismo equivalente fora do git;
   - manter `.env.example` só com placeholders;
   - se usar auth local temporária, ativar `LOCAL_AUTH_ENABLED=true`, definir `LOCAL_AUTH_TOKEN` forte e usar esse bearer só em ambiente de desenvolvimento;
+  - se quiser validar throttling localmente, ativar `RATE_LIMIT_ENABLED=true` e ajustar `RATE_LIMIT_*` conforme o volume de teste;
   - se precisar service account do Firebase, preferir arquivo local fora do repositório ou variável base64 injetada só no ambiente do dev.
 - `prod`:
   - usar env vars do servidor/compose final ou secret file fora do repositório;

@@ -17,6 +17,13 @@ logging:
   level:
     root: INFO
 
+app:
+  rate-limit:
+    enabled: false
+    capacity: 120
+    refill-tokens: 120
+    refill-minutes: 1
+
 springdoc:
   api-docs:
     enabled: ${SPRINGDOC_ENABLED:true}

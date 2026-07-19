@@ -212,9 +212,9 @@
   - [x] `application-prod.yaml` para comportamento de produção.
   - [x] Definir claramente quais variáveis são obrigatórias em cada ambiente.
 - [ ] Preparar HTTPS/proxy e variáveis esperadas para produção.
-- [ ] Definir estratégia de rate limiting.
+- [x] Definir estratégia de rate limiting.
   - [x] Camada de edge/proxy.
-  - [ ] Camada de aplicação com Bucket4j, se entrar já no MVP técnico.
+  - [x] Camada de aplicação com limite básico em memória por usuário/IP.
 - [ ] Planejar backup diário do Postgres para R2.
   - [x] Script/job documentado ou implementado.
   - [ ] Estratégia de retenção definida.

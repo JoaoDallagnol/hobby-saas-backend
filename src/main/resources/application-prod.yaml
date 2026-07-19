@@ -22,6 +22,11 @@ management:
         enabled: true
 
 app:
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    capacity: ${RATE_LIMIT_CAPACITY:120}
+    refill-tokens: ${RATE_LIMIT_REFILL_TOKENS:120}
+    refill-minutes: ${RATE_LIMIT_REFILL_MINUTES:1}
   auth:
     firebase:
       project-id: ${FIREBASE_PROJECT_ID}

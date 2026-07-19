@@ -20,7 +20,8 @@
 - Em `local`, existe fallback opcional para bearer token estático controlado por env (`LOCAL_AUTH_*`) só para destravar desenvolvimento e teste manual dos endpoints protegidos antes da configuração real do Firebase.
 
 ## Segurança / Rate limiting
-- `bucket4j`
+- Implementação atual: filtro próprio em memória por usuário autenticado (fallback por IP), configurado por env (`RATE_LIMIT_*`) ✅
+- Bucket4j fica opcional para evolução futura se o rate limiting precisar sair do nível básico atual.
 
 ## Storage de fotos (Cloudflare R2)
 - AWS SDK S3 (`software.amazon.awssdk:s3`) ✅ — R2 é S3-compatible, aponta pro endpoint do R2.

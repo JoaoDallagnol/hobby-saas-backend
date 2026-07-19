@@ -2,6 +2,7 @@ package io.github.joaodallagnol.backend.api;
 import io.github.joaodallagnol.backend.auth.FirebaseTokenVerifier;
 import io.github.joaodallagnol.backend.auth.FirebaseVerifiedToken;
 import io.github.joaodallagnol.backend.auth.FirebaseAuthenticationFilter;
+import io.github.joaodallagnol.backend.config.RateLimitFilter;
 import io.github.joaodallagnol.backend.backlog.BacklogController;
 import io.github.joaodallagnol.backend.backlog.BacklogItemResponse;
 import io.github.joaodallagnol.backend.backlog.BacklogService;
@@ -63,7 +64,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         SessionController.class
 }, excludeFilters = {
         @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = FirebaseAuthenticationFilter.class),
-        @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JitUserProvisioningFilter.class)
+        @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JitUserProvisioningFilter.class),
+        @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RateLimitFilter.class)
 })
 @AutoConfigureMockMvc(addFilters = false)
 @Import({ApiExceptionHandler.class, ApiContractControllerTest.MockServicesConfig.class})
