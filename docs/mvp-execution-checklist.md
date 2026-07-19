@@ -240,7 +240,7 @@
 - [x] Testes de segurança/autorização.
   - [x] Usuário não acessa recurso de outro usuário.
   - [x] JWT inválido/ausente falha corretamente.
-- [ ] Testes de validação de atributos dinâmicos.
+- [x] Testes de validação de atributos dinâmicos.
 - [x] Testes do fluxo de provisionamento JIT.
 - [x] Testes do fluxo de localização.
 - [x] Testes do contrato das APIs principais.
