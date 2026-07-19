@@ -211,7 +211,7 @@
   - [x] `application-local.yaml` para desenvolvimento local.
   - [x] `application-prod.yaml` para comportamento de produção.
   - [x] Definir claramente quais variáveis são obrigatórias em cada ambiente.
-- [ ] Preparar HTTPS/proxy e variáveis esperadas para produção.
+- [x] Preparar HTTPS/proxy e variáveis esperadas para produção.
 - [x] Definir estratégia de rate limiting.
   - [x] Camada de edge/proxy.
   - [x] Camada de aplicação com limite básico em memória por usuário/IP.

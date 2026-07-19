@@ -32,6 +32,7 @@
 - Tokens do Firebase devem ser validados no backend; nunca confiar em `uid`, `email`, plano ou papel enviados pelo client fora do token validado + banco.
 - SQL Injection: mitigado por padrão via Spring Data JPA (queries parametrizadas); risco só em query nativa concatenada.
 - HTTPS obrigatório (Let's Encrypt). Segredos só em env var, nunca no código.
+- O repositório versiona o desenho mínimo esperado de produção em `docker-compose.prod.yml` + `deploy/nginx/default.conf.template`: Nginx termina TLS, redireciona 80→443, envia `X-Forwarded-*` corretos ao backend e aplica `limit_req` de borda.
 - Mobile: token em Keychain/Keystore nativo; API key do Google Places restrita por package/bundle ID + assinatura; nenhum segredo real embutido no app.
 - 🔵 Certificate pinning e detecção de root/jailbreak: não agora.
 
@@ -98,6 +99,14 @@
 - `RATE_LIMIT_REFILL_MINUTES`
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_SERVICE_ACCOUNT_JSON_BASE64` ou `FIREBASE_SERVICE_ACCOUNT_PATH`
+- `APP_DOMAIN`
+- `APP_UPSTREAM`
+- `SSL_CERTIFICATE_PATH`
+- `SSL_CERTIFICATE_KEY_PATH`
+- `NGINX_CERTS_DIR`
+- `NGINX_CLIENT_MAX_BODY_SIZE`
+- `NGINX_RATE_LIMIT_RPS`
+- `NGINX_RATE_LIMIT_BURST`
 
 #### Produção quando a feature correspondente estiver ativa
 
@@ -195,6 +204,16 @@
 - instalar também utilitários operacionais do backup (`postgresql-client`, AWS CLI ou equivalente);
 - configurar firewall e HTTPS reverso antes de expor produção publicamente;
 - definir onde as env vars/secrets de produção ficarão armazenadas.
+- aplicar `docker-compose.prod.yml` com `APP_DOMAIN` e paths de certificado válidos antes de abrir tráfego público;
+- manter o app sem porta publicada diretamente na internet; entrada pública deve passar pelo Nginx/Cloudflare.
+
+### Proxy/HTTPS esperado em produção
+
+- Cloudflare na borda pública.
+- Nginx na VPS como reverse proxy/TLS terminator.
+- Spring Boot atrás do proxy, somente na rede interna do compose.
+- `server.forward-headers-strategy=framework` já está ativo no profile `prod`; o proxy precisa enviar `Host`, `X-Forwarded-For`, `X-Forwarded-Host` e `X-Forwarded-Proto`.
+- Certificado TLS não é commitado. O compose de produção espera arquivos montados em `NGINX_CERTS_DIR` e paths coerentes com `SSL_CERTIFICATE_PATH` / `SSL_CERTIFICATE_KEY_PATH`.
 
 #### Cloudflare / R2
 
