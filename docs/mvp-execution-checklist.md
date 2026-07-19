@@ -243,7 +243,7 @@
 - [ ] Testes de validação de atributos dinâmicos.
 - [x] Testes do fluxo de provisionamento JIT.
 - [x] Testes do fluxo de localização.
-- [ ] Testes do contrato das APIs principais.
+- [x] Testes do contrato das APIs principais.
 
 ## 13. Documentação viva
 
