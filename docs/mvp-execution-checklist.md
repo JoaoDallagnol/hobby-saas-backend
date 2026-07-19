@@ -206,7 +206,7 @@
   - [x] `prod`: usar secrets/env vars do servidor sem valor sensível commitado.
   - [x] Manter exemplos seguros versionados sem credenciais reais.
   - [x] Separar credenciais/projetos Firebase de `dev` e `prod`.
-- [ ] Garantir perfis/configuração por ambiente.
+- [x] Garantir perfis/configuração por ambiente.
   - [x] `application.yaml` base sem secret real.
   - [x] `application-local.yaml` para desenvolvimento local.
   - [x] `application-prod.yaml` para comportamento de produção.
