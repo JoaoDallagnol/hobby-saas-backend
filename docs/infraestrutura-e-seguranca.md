@@ -161,7 +161,10 @@
 - Estratégia mínima de execução:
   - cron diário no host/VPS
   - upload para prefixo versionado por data
-  - retenção/limpeza ainda precisa ser automatizada em etapa seguinte
+  - retenção/limpeza automatizada no script de backup por env:
+    - `BACKUP_DAILY_RETENTION` (default `7`)
+    - `BACKUP_WEEKLY_RETENTION` (default `4`)
+    - `BACKUP_WEEKLY_DAY_UTC` (default `7`, domingo UTC)
 
 ## Monitoramento 🟢 (esforço baixo, ativar desde já)
 

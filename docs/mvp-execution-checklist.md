@@ -215,9 +215,9 @@
 - [x] Definir estratégia de rate limiting.
   - [x] Camada de edge/proxy.
   - [x] Camada de aplicação com limite básico em memória por usuário/IP.
-- [ ] Planejar backup diário do Postgres para R2.
+- [x] Planejar backup diário do Postgres para R2.
   - [x] Script/job documentado ou implementado.
-  - [ ] Estratégia de retenção definida.
+  - [x] Estratégia de retenção definida.
 - [x] Documentar restauração mínima do backup.
 - [ ] Mapear cadastros/configurações manuais necessários por plataforma externa.
   - [x] Firebase `dev` e `prod`.
