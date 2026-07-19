@@ -237,9 +237,9 @@
 
 - [ ] Testes unitários para regras de domínio críticas.
 - [ ] Testes de integração com Postgres real via Testcontainers.
-- [ ] Testes de segurança/autorização.
-  - [ ] Usuário não acessa recurso de outro usuário.
-  - [ ] JWT inválido/ausente falha corretamente.
+- [x] Testes de segurança/autorização.
+  - [x] Usuário não acessa recurso de outro usuário.
+  - [x] JWT inválido/ausente falha corretamente.
 - [ ] Testes de validação de atributos dinâmicos.
 - [ ] Testes do fluxo de provisionamento JIT.
 - [ ] Testes do fluxo de localização.
