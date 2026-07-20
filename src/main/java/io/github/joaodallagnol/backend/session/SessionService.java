@@ -5,14 +5,19 @@ import io.github.joaodallagnol.backend.auth.AuthenticatedUserExtractor;
 import io.github.joaodallagnol.backend.user.Hobby;
 import io.github.joaodallagnol.backend.user.HobbyRepository;
 import io.github.joaodallagnol.backend.user.UserHobbyRepository;
-import jakarta.transaction.Transactional;
+import io.github.joaodallagnol.backend.feature.FeatureFlagService;
+import io.github.joaodallagnol.backend.storage.SessionPhotoStorageKeyPolicy;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SessionService {
@@ -26,6 +31,7 @@ public class SessionService {
     private final PlaceReferenceRepository placeReferenceRepository;
     private final HobbyAttributeTemplateService hobbyAttributeTemplateService;
     private final PlaceResolutionService placeResolutionService;
+    private final FeatureFlagService featureFlagService;
 
     public SessionService(
             AuthenticatedUserExtractor authenticatedUserExtractor,
@@ -36,7 +42,8 @@ public class SessionService {
             BacklogItemReferenceRepository backlogItemReferenceRepository,
             PlaceReferenceRepository placeReferenceRepository,
             HobbyAttributeTemplateService hobbyAttributeTemplateService,
-            PlaceResolutionService placeResolutionService
+            PlaceResolutionService placeResolutionService,
+            FeatureFlagService featureFlagService
     ) {
         this.authenticatedUserExtractor = authenticatedUserExtractor;
         this.sessionRecordRepository = sessionRecordRepository;
@@ -47,6 +54,7 @@ public class SessionService {
         this.placeReferenceRepository = placeReferenceRepository;
         this.hobbyAttributeTemplateService = hobbyAttributeTemplateService;
         this.placeResolutionService = placeResolutionService;
+        this.featureFlagService = featureFlagService;
     }
 
     @Transactional
@@ -54,7 +62,7 @@ public class SessionService {
         AuthenticatedUser user = getAuthenticatedUser();
         Hobby hobby = resolveAllowedHobby(user.id(), request.hobbyId());
         hobbyAttributeTemplateService.validateAttributes(user.id(), hobby.getId(), request.attributes());
-        validateProjectOwnership(request.projectId(), user.id());
+        validateProjectOwnership(request.projectId(), user.id(), hobby.getId());
         PlaceReference place = resolvePlace(request.location());
         Set<EquipmentReference> equipment = resolveEquipment(request.equipmentIds(), user.id());
 
@@ -72,7 +80,7 @@ public class SessionService {
         );
         session.assignPlace(place);
         session.replaceEquipment(equipment);
-        session.replacePhotos(extractPhotoKeys(request.photos()));
+        session.replacePhotos(extractNewPhotoKeys(request.photos(), user.id()));
 
         return SessionResponse.from(sessionRecordRepository.save(session));
     }
@@ -83,7 +91,7 @@ public class SessionService {
         SessionRecord session = getOwnedSession(sessionId, user.id());
         Hobby hobby = resolveAllowedHobby(user.id(), request.hobbyId());
         hobbyAttributeTemplateService.validateAttributes(user.id(), hobby.getId(), request.attributes());
-        validateProjectOwnership(request.projectId(), user.id());
+        validateProjectOwnership(request.projectId(), user.id(), hobby.getId());
         PlaceReference place = resolvePlace(request.location());
         Set<EquipmentReference> equipment = resolveEquipment(request.equipmentIds(), user.id());
 
@@ -100,7 +108,7 @@ public class SessionService {
         );
         session.assignPlace(place);
         session.replaceEquipment(equipment);
-        session.replacePhotos(extractPhotoKeys(request.photos()));
+        reconcilePhotos(session, request.photos(), user.id());
 
         return SessionResponse.from(session);
     }
@@ -110,12 +118,18 @@ public class SessionService {
         sessionRecordRepository.delete(getOwnedSession(sessionId, getAuthenticatedUser().id()));
     }
 
-    public List<SessionResponse> listSessions(UUID hobbyId) {
+    @Transactional(readOnly = true)
+    public SessionPageResponse listSessions(UUID hobbyId, int page, int size) {
         String userId = getAuthenticatedUser().id();
-        List<SessionRecord> sessions = hobbyId == null
-                ? sessionRecordRepository.findAllByUserIdOrderByStartedAtDesc(userId)
-                : sessionRecordRepository.findAllByUserIdAndHobbyIdOrderByStartedAtDesc(userId, hobbyId);
-        return sessions.stream().map(SessionResponse::from).toList();
+        PageRequest pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Order.desc("startedAt"), Sort.Order.desc("id"))
+        );
+        Page<SessionRecord> sessions = hobbyId == null
+                ? sessionRecordRepository.findAllByUserId(userId, pageable)
+                : sessionRecordRepository.findAllByUserIdAndHobbyId(userId, hobbyId, pageable);
+        return SessionPageResponse.from(sessions);
     }
 
     public SessionResponse getSession(UUID sessionId) {
@@ -140,9 +154,14 @@ public class SessionService {
         return hobby;
     }
 
-    private void validateProjectOwnership(UUID projectId, String userId) {
-        if (projectId != null && !backlogItemReferenceRepository.existsByIdAndUserId(projectId, userId)) {
-            throw new IllegalArgumentException("Project not found for the user.");
+    private void validateProjectOwnership(UUID projectId, String userId, UUID sessionHobbyId) {
+        if (projectId == null) {
+            return;
+        }
+        BacklogItemReference project = backlogItemReferenceRepository.findByIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found for the user."));
+        if (project.getHobby() != null && !project.getHobby().getId().equals(sessionHobbyId)) {
+            throw new IllegalArgumentException("Project belongs to a different hobby.");
         }
     }
 
@@ -150,6 +169,7 @@ public class SessionService {
         if (location == null) {
             return null;
         }
+        featureFlagService.requireSessionLocation();
         return placeResolutionService.resolveOrCreate(location.placeId());
     }
 
@@ -166,15 +186,58 @@ public class SessionService {
         return new LinkedHashSet<>(equipment);
     }
 
-    private List<String> extractPhotoKeys(List<SessionPhotoRequest> photos) {
+    private List<String> extractNewPhotoKeys(List<SessionPhotoRequest> photos, String userId) {
         if (photos == null || photos.isEmpty()) {
             return List.of();
         }
-        return photos.stream()
+        if (photos.stream().anyMatch(photo -> photo.id() != null)) {
+            throw new IllegalArgumentException("Photo id cannot be used when creating a session.");
+        }
+        return validateNewPhotoKeys(photos, userId);
+    }
+
+    private void reconcilePhotos(SessionRecord session, List<SessionPhotoRequest> photos, String userId) {
+        if (photos == null) {
+            return;
+        }
+
+        Set<UUID> retainedIds = new LinkedHashSet<>();
+        List<SessionPhotoRequest> newPhotos = photos.stream().filter(photo -> photo.id() == null).toList();
+        for (SessionPhotoRequest photo : photos) {
+            boolean hasId = photo.id() != null;
+            boolean hasStorageKey = photo.storageKey() != null && !photo.storageKey().isBlank();
+            if (hasId == hasStorageKey) {
+                throw new IllegalArgumentException("Each photo must contain either an existing id or a new storage key.");
+            }
+            if (hasId && !retainedIds.add(photo.id())) {
+                throw new IllegalArgumentException("Duplicate photo id.");
+            }
+        }
+
+        Map<UUID, SessionPhoto> ownedPhotos = session.getPhotos().stream()
+                .collect(java.util.stream.Collectors.toMap(SessionPhoto::getId, photo -> photo));
+        if (!ownedPhotos.keySet().containsAll(retainedIds)) {
+            throw new IllegalArgumentException("One or more photo ids do not belong to the session.");
+        }
+        session.reconcilePhotos(retainedIds, validateNewPhotoKeys(newPhotos, userId));
+    }
+
+    private List<String> validateNewPhotoKeys(List<SessionPhotoRequest> photos, String userId) {
+        if (photos.isEmpty()) {
+            return List.of();
+        }
+        if (photos.stream().anyMatch(photo -> photo.storageKey() == null || photo.storageKey().isBlank())) {
+            throw new IllegalArgumentException("New photo storage key is required.");
+        }
+        featureFlagService.requirePhotoUploads();
+        List<String> keys = photos.stream()
                 .map(SessionPhotoRequest::storageKey)
-                .filter(Objects::nonNull)
                 .map(String::trim)
-                .filter(key -> !key.isEmpty())
                 .toList();
+        if (new LinkedHashSet<>(keys).size() != keys.size()) {
+            throw new IllegalArgumentException("Duplicate photo storage key.");
+        }
+        keys.forEach(key -> SessionPhotoStorageKeyPolicy.requireOwnedUploadKey(userId, key));
+        return keys;
     }
 }

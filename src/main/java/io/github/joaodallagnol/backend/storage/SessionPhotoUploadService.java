@@ -2,6 +2,7 @@ package io.github.joaodallagnol.backend.storage;
 
 import io.github.joaodallagnol.backend.auth.AuthenticatedUser;
 import io.github.joaodallagnol.backend.auth.AuthenticatedUserExtractor;
+import io.github.joaodallagnol.backend.feature.FeatureFlagService;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -19,23 +20,25 @@ public class SessionPhotoUploadService {
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "image/jpeg",
             "image/png",
-            "image/webp",
-            "image/heic",
-            "image/heif"
+            "image/webp"
     );
 
     private final AuthenticatedUserExtractor authenticatedUserExtractor;
     private final SessionPhotoUploadSigner sessionPhotoUploadSigner;
+    private final FeatureFlagService featureFlagService;
 
     public SessionPhotoUploadService(
             AuthenticatedUserExtractor authenticatedUserExtractor,
-            SessionPhotoUploadSigner sessionPhotoUploadSigner
+            SessionPhotoUploadSigner sessionPhotoUploadSigner,
+            FeatureFlagService featureFlagService
     ) {
         this.authenticatedUserExtractor = authenticatedUserExtractor;
         this.sessionPhotoUploadSigner = sessionPhotoUploadSigner;
+        this.featureFlagService = featureFlagService;
     }
 
     public SessionPhotoUploadResponse createUpload(CreateSessionPhotoUploadRequest request) {
+        featureFlagService.requirePhotoUploads();
         String normalizedContentType = request.contentType().trim().toLowerCase(Locale.ROOT);
         if (!ALLOWED_CONTENT_TYPES.contains(normalizedContentType)) {
             throw new IllegalArgumentException("Unsupported image content type.");
@@ -46,7 +49,11 @@ public class SessionPhotoUploadService {
 
         AuthenticatedUser user = authenticatedUserExtractor.extract(SecurityContextHolder.getContext().getAuthentication());
         String storageKey = buildStorageKey(user.id(), normalizedContentType);
-        GeneratedUploadUrl uploadUrl = sessionPhotoUploadSigner.signUpload(storageKey, normalizedContentType);
+        GeneratedUploadUrl uploadUrl = sessionPhotoUploadSigner.signUpload(
+                storageKey,
+                normalizedContentType,
+                request.sizeBytes()
+        );
 
         return new SessionPhotoUploadResponse(
                 storageKey,
@@ -58,11 +65,10 @@ public class SessionPhotoUploadService {
     }
 
     private String buildStorageKey(String userId, String contentType) {
-        String safeUserId = userId.replaceAll("[^a-zA-Z0-9_-]", "_");
         String datePath = DateTimeFormatter.ofPattern("yyyy/MM/dd").format(OffsetDateTime.now(ZoneOffset.UTC));
         String extension = extensionFor(contentType);
-        return "uploads/%s/session-temp/%s/%s.%s".formatted(
-                safeUserId,
+        return "%s%s/%s.%s".formatted(
+                SessionPhotoStorageKeyPolicy.uploadPrefix(userId),
                 datePath,
                 UUID.randomUUID(),
                 extension
@@ -74,8 +80,6 @@ public class SessionPhotoUploadService {
             case "image/jpeg" -> "jpg";
             case "image/png" -> "png";
             case "image/webp" -> "webp";
-            case "image/heic" -> "heic";
-            case "image/heif" -> "heif";
             default -> throw new IllegalArgumentException("Unsupported image content type.");
         };
     }

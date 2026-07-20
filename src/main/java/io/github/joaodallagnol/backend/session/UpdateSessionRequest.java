@@ -31,8 +31,8 @@ public record UpdateSessionRequest(
         SessionLocationRequest location,
         UUID projectId,
         List<UUID> equipmentIds,
-        @Valid
-        List<SessionPhotoRequest> photos,
+        @Size(max = 10)
+        List<@Valid SessionPhotoRequest> photos,
         Map<String, Object> attributes
 ) {
 }

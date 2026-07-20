@@ -46,15 +46,15 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
             );
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     principal,
-                    idToken,
+                    null,
                     List.of(new SimpleGrantedAuthority("ROLE_USER"))
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             filterChain.doFilter(request, response);
         } catch (IllegalArgumentException ex) {
-            writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "invalid_token", ex.getMessage());
+            writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "invalid_token", "Bearer token is invalid.");
         } catch (IllegalStateException ex) {
-            writeJsonError(response, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "auth_unavailable", ex.getMessage());
+            writeJsonError(response, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "auth_unavailable", "Authentication service is unavailable.");
         }
     }
 

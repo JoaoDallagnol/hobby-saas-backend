@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.joaodallagnol.backend.auth.AuthenticatedUserExtractor;
 import io.github.joaodallagnol.backend.auth.FirebaseAuthenticatedPrincipal;
+import io.github.joaodallagnol.backend.feature.FeatureFlagProperties;
+import io.github.joaodallagnol.backend.feature.FeatureFlagService;
 import java.time.OffsetDateTime;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -24,12 +26,13 @@ class SessionPhotoUploadServiceTest {
         authenticate("firebase-user-1", "user@example.com", "User");
         SessionPhotoUploadService service = new SessionPhotoUploadService(
                 new AuthenticatedUserExtractor(),
-                (storageKey, contentType) -> new GeneratedUploadUrl(
+                (storageKey, contentType, contentLength) -> new GeneratedUploadUrl(
                         "https://example.r2.dev/upload",
                         "PUT",
                         Map.of("Content-Type", contentType),
                         OffsetDateTime.parse("2026-07-18T20:00:00Z")
-                )
+                ),
+                enabledFeatureFlags()
         );
 
         SessionPhotoUploadResponse response = service.createUpload(new CreateSessionPhotoUploadRequest(
@@ -38,7 +41,7 @@ class SessionPhotoUploadServiceTest {
                 512_000L
         ));
 
-        assertThat(response.storageKey()).startsWith("uploads/firebase-user-1/session-temp/");
+        assertThat(response.storageKey()).startsWith(SessionPhotoStorageKeyPolicy.uploadPrefix("firebase-user-1"));
         assertThat(response.storageKey()).endsWith(".jpg");
         assertThat(response.uploadUrl()).isEqualTo("https://example.r2.dev/upload");
         assertThat(response.requiredHeaders()).containsEntry("Content-Type", "image/jpeg");
@@ -49,7 +52,8 @@ class SessionPhotoUploadServiceTest {
         authenticate("firebase-user-1", "user@example.com", "User");
         SessionPhotoUploadService service = new SessionPhotoUploadService(
                 new AuthenticatedUserExtractor(),
-                (storageKey, contentType) -> new GeneratedUploadUrl("", "PUT", Map.of(), OffsetDateTime.now())
+                (storageKey, contentType, contentLength) -> new GeneratedUploadUrl("", "PUT", Map.of(), OffsetDateTime.now()),
+                enabledFeatureFlags()
         );
 
         assertThatThrownBy(() -> service.createUpload(new CreateSessionPhotoUploadRequest(
@@ -66,7 +70,8 @@ class SessionPhotoUploadServiceTest {
         authenticate("firebase-user-1", "user@example.com", "User");
         SessionPhotoUploadService service = new SessionPhotoUploadService(
                 new AuthenticatedUserExtractor(),
-                (storageKey, contentType) -> new GeneratedUploadUrl("", "PUT", Map.of(), OffsetDateTime.now())
+                (storageKey, contentType, contentLength) -> new GeneratedUploadUrl("", "PUT", Map.of(), OffsetDateTime.now()),
+                enabledFeatureFlags()
         );
 
         assertThatThrownBy(() -> service.createUpload(new CreateSessionPhotoUploadRequest(
@@ -81,5 +86,9 @@ class SessionPhotoUploadServiceTest {
     private void authenticate(String userId, String email, String name) {
         FirebaseAuthenticatedPrincipal principal = new FirebaseAuthenticatedPrincipal(userId, email, name, true);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(principal, "token"));
+    }
+
+    private static FeatureFlagService enabledFeatureFlags() {
+        return new FeatureFlagService(new FeatureFlagProperties());
     }
 }

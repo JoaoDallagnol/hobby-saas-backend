@@ -1,6 +1,8 @@
 # Infraestrutura e Segurança
 
 > 🟢 MVP (bloqueia lançamento) · 🔵 Fase seguinte (implementa quando a dor aparecer) · ⚠️ pendente de decisão
+>
+> Estado consolidado, secrets necessários e pendências operacionais: `docs/relatorio-status-mvp.md`.
 
 ## Autenticação 🟢
 
@@ -47,6 +49,13 @@
   - `prod`: desabilitado por padrão (`SPRINGDOC_ENABLED=false`) e só exposto quando houver necessidade explícita.
 - Nunca usar a mesma credencial/projeto Firebase, R2 ou Google Places entre `dev` e `prod`.
 - Nenhum secret, JSON de service account, token, private key ou senha deve ser commitado em `.env`, compose, código, docs ou examples com valor real.
+- Feature flags são env vars do servidor e não permissões do usuário. O endpoint autenticado `GET /api/features` expõe apenas o estado booleano necessário para o client adaptar a UI.
+- Flags atuais:
+  - `FEATURE_PHOTO_UPLOADS_ENABLED`: habilita presigned upload e associação de keys R2 do próprio usuário;
+  - `FEATURE_SESSION_LOCATION_ENABLED`: habilita resolução de `place_id` em sessões;
+  - `FEATURE_PHOTO_PROCESSING_ENABLED`: habilita o worker de thumbnail/WebP/remoção de EXIF.
+- Em `local`, integrações externas ficam desligadas por padrão. Em `prod`, fotos, processamento e localização ficam ligados por padrão, mas podem ser desligados durante rollout/incidente; upload não deve ficar ativo em produção com processamento desligado.
+- No profile `prod`, o health indicator marca a aplicação como `DOWN` quando Firebase ou uma integração habilitada não possui a configuração mínima. Os detalhes listam apenas nomes lógicos ausentes, nunca valores.
 - O repositório protege contra vazamento acidental com:
   - `.gitignore` cobrindo `.env`, certificados/TLS e arquivos típicos de service account;
   - `scripts/check-no-secrets.sh` para varredura rápida de padrões óbvios antes de commit/review.
@@ -68,6 +77,12 @@
 - `RATE_LIMIT_CAPACITY`
 - `RATE_LIMIT_REFILL_TOKENS`
 - `RATE_LIMIT_REFILL_MINUTES`
+- `FEATURE_PHOTO_UPLOADS_ENABLED`
+- `FEATURE_SESSION_LOCATION_ENABLED`
+- `FEATURE_PHOTO_PROCESSING_ENABLED`
+- `CWEBP_BINARY`
+- `PHOTO_PROCESSING_POLL_DELAY_MS`
+- `PHOTO_DELETION_POLL_DELAY_MS`
 
 #### Integrações opcionais enquanto o backend central evolui
 
@@ -100,6 +115,12 @@
 - `RATE_LIMIT_CAPACITY`
 - `RATE_LIMIT_REFILL_TOKENS`
 - `RATE_LIMIT_REFILL_MINUTES`
+- `FEATURE_PHOTO_UPLOADS_ENABLED`
+- `FEATURE_SESSION_LOCATION_ENABLED`
+- `FEATURE_PHOTO_PROCESSING_ENABLED`
+- `CWEBP_BINARY`
+- `PHOTO_PROCESSING_POLL_DELAY_MS`
+- `PHOTO_DELETION_POLL_DELAY_MS`
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_SERVICE_ACCOUNT_JSON_BASE64` ou `FIREBASE_SERVICE_ACCOUNT_PATH`
 - `APP_DOMAIN`
@@ -136,6 +157,7 @@
 - Logs e erros:
   - não logar bearer token, API key, DSN com credencial, senha SMTP, segredo R2 ou JSON completo de service account;
   - erros devem falhar de forma segura sem despejar config sensível na resposta HTTP.
+  - bearer token validado não fica retido como credencial dentro do `SecurityContext` e mensagens internas do Firebase não são refletidas diretamente na resposta.
 
 ## E-mail transacional 🟢
 

@@ -41,7 +41,7 @@ public class CloudflareR2SessionPhotoUploadSigner implements SessionPhotoUploadS
     }
 
     @Override
-    public GeneratedUploadUrl signUpload(String storageKey, String contentType) {
+    public GeneratedUploadUrl signUpload(String storageKey, String contentType, long contentLength) {
         validateConfiguration();
 
         try (S3Presigner presigner = S3Presigner.builder()
@@ -54,6 +54,7 @@ public class CloudflareR2SessionPhotoUploadSigner implements SessionPhotoUploadS
                     .bucket(bucket)
                     .key(storageKey)
                     .contentType(contentType)
+                    .contentLength(contentLength)
                     .build();
 
             PresignedPutObjectRequest presignedRequest = presigner.presignPutObject(
@@ -65,6 +66,7 @@ public class CloudflareR2SessionPhotoUploadSigner implements SessionPhotoUploadS
 
             Map<String, String> headers = new LinkedHashMap<>();
             headers.put("Content-Type", contentType);
+            headers.put("Content-Length", Long.toString(contentLength));
 
             return new GeneratedUploadUrl(
                     presignedRequest.url().toString(),

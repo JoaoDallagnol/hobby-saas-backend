@@ -60,12 +60,14 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - Sempre que uma integração exigir conta, projeto, billing, credencial, domínio, app registration, chave ou configuração manual em plataforma externa, avisar explicitamente o usuário no momento em que isso virar pré-requisito para dev ou prod funcionar.
 - Toda integração externa deve ser implementada assumindo revisão de segurança: validação de input, autorização por recurso, menor privilégio, rotação de secret possível, logs sem vazamento e falha segura.
 - Ao expor endpoint novo, considerar documentação OpenAPI, autenticação/autorização, validação de payload, tratamento de erro e risco de vazamento de dados.
+- Feature flag é configuração de rollout/operação, nunca autorização. Usar principalmente em integrações externas ou processamento assíncrono; não colocar flag em regra central do MVP sem decisão de produto.
+- Ao criar feature flag, documentar default por ambiente, comportamento quando desligada, variável de ambiente e critério objetivo para ativação/remoção.
 - Implementação deve evitar padrões que um pentest básico apontaria: segredo hardcoded, endpoint sem auth esperada, IDOR/BOLA, confiança em dado do client, log de credencial, CORS aberto sem motivo, stacktrace/sensitive data exposta e ausência de validação de input.
 
 ## Comandos
 - Build: `mvn clean install`
 - Testes: `mvn test`
-- Local: `docker compose up -d` (sobe Spring Boot + Postgres; auth usa projeto Firebase configurado via env)
+- Local: `docker compose up -d` (sobe Spring Boot + Postgres; auth real usa Firebase via env e o profile `local` também permite bearer estático controlado por env)
 
 ## Não fazer
 - Não tratar presença no schema como autorização para buildar feature de fase futura.
@@ -83,5 +85,3 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - Nome do app / domínio.
 - Provedor de pagamento.
 - Enumeração de categorias de equipamento.
-- Lib final de processamento de imagem (resize/WebP/strip EXIF).
-- Se `sessions.attributes` vai usar suporte nativo do Hibernate/Jackson 3 ou lib auxiliar.

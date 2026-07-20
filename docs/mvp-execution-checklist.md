@@ -15,7 +15,7 @@
 ## Definição de pronto do MVP
 
 - [ ] Usuário consegue autenticar via Firebase Authentication real e ser provisionado no banco na primeira request autenticada.
-- [ ] Usuário consegue manter perfil básico e hobbies praticados.
+- [x] Usuário consegue manter perfil básico e hobbies praticados.
 - [x] Usuário consegue criar, listar e consultar sessões com atributos fixos e dinâmicos por hobby.
 - [x] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
 - [x] Usuário consegue manter backlog/Kanban por hobby e vincular sessão a item/projeto quando aplicável.
@@ -23,7 +23,7 @@
 - [x] Sessão aceita `place_id`; backend resolve e persiste localização sem confiar em coordenadas do client.
 - [x] Sistema calcula ou expõe streak de constância no escopo do MVP.
 - [ ] Base mínima de segurança, backup, monitoramento e deploy local está operacional.
-- [ ] Tudo essencial do MVP está coberto por testes suficientes para evoluir sem quebrar regra central do produto.
+- [x] Tudo essencial do MVP está coberto por testes suficientes para evoluir sem quebrar regra central do produto.
 
 ## 1. Base do projeto
 
@@ -32,7 +32,7 @@
   - [x] Configurar perfis de ambiente (`local`, `test`, `prod` ou equivalente).
   - [x] Configurar leitura de variáveis de ambiente para secrets e integrações.
   - [x] Adicionar dependências base: Web, Validation, Security, JPA, Flyway, Postgres, Actuator, testes.
-- [ ] Definir contrato inicial da API.
+- [x] Definir contrato inicial da API.
   - [x] Escolher abordagem de OpenAPI/Swagger para documentação e navegação dos endpoints.
   - [x] Manter contrato alinhado com comportamento real da API conforme as features forem entrando.
   - [x] Não documentar endpoint inexistente nem deixar endpoint existente sem revisão do contrato quando houver mudança relevante.
@@ -79,6 +79,7 @@
   - [x] Pelo menos um hobby de endurance/exercício.
   - [x] Pelo menos um hobby criativo/artístico.
   - [x] Pelo menos um hobby intelectual/estudo.
+- [x] Expor catálogo oficial para o client descobrir `hobbyId`, categoria e ícone.
 
 ## 4. Autenticação e provisionamento de usuário
 
@@ -87,11 +88,11 @@
 - [ ] Configurar autenticação backend com Firebase Authentication.
   - [ ] Validar ID token/JWT emitido pelo Firebase conforme ambiente real (`dev`/`prod`).
   - [x] Mapear identidade autenticada sem criar modelo próprio de senha.
-- [ ] Implementar provisionamento just-in-time de `users`.
+- [x] Implementar provisionamento just-in-time de `users`.
   - [x] Criar usuário na primeira request autenticada se não existir.
   - [x] Sincronizar `sub`, `email`, `name` e `email_verified` a partir do token.
   - [x] Nunca gerar `users.id` no banco; usar o `sub`/`uid` do token validado como string.
-- [ ] Garantir autorização por recurso.
+- [x] Garantir autorização por recurso.
   - [x] Usuário só acessa/edita os próprios dados.
   - [x] Regras não dependem de payload do client para validar posse/permissão.
 
@@ -127,7 +128,8 @@
   - [x] Reforçar posse do recurso.
 - [x] Implementar exclusão de sessão.
   - [x] Definir comportamento para fotos e vínculos relacionados.
-- [ ] Decidir se o MVP precisa de paginação desde o início.
+  - [x] Enfileirar limpeza de objetos R2 na mesma transação e executar com retry/backoff.
+- [x] Adotar paginação desde o MVP (`page` zero-based, `size` 1–100, default 20, ordenação estável por data/id).
 
 ## 6A. Biblioteca de equipamentos
 
@@ -138,7 +140,7 @@
   - [x] Excluir equipamento com regra clara para vínculos históricos.
 - [x] Garantir que `category` e `name` sejam tratados como colunas independentes.
 - [x] Garantir que sessão nunca aceite equipamento como texto livre.
-- [ ] Definir contrato de API para autocomplete/histórico, se entrar no MVP inicial.
+- [x] Usar a listagem da biblioteca do próprio usuário para autocomplete client-side no MVP; busca server-side fica para quando houver volume real.
 
 ## 6B. Backlog/Kanban por hobby
 
@@ -157,7 +159,7 @@
 - [x] Validar `sessions.attributes` contra `hobby_attribute_template`.
   - [x] Rejeitar chave inexistente para o hobby.
   - [x] Rejeitar tipo incompatível.
-  - [ ] Respeitar campos obrigatórios se essa regra existir.
+  - [x] Manter atributos dinâmicos opcionais no MVP; `required` não existe no template atual.
 - [x] Garantir persistência em JSONB sem abrir exceção para coluna dedicada por hobby.
 - [x] Cobrir com testes de validação positiva e negativa.
 
@@ -169,11 +171,15 @@
   - [x] Restrições mínimas de content type e tamanho, se aplicável.
 - [x] Persistir apenas storage keys/URLs necessárias no banco.
 - [x] Modelar associação de fotos à sessão.
-- [ ] Definir processamento assíncrono.
-  - [ ] Thumbnail.
-  - [ ] Compressão/WebP.
-  - [ ] Remoção de EXIF.
-- [ ] Fechar decisão técnica da lib/processo de imagem.
+  - [x] Validar namespace/posse da storage key, duplicatas e limite de 10 fotos.
+  - [x] Representar processamento pendente sem reutilizar a key original como thumbnail falsa.
+- [x] Definir processamento assíncrono por worker agendado na aplicação de instância única.
+  - [x] Thumbnail WebP de até 480 px.
+  - [x] Variante WebP de até 2048 px com compressão.
+  - [x] Remoção de EXIF por re-encode sem cópia de metadata.
+  - [x] Até 3 tentativas, status persistido e falha sem mensagem sensível.
+- [x] Usar o binário oficial `cwebp/libwebp` instalado no container.
+- [x] Remover objetos do R2 de forma assíncrona e idempotente quando foto/sessão for excluída.
 
 ## 9. Localização
 
@@ -189,8 +195,8 @@
 
 - [x] Definir regra de negócio exata do streak do MVP.
   - [x] Diário corrido.
-  - [ ] Por hobby.
-  - [ ] Regra híbrida.
+  - [x] Não usar streak por hobby no MVP.
+  - [x] Não usar regra híbrida no MVP.
 - [x] Implementar cálculo de streak.
   - [x] Regra para dias sem sessão.
   - [x] Regra para múltiplas sessões no mesmo dia.
@@ -219,14 +225,19 @@
   - [x] Script/job documentado ou implementado.
   - [x] Estratégia de retenção definida.
 - [x] Documentar restauração mínima do backup.
-- [ ] Mapear cadastros/configurações manuais necessários por plataforma externa.
+- [x] Mapear cadastros/configurações manuais necessários por plataforma externa no escopo atual.
   - [x] Firebase `dev` e `prod`.
   - [x] Hostinger/VPS.
   - [x] Cloudflare/R2.
   - [x] Google Places.
-  - [ ] Stores mobile quando entrarem no escopo.
-- [ ] Se e-mail transacional próprio entrar no MVP técnico, configurar Brevo com domínio e autenticação de envio.
-- [ ] Criar baseline de revisão de segurança para mudanças novas.
+  - [x] Stores mobile registradas como passo futuro, fora do escopo do backend MVP.
+- [x] Manter Brevo fora do MVP enquanto não houver e-mail transacional próprio.
+- [x] Implementar feature flags operacionais para integrações/rollout relevantes.
+  - [x] Flags de upload de fotos, localização e processamento de fotos configuráveis por ambiente.
+  - [x] Endpoint autenticado expõe somente estados booleanos não sensíveis.
+  - [x] Feature desligada falha de forma explícita e segura.
+  - [x] Readiness de produção acusa credencial ausente para integração habilitada sem expor o valor.
+- [x] Criar baseline de revisão de segurança para mudanças novas.
   - [x] Verificar autenticação e autorização por recurso em cada endpoint novo.
   - [x] Verificar validação de input e tratamento seguro de erro.
   - [x] Verificar ausência de segredo hardcoded ou log sensível.
@@ -235,7 +246,7 @@
 
 ## 12. Testes
 
-- [ ] Testes unitários para regras de domínio críticas.
+- [x] Testes unitários para regras de domínio críticas.
 - [x] Testes de integração com Postgres real via Testcontainers.
 - [x] Testes de segurança/autorização.
   - [x] Usuário não acessa recurso de outro usuário.
@@ -247,23 +258,24 @@
 
 ## 13. Documentação viva
 
-- [ ] Manter `AGENTS.md`, `docs/roadmap.md`, `docs/funcionalidades.md`, `docs/diretrizes-tecnicas.md`, `docs/modelagem-banco-dados.md`, `docs/infraestrutura-e-seguranca.md` e este checklist alinhados entre si.
-- [ ] Nenhuma implementação, alinhamento de escopo ou mudança técnica relevante termina com documentação divergente.
-- [ ] Ao mudar roadmap, schema, contrato, fluxo ou decisão técnica, atualizar os arquivos impactados na mesma entrega.
-- [ ] Se houver inconsistência entre documentos, reportar antes de editar e consolidar a decisão antes da atualização.
-- [ ] Antes de remover, promover, rebaixar ou alterar uma funcionalidade, revisar impactos em features dependentes, APIs, banco, validações e ordem de implementação.
-- [ ] Atualizar `docs/modelagem-banco-dados.md` se a implementação exigir ajuste real de schema.
-- [ ] Atualizar `docs/stack.md` quando uma dependência deixar de ser hipótese e virar decisão.
+- [x] Consolidar relatório de status, integrações, secrets esperados e pendências operacionais em `docs/relatorio-status-mvp.md`.
+- [x] Instituir processo para manter `AGENTS.md`, `docs/roadmap.md`, `docs/funcionalidades.md`, `docs/diretrizes-tecnicas.md`, `docs/modelagem-banco-dados.md`, `docs/infraestrutura-e-seguranca.md` e este checklist alinhados entre si.
+- [x] Exigir que implementação, alinhamento de escopo ou mudança técnica relevante termine sem documentação divergente.
+- [x] Exigir atualização dos arquivos impactados na mesma entrega ao mudar roadmap, schema, contrato, fluxo ou decisão técnica.
+- [x] Exigir reporte de inconsistência antes de editar e consolidação da decisão antes da atualização.
+- [x] Exigir análise de impacto em features dependentes, APIs, banco, validações e ordem de implementação.
+- [x] Atualizar `docs/modelagem-banco-dados.md` quando a implementação exigir ajuste real de schema.
+- [x] Atualizar `docs/stack.md` quando uma dependência deixar de ser hipótese e virar decisão.
 - [ ] Registrar decisões abertas que ainda não bloqueiam o MVP.
   - [ ] Nome do app/domínio.
   - [ ] Provedor de pagamento.
   - [ ] Enumeração de categorias de equipamento.
-  - [ ] Estratégia final de processamento de imagem.
-  - [ ] Estratégia final de mapeamento JSONB.
+  - [x] Estratégia final de processamento de imagem: worker agendado + `cwebp/libwebp`.
+  - [x] Estratégia final de mapeamento JSONB: Hibernate nativo com `@JdbcTypeCode(SqlTypes.JSON)`.
 
 ## Fora do escopo deste checklist
 
-- [ ] Não puxar automaticamente Fase 1 para dentro do MVP.
-- [ ] Não iniciar Fase 2 sem massa crítica real.
-- [ ] Não adicionar pagamento antes da escolha do provedor.
-- [ ] Não transformar decisões pendentes em regra fixa sem atualizar a documentação correspondente.
+- [x] Não puxar automaticamente Fase 1 para dentro do MVP.
+- [x] Não iniciar Fase 2 sem massa crítica real.
+- [x] Não adicionar pagamento antes da escolha do provedor.
+- [x] Não transformar decisões pendentes em regra fixa sem atualizar a documentação correspondente.

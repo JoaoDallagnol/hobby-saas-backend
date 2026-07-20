@@ -111,11 +111,11 @@ class StreakServiceTest {
                 SessionRecordRepository.class.getClassLoader(),
                 new Class<?>[]{SessionRecordRepository.class},
                 (proxy, method, args) -> switch (method.getName()) {
-                    case "findAllByUserIdOrderByStartedAtDesc" -> storage.stream()
+                    case "findStartedAtByUserIdOrderByStartedAtDesc" -> storage.stream()
                             .filter(item -> item.getUserId().equals(args[0]))
                             .sorted(Comparator.comparing(SessionRecord::getStartedAt).reversed())
+                            .map(SessionRecord::getStartedAt)
                             .toList();
-                    case "findAllByUserIdAndHobbyIdOrderByStartedAtDesc" -> List.of();
                     case "findByIdAndUserId" -> java.util.Optional.empty();
                     case "save" -> args[0];
                     case "delete" -> null;

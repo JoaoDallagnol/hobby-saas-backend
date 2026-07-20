@@ -39,7 +39,7 @@ public class JitUserProvisioningFilter extends OncePerRequestFilter {
             } catch (IllegalArgumentException ex) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                response.getWriter().write("{\"error\":\"invalid_token\",\"message\":\"" + ex.getMessage() + "\"}");
+                response.getWriter().write("{\"error\":\"invalid_token\",\"message\":\"Authenticated identity is invalid.\"}");
                 return;
             }
         }

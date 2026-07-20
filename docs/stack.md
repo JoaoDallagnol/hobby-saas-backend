@@ -23,9 +23,14 @@
 - Implementação atual: filtro próprio em memória por usuário autenticado (fallback por IP), configurado por env (`RATE_LIMIT_*`) ✅
 - Bucket4j fica opcional para evolução futura se o rate limiting precisar sair do nível básico atual.
 
+## Feature flags
+- Configuração própria via `@ConfigurationProperties`, sem serviço SaaS adicional no MVP ✅
+- Flags atuais controlam somente integrações com dependência externa/rollout: upload R2, localização Google Places e futuro processamento de fotos.
+- `GET /api/features` fornece ao client autenticado o estado não sensível; tentativa de usar feature desligada retorna `503`.
+
 ## Storage de fotos (Cloudflare R2)
 - AWS SDK S3 (`software.amazon.awssdk:s3`) ✅ — R2 é S3-compatible, aponta pro endpoint do R2.
-- ⚠️ Lib de processamento de imagem (resize + WebP + strip EXIF) não confirmada — Thumbnailator resolve resize; conversão WebP em Java incerta, pode acabar sendo binário externo (`cwebp`) via processo.
+- `cwebp/libwebp` via binário do pacote Debian `webp` no container ✅ — worker agendado gera WebP em dois tamanhos sem copiar metadata, com até 3 tentativas e status persistido. A abordagem evita dependência JNI frágil e aceita JPEG, PNG e WebP no MVP; HEIC/HEIF não são aceitos.
 
 ## Push
 - `firebase-admin` — reutilizado para FCM e validação de autenticação.

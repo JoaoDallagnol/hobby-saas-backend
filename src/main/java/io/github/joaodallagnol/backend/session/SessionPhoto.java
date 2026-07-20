@@ -23,8 +23,17 @@ public class SessionPhoto {
     @Column(name = "storage_key_original", nullable = false, length = 500)
     private String storageKeyOriginal;
 
-    @Column(name = "storage_key_thumbnail", nullable = false, length = 500)
+    @Column(name = "storage_key_thumbnail", length = 500)
     private String storageKeyThumbnail;
+
+    @Column(name = "processing_status", nullable = false, length = 20)
+    private String processingStatus;
+
+    @Column(name = "processing_attempts", nullable = false)
+    private int processingAttempts;
+
+    @Column(name = "last_processing_error", length = 100)
+    private String lastProcessingError;
 
     protected SessionPhoto() {
     }
@@ -33,7 +42,9 @@ public class SessionPhoto {
         this.id = UUID.randomUUID();
         this.session = session;
         this.storageKeyOriginal = storageKeyOriginal;
-        this.storageKeyThumbnail = storageKeyOriginal;
+        this.storageKeyThumbnail = null;
+        this.processingStatus = "pending";
+        this.processingAttempts = 0;
     }
 
     public UUID getId() {
@@ -46,5 +57,28 @@ public class SessionPhoto {
 
     public String getStorageKeyThumbnail() {
         return storageKeyThumbnail;
+    }
+
+    public String getProcessingStatus() {
+        return processingStatus;
+    }
+
+    public int getProcessingAttempts() {
+        return processingAttempts;
+    }
+
+    public void markReady(String processedOriginalKey, String thumbnailKey) {
+        this.storageKeyOriginal = processedOriginalKey;
+        this.storageKeyThumbnail = thumbnailKey;
+        this.processingStatus = "ready";
+        this.lastProcessingError = null;
+    }
+
+    public void registerProcessingFailure(String failureCode) {
+        this.processingAttempts++;
+        this.lastProcessingError = failureCode;
+        if (processingAttempts >= 3) {
+            this.processingStatus = "failed";
+        }
     }
 }

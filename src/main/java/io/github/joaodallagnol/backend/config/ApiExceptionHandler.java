@@ -1,6 +1,7 @@
 package io.github.joaodallagnol.backend.config;
 
 import io.github.joaodallagnol.backend.session.ResourceNotFoundException;
+import io.github.joaodallagnol.backend.feature.FeatureDisabledException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -10,6 +11,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(FeatureDisabledException.class)
+    ProblemDetail handleFeatureDisabled(FeatureDisabledException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+        problemDetail.setTitle("Feature unavailable");
+        return problemDetail;
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {

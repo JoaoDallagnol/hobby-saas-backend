@@ -198,4 +198,11 @@ public class SessionRecord {
             this.photos.add(new SessionPhoto(this, storageKey));
         }
     }
+
+    public void reconcilePhotos(Set<UUID> retainedPhotoIds, List<String> newStorageKeys) {
+        this.photos.removeIf(photo -> !retainedPhotoIds.contains(photo.getId()));
+        for (String storageKey : newStorageKeys) {
+            this.photos.add(new SessionPhoto(this, storageKey));
+        }
+    }
 }

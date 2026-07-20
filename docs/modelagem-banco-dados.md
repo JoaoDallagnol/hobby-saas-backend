@@ -84,7 +84,19 @@ erDiagram
         uuid id PK
         uuid session_id FK
         string storage_key_original
-        string storage_key_thumbnail
+        string storage_key_thumbnail "nullable enquanto pending"
+        string processing_status "pending|ready|failed"
+        int processing_attempts "0..3"
+        string last_processing_error "codigo tecnico sem detalhe sensivel"
+    }
+
+    PHOTO_STORAGE_DELETIONS {
+        uuid id PK
+        string storage_key UK
+        timestamp created_at
+        int attempts
+        timestamp next_attempt_at
+        string last_error
     }
 
     PLACES {
@@ -316,7 +328,23 @@ Define quais atributos dinâmicos existem por hobby (Alternativa C).
 | id | uuid | não | — | PK |
 | session_id | uuid | não | `sessions.id` | |
 | storage_key_original | string | não | — | key no R2 |
-| storage_key_thumbnail | string | não | — | gerado async, WebP, sem EXIF |
+| storage_key_thumbnail | string | sim | — | `null` enquanto o processamento está pendente; depois aponta para thumbnail WebP sem EXIF |
+| processing_status | string | não | — | `pending`, `ready` ou `failed`; nunca simular thumbnail copiando a key original |
+| processing_attempts | int | não | — | contador de tentativas, de 0 a 3 |
+| last_processing_error | string | sim | — | somente classe/código técnico resumido; não armazena mensagem de provedor ou segredo |
+
+`storage_key_original` é único. A remoção de uma foto dispara, na mesma transação, a inclusão de suas keys atual/original e thumbnail em `photo_storage_deletions`; isso evita perda da intenção de limpeza quando o R2 estiver indisponível.
+
+#### `photo_storage_deletions`
+
+| Campo | Tipo | Nulo? | Restrição | Descrição |
+|---|---|---:|---|---|
+| id | UUID | não | PK | identificador da tarefa de limpeza |
+| storage_key | string | não | unique | objeto R2 a remover de forma idempotente |
+| created_at | timestamptz | não | — | instante de criação da tarefa |
+| attempts | int | não | >= 0 | tentativas já realizadas |
+| next_attempt_at | timestamptz | não | índice | próxima execução com backoff |
+| last_error | string | sim | — | somente classe/código técnico, sem mensagem sensível |
 
 #### `places`
 Cache de lugares resolvidos via Google Place Details.

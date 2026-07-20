@@ -15,9 +15,15 @@ DB e código: inglês. Tradução (pt-BR e outros): futuro, fora de escopo agora
 | location | object opcional | ver seção Localização |
 | equipmentIds | uuid[] | refs pra biblioteca do usuário, nunca texto livre na sessão |
 | projectId | uuid opcional | ref pro backlog Kanban (mesma entidade) |
-| photos | object[] | só storage keys já enviadas, nunca binário no payload |
+| photos | object[] | na criação, storage keys já enviadas; na edição, IDs existentes e/ou novas storage keys; nunca binário no payload |
 
 ## Contrato de API — perfil do hobbista
+
+### Catálogo de hobbies
+
+- `GET /api/hobbies`
+- Retorna o catálogo oficial ordenado por categoria e nome, com `id`, `name`, `categoryName` e `icon`.
+- Esse endpoint é a fonte dos `hobbyId` usados ao incluir um hobby no perfil; o client não deve inventar ids ou nomes fora do catálogo.
 
 ### Leitura do perfil atual
 
@@ -129,6 +135,7 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
 - `sessions.attributes` (JSONB) — valores reais, validados contra o template antes de persistir.
 - Implementação atual do backend: Hibernate ORM nativo com `@JdbcTypeCode(SqlTypes.JSON)` sobre `Map<String, Object>` em `SessionRecord`; sem Hypersistence Utils nem outra lib auxiliar neste estágio.
 - Todos os atributos dinâmicos ficam **free tier** (split premium/free foi considerado e descartado).
+- No MVP atual, os atributos dinâmicos são opcionais. O template ainda não possui metadado `required`; se essa regra entrar depois, exige migração, atualização do contrato e revalidação de create/update.
 - Trade-off aceito: agregação de um atributo específico (ex: soma de `distance_km`) exige extração de JSON em SQL; endereçar com índice de expressão só se virar gargalo.
 
 ## Equipamento
@@ -140,6 +147,7 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
 - `category` e `name` são **duas colunas do mesmo registro**, não chave/valor.
 - Vínculo opcional a um hobby.
 - Se um equipamento já estiver vinculado a sessões históricas, o backend não deve permitir exclusão no MVP; a remoção precisa ser rejeitada para preservar integridade do histórico.
+- Autocomplete inicial é feito no client sobre `GET /api/me/equipment`, opcionalmente filtrado por `hobbyId`; busca/paginação server-side só entra quando o volume real justificar.
 
 ## Localização
 
@@ -159,6 +167,28 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
 - 2 variantes armazenadas (original + thumbnail), servidas via CDN.
 - Só URL/key persistida no banco, nunca binário.
 - Storage: Cloudflare R2 (S3-compatible, egress $0, free tier não expira) — não AWS S3.
+- A key temporária de upload é namespaced por uma codificação URL-safe do `uid`; ao criar/atualizar sessão, o backend rejeita key de outro usuário, duplicatas e mais de 10 fotos.
+- Enquanto o worker não finalizar, `storageKeyThumbnail` é `null` e `processingStatus` é `pending`; nunca usar a key original como falsa thumbnail. Estados previstos: `pending`, `ready`, `failed`.
+- O processamento roda em worker agendado na própria aplicação (adequado ao monolito de instância única), consulta lotes de até 10 fotos pendentes e tenta cada item no máximo 3 vezes.
+- O worker baixa a key temporária do R2, executa `cwebp` sem copiar metadata, gera variante de até 2048 px (quality 82) e thumbnail de até 480 px (quality 75), envia ambas ao R2 e remove a key temporária somente depois de persistir as novas referências.
+- O rollout é controlado por `FEATURE_PHOTO_UPLOADS_ENABLED` e `FEATURE_PHOTO_PROCESSING_ENABLED`. Em produção, uploads só ficam ready quando ambos estão ativos e o health check rejeita upload ativo com processamento desligado.
+- Em `PUT /api/sessions/{id}`, omitir `photos` preserva as fotos atuais; uma lista vazia remove todas. Para manter uma foto, enviar `{ "id": "<photoId>" }`; para anexar uma nova, enviar `{ "storageKey": "<uploadKey>" }`. IDs são validados contra a própria sessão para impedir IDOR/BOLA.
+- Ao remover foto ou sessão, uma trigger transacional grava as keys em `photo_storage_deletions`; um worker remove os objetos do R2 com retry/backoff e só então exclui a tarefa. A key de upload original é única para impedir reutilização ambígua entre sessões.
+- Formatos aceitos no MVP: JPEG, PNG e WebP, até 10 MB. HEIC/HEIF ficam rejeitados até existir decoder seguro compatível com o pipeline.
+
+## Listagem de sessões
+
+- `GET /api/sessions?hobbyId={opcional}&page=0&size=20` usa paginação desde o MVP.
+- `page` é zero-based; `size` aceita de 1 a 100.
+- Resposta: `items`, `page`, `size`, `totalItems`, `totalPages`, `hasNext`.
+- Ordenação estável: `startedAt DESC`, depois `id DESC`.
+
+## Feature flags operacionais
+
+- `GET /api/features` expõe ao client autenticado somente flags não sensíveis: `photoUploads`, `sessionLocation`, `photoProcessing`.
+- Flags não substituem autorização nem podem ser enviadas/alteradas pelo client; são configuração de servidor por ambiente.
+- Feature desligada falha com HTTP `503` quando o payload tenta usá-la, permitindo rollout/fallback explícito.
+- Equipamentos, backlog, perfil, sessões básicas e streak são núcleo do MVP e não recebem flag para evitar um produto parcialmente incoerente.
 
 ## Taxonomia de hobbies
 

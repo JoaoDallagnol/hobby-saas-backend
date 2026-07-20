@@ -1,7 +1,8 @@
 package io.github.joaodallagnol.backend.session;
 
 import jakarta.validation.Valid;
-import java.util.List;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,8 +33,12 @@ public class SessionController {
     }
 
     @GetMapping
-    public List<SessionResponse> listSessions(@RequestParam(required = false) UUID hobbyId) {
-        return sessionService.listSessions(hobbyId);
+    public SessionPageResponse listSessions(
+            @RequestParam(required = false) UUID hobbyId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
+    ) {
+        return sessionService.listSessions(hobbyId, page, size);
     }
 
     @GetMapping("/{sessionId}")

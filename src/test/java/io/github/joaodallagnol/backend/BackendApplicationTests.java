@@ -9,6 +9,8 @@ import io.github.joaodallagnol.backend.session.HobbyAttributeTemplateRepository;
 import io.github.joaodallagnol.backend.session.PlaceReferenceRepository;
 import io.github.joaodallagnol.backend.session.ResolvedPlace;
 import io.github.joaodallagnol.backend.session.SessionRecordRepository;
+import io.github.joaodallagnol.backend.session.SessionPhotoRepository;
+import io.github.joaodallagnol.backend.storage.PhotoStorageDeletionRepository;
 import io.github.joaodallagnol.backend.user.HobbyRepository;
 import io.github.joaodallagnol.backend.user.ProductUserRepository;
 import io.github.joaodallagnol.backend.user.UserHobbyRepository;
@@ -103,6 +105,42 @@ class BackendApplicationTests {
 						case "hashCode" -> System.identityHashCode(proxy);
 						case "toString" -> "TestSessionRecordRepository";
 						default -> throw new UnsupportedOperationException("Method not supported in test: " + method.getName());
+					}
+			);
+		}
+
+		@Bean
+		@Primary
+		SessionPhotoRepository sessionPhotoRepository() {
+			return (SessionPhotoRepository) Proxy.newProxyInstance(
+					SessionPhotoRepository.class.getClassLoader(),
+					new Class<?>[]{SessionPhotoRepository.class},
+					(proxy, method, args) -> switch (method.getName()) {
+						case "findTop10ByProcessingStatusAndProcessingAttemptsLessThanOrderByIdAsc" -> List.of();
+						case "findById" -> Optional.empty();
+						case "save" -> args[0];
+						case "equals" -> proxy == args[0];
+						case "hashCode" -> System.identityHashCode(proxy);
+						case "toString" -> "TestSessionPhotoRepository";
+						default -> throw new UnsupportedOperationException(method.getName());
+					}
+			);
+		}
+
+		@Bean
+		@Primary
+		PhotoStorageDeletionRepository photoStorageDeletionRepository() {
+			return (PhotoStorageDeletionRepository) Proxy.newProxyInstance(
+					PhotoStorageDeletionRepository.class.getClassLoader(),
+					new Class<?>[]{PhotoStorageDeletionRepository.class},
+					(proxy, method, args) -> switch (method.getName()) {
+						case "findTop20ByNextAttemptAtLessThanEqualOrderByCreatedAtAsc" -> List.of();
+						case "save" -> args[0];
+						case "delete" -> null;
+						case "equals" -> proxy == args[0];
+						case "hashCode" -> System.identityHashCode(proxy);
+						case "toString" -> "TestPhotoStorageDeletionRepository";
+						default -> throw new UnsupportedOperationException(method.getName());
 					}
 			);
 		}

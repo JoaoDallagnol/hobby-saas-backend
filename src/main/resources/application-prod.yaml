@@ -22,6 +22,10 @@ management:
         enabled: true
 
 app:
+  features:
+    photo-uploads: ${FEATURE_PHOTO_UPLOADS_ENABLED:true}
+    session-location: ${FEATURE_SESSION_LOCATION_ENABLED:true}
+    photo-processing: ${FEATURE_PHOTO_PROCESSING_ENABLED:true}
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:true}
     capacity: ${RATE_LIMIT_CAPACITY:120}
@@ -36,17 +40,17 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
   integrations:
     r2:
-      endpoint: ${R2_ENDPOINT}
-      bucket: ${R2_BUCKET}
-      access-key: ${R2_ACCESS_KEY}
-      secret-key: ${R2_SECRET_KEY}
+      endpoint: ${R2_ENDPOINT:}
+      bucket: ${R2_BUCKET:}
+      access-key: ${R2_ACCESS_KEY:}
+      secret-key: ${R2_SECRET_KEY:}
     google:
-      places-api-key: ${GOOGLE_PLACES_API_KEY}
+      places-api-key: ${GOOGLE_PLACES_API_KEY:}
     sentry:
       dsn: ${SENTRY_DSN:}
     brevo:
-      smtp-username: ${BREVO_SMTP_USERNAME}
-      smtp-password: ${BREVO_SMTP_PASSWORD}
+      smtp-username: ${BREVO_SMTP_USERNAME:}
+      smtp-password: ${BREVO_SMTP_PASSWORD:}
 
 springdoc:
   api-docs:

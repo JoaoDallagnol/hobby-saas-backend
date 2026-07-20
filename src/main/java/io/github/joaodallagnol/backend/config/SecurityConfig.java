@@ -2,6 +2,7 @@ package io.github.joaodallagnol.backend.config;
 
 import io.github.joaodallagnol.backend.auth.FirebaseAuthenticationFilter;
 import io.github.joaodallagnol.backend.user.JitUserProvisioningFilter;
+import io.github.joaodallagnol.backend.feature.FeatureFlagProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -17,7 +18,7 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableConfigurationProperties(RateLimitProperties.class)
+@EnableConfigurationProperties({RateLimitProperties.class, FeatureFlagProperties.class})
 public class SecurityConfig {
 
     @Bean

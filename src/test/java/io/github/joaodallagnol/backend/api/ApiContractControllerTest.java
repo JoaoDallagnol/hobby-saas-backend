@@ -15,6 +15,7 @@ import io.github.joaodallagnol.backend.session.HobbyAttributeTemplateResponse;
 import io.github.joaodallagnol.backend.session.HobbyAttributeTemplateService;
 import io.github.joaodallagnol.backend.session.SessionController;
 import io.github.joaodallagnol.backend.session.SessionLocationResponse;
+import io.github.joaodallagnol.backend.session.SessionPageResponse;
 import io.github.joaodallagnol.backend.session.SessionPhotoResponse;
 import io.github.joaodallagnol.backend.session.SessionResponse;
 import io.github.joaodallagnol.backend.session.SessionService;
@@ -270,7 +271,7 @@ class ApiContractControllerTest {
                 ),
                 BACKLOG_ID,
                 List.of(EQUIPMENT_ID),
-                List.of(new SessionPhotoResponse("uploads/original.webp", "uploads/thumb.webp")),
+                List.of(new SessionPhotoResponse(UUID.randomUUID(), "uploads/original.webp", "uploads/thumb.webp", "ready")),
                 Map.of("distance_km", 8.5, "surface", "road")
         );
 
@@ -290,10 +291,47 @@ class ApiContractControllerTest {
                 .andExpect(jsonPath("$.location.lng").value(-46.657634))
                 .andExpect(jsonPath("$.projectId").value(BACKLOG_ID.toString()))
                 .andExpect(jsonPath("$.equipmentIds[0]").value(EQUIPMENT_ID.toString()))
+                .andExpect(jsonPath("$.photos[0].id").isNotEmpty())
                 .andExpect(jsonPath("$.photos[0].storageKeyOriginal").value("uploads/original.webp"))
                 .andExpect(jsonPath("$.photos[0].storageKeyThumbnail").value("uploads/thumb.webp"))
+                .andExpect(jsonPath("$.photos[0].processingStatus").value("ready"))
                 .andExpect(jsonPath("$.attributes.distance_km").value(8.5))
                 .andExpect(jsonPath("$.attributes.surface").value("road"));
+    }
+
+    @Test
+    void shouldExposePaginatedSessionListContract() throws Exception {
+        sessionService.sessionPageResponse = new SessionPageResponse(
+                List.of(new SessionResponse(
+                        SESSION_ID,
+                        HOBBY_ID,
+                        "Running",
+                        "Morning Run",
+                        OffsetDateTime.parse("2026-07-19T07:30:00Z"),
+                        45,
+                        null,
+                        4,
+                        null,
+                        null,
+                        List.of(),
+                        List.of(),
+                        Map.of("distance_km", 8.5)
+                )),
+                0,
+                20,
+                1,
+                1,
+                false
+        );
+
+        mockMvc.perform(get("/api/sessions").param("page", "0").param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].id").value(SESSION_ID.toString()))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalItems").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.hasNext").value(false));
     }
 
     @Test
@@ -440,7 +478,7 @@ class ApiContractControllerTest {
         private SessionPhotoUploadResponse uploadResponse;
 
         StubSessionPhotoUploadService() {
-            super(null, null);
+            super(null, null, null);
         }
 
         @Override
@@ -480,9 +518,10 @@ class ApiContractControllerTest {
     static final class StubSessionService extends SessionService {
 
         private SessionResponse sessionResponse;
+        private SessionPageResponse sessionPageResponse;
 
         StubSessionService() {
-            super(null, null, null, null, null, null, null, null, null);
+            super(null, null, null, null, null, null, null, null, null, null);
         }
 
         @Override
@@ -493,6 +532,11 @@ class ApiContractControllerTest {
         @Override
         public SessionResponse getSession(UUID sessionId) {
             return sessionResponse;
+        }
+
+        @Override
+        public SessionPageResponse listSessions(UUID hobbyId, int page, int size) {
+            return sessionPageResponse;
         }
     }
 }

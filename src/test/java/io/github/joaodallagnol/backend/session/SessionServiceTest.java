@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.joaodallagnol.backend.auth.AuthenticatedUserExtractor;
 import io.github.joaodallagnol.backend.auth.FirebaseAuthenticatedPrincipal;
+import io.github.joaodallagnol.backend.feature.FeatureFlagProperties;
+import io.github.joaodallagnol.backend.feature.FeatureFlagService;
+import io.github.joaodallagnol.backend.storage.SessionPhotoStorageKeyPolicy;
 import io.github.joaodallagnol.backend.user.Hobby;
 import io.github.joaodallagnol.backend.user.HobbyCategory;
 import io.github.joaodallagnol.backend.user.HobbyRepository;
@@ -22,6 +25,8 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -66,7 +71,8 @@ class SessionServiceTest {
                 ),
                 new PlaceResolutionService(placeRepository.asRepository(), placeId -> {
                     throw new UnsupportedOperationException("Should not fetch uncached place in this test.");
-                })
+                }),
+                enabledFeatureFlags()
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -80,11 +86,11 @@ class SessionServiceTest {
                 new SessionLocationRequest("place-123"),
                 projectId,
                 List.of(equipment.getId()),
-                List.of(new SessionPhotoRequest("uploads/user/session1/photo1.webp")),
+                List.of(new SessionPhotoRequest(SessionPhotoStorageKeyPolicy.uploadPrefix("firebase-user-1") + "photo1.webp")),
                 Map.of("distance_km", 8.5)
         ));
 
-        List<SessionResponse> listed = service.listSessions(null);
+        SessionPageResponse listed = service.listSessions(null, 0, 20);
         SessionResponse detailed = service.getSession(created.id());
         SessionResponse updated = service.updateSession(created.id(), new UpdateSessionRequest(
                 hobby.getId(),
@@ -96,7 +102,7 @@ class SessionServiceTest {
                 new SessionLocationRequest("place-123"),
                 projectId,
                 List.of(equipment.getId()),
-                List.of(new SessionPhotoRequest("uploads/user/session1/photo2.webp")),
+                List.of(new SessionPhotoRequest(SessionPhotoStorageKeyPolicy.uploadPrefix("firebase-user-1") + "photo2.webp")),
                 Map.of("distance_km", 9.0)
         ));
         service.deleteSession(created.id());
@@ -105,11 +111,11 @@ class SessionServiceTest {
         assertThat(created.equipmentIds()).containsExactly(equipment.getId());
         assertThat(created.photos()).hasSize(1);
         assertThat(created.attributes()).containsEntry("distance_km", 8.5);
-        assertThat(listed).hasSize(1);
+        assertThat(listed.items()).hasSize(1);
         assertThat(detailed.id()).isEqualTo(created.id());
         assertThat(updated.title()).isEqualTo("Evening Run");
         assertThat(updated.satisfaction()).isEqualTo(5);
-        assertThat(service.listSessions(null)).isEmpty();
+        assertThat(service.listSessions(null, 0, 20).items()).isEmpty();
     }
 
     @Test
@@ -137,7 +143,8 @@ class SessionServiceTest {
                 ),
                 new PlaceResolutionService(new InMemoryPlaceReferenceRepository().asRepository(), placeId -> {
                     throw new UnsupportedOperationException("No place resolution expected.");
-                })
+                }),
+                enabledFeatureFlags()
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -187,7 +194,8 @@ class SessionServiceTest {
                 ),
                 new PlaceResolutionService(new InMemoryPlaceReferenceRepository().asRepository(), placeId -> {
                     throw new UnsupportedOperationException("No place resolution expected.");
-                })
+                }),
+                enabledFeatureFlags()
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -235,7 +243,8 @@ class SessionServiceTest {
                 ),
                 new PlaceResolutionService(new InMemoryPlaceReferenceRepository().asRepository(), placeId -> {
                     throw new UnsupportedOperationException("No place resolution expected.");
-                })
+                }),
+                enabledFeatureFlags()
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -283,7 +292,8 @@ class SessionServiceTest {
                 ),
                 new PlaceResolutionService(new InMemoryPlaceReferenceRepository().asRepository(), placeId -> {
                     throw new UnsupportedOperationException("No place resolution expected.");
-                })
+                }),
+                enabledFeatureFlags()
         );
         authenticate("firebase-user-1", "user@example.com", "User");
 
@@ -308,6 +318,10 @@ class SessionServiceTest {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(principal, "token"));
     }
 
+    private static FeatureFlagService enabledFeatureFlags() {
+        return new FeatureFlagService(new FeatureFlagProperties());
+    }
+
     private static final class InMemorySessionRecordRepository {
         private final Map<UUID, SessionRecord> storage = new HashMap<>();
 
@@ -328,20 +342,32 @@ class SessionServiceTest {
                         case "findByIdAndUserId" -> storage.values().stream()
                                 .filter(item -> item.getId().equals(args[0]) && item.getUserId().equals(args[1]))
                                 .findFirst();
-                        case "findAllByUserIdOrderByStartedAtDesc" -> storage.values().stream()
-                                .filter(item -> item.getUserId().equals(args[0]))
-                                .sorted(Comparator.comparing(SessionRecord::getStartedAt).reversed())
-                                .toList();
-                        case "findAllByUserIdAndHobbyIdOrderByStartedAtDesc" -> storage.values().stream()
-                                .filter(item -> item.getUserId().equals(args[0]) && item.getHobby().getId().equals(args[1]))
-                                .sorted(Comparator.comparing(SessionRecord::getStartedAt).reversed())
-                                .toList();
+                        case "findAllByUserId" -> page(
+                                storage.values().stream()
+                                        .filter(item -> item.getUserId().equals(args[0]))
+                                        .sorted(Comparator.comparing(SessionRecord::getStartedAt).reversed())
+                                        .toList(),
+                                (Pageable) args[1]
+                        );
+                        case "findAllByUserIdAndHobbyId" -> page(
+                                storage.values().stream()
+                                        .filter(item -> item.getUserId().equals(args[0]) && item.getHobby().getId().equals(args[1]))
+                                        .sorted(Comparator.comparing(SessionRecord::getStartedAt).reversed())
+                                        .toList(),
+                                (Pageable) args[2]
+                        );
                         case "equals" -> proxy == args[0];
                         case "hashCode" -> System.identityHashCode(proxy);
                         case "toString" -> "InMemorySessionRecordRepository";
                         default -> throw new UnsupportedOperationException(method.getName());
                     }
             );
+        }
+
+        private PageImpl<SessionRecord> page(List<SessionRecord> items, Pageable pageable) {
+            int fromIndex = Math.min((int) pageable.getOffset(), items.size());
+            int toIndex = Math.min(fromIndex + pageable.getPageSize(), items.size());
+            return new PageImpl<>(items.subList(fromIndex, toIndex), pageable, items.size());
         }
     }
 
@@ -441,6 +467,8 @@ class SessionServiceTest {
                             BacklogItemReference item = storage.get((UUID) args[0]);
                             yield item != null && item.getUserId().equals(args[1]);
                         }
+                        case "findByIdAndUserId" -> Optional.ofNullable(storage.get((UUID) args[0]))
+                                .filter(item -> item.getUserId().equals(args[1]));
                         case "equals" -> proxy == args[0];
                         case "hashCode" -> System.identityHashCode(proxy);
                         case "toString" -> "InMemoryBacklogItemReferenceRepository";

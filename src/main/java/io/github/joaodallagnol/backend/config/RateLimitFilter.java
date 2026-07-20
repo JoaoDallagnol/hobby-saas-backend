@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Clock clock;
     private final Map<String, TokenBucketState> buckets = new ConcurrentHashMap<>();
 
+    @Autowired
     public RateLimitFilter(RateLimitProperties properties) {
         this(properties, Clock.systemUTC());
     }

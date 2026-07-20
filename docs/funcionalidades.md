@@ -12,15 +12,23 @@ O **Perfil do Hobbista** é o espaço onde o usuário lista os hobbies que prati
 
 No MVP atual de backend, esse perfil é exposto por um contrato simples: leitura do perfil atual, edição de `name` e `bio`, leitura dos hobbies vinculados, inclusão de hobby no perfil, atualização de `experience_level` e remoção do vínculo com hobby. O escopo continua estritamente individual — nada de comparação entre perfis, descoberta ou estatística social nesta fase.
 
+Para que o cliente consiga escolher esses hobbies sem conhecer UUIDs previamente, o backend também expõe o catálogo oficial de hobbies, ordenado por categoria e nome.
+
 O **Registro de Sessões**, ou tracker, é a funcionalidade central do app: um botão simples para iniciar um cronômetro durante a prática de um hobby, ou registrar manualmente uma atividade que já aconteceu. Cada sessão tem título, data, tempo gasto, foto e um campo de notas em texto livre — esse campo de notas também absorve o que originalmente seria um "diário de reflexão" separado, permitindo que o usuário escreva o que aprendeu ou o que pretende tentar diferente da próxima vez, sem ter dois campos parecidos competindo pela atenção.
 
 Os **atributos dinâmicos por hobby** são o que evita o app parecer raso demais comparado a um app especializado: em vez de todo hobby usar os mesmos campos genéricos, cada tipo de hobby pode ter campos extras próprios — corrida ganha um campo de distância, leitura ganha um campo de páginas lidas, marcenaria ganha um campo de material usado, e assim por diante. Isso é o que dá ao app profundidade equivalente à de um app nichado, sem abrir mão de cobrir qualquer hobby.
+
+No MVP, esses campos extras são opcionais. A listagem de sessões é paginada desde o início para não degradar conforme o histórico do usuário cresce.
 
 O **streak de constância** é um contador de dias seguidos em que o usuário registrou qualquer atividade, independente de qual hobby — é uma mecânica de hábito pura, que não depende de nenhum outro usuário do app, e serve como o principal gatilho de retorno diário. No MVP, o streak é **global** (não por hobby), conta **dias únicos** de atividade e usa **UTC como referência**, porque o produto ainda não tem timezone do usuário no modelo.
 
 A **biblioteca de equipamentos** permite ao usuário cadastrar os itens que usa em cada hobby — uma câmera, um par de tênis de corrida, um kit de pincéis — e associar esses itens às sessões em que foram usados. Isso não depende de nenhum outro usuário do app e por isso entra já no MVP, junto com o restante.
 
 O **backlog Kanban por hobby** é uma fila de projetos ou ideias futuras dentro de cada hobby — no hobby de leitura, são os livros já comprados mas ainda não lidos; na marcenaria, são os móveis planejados mas ainda não construídos. Uma sessão pode opcionalmente ser vinculada a um item desse backlog. Assim como a biblioteca de equipamentos, não depende de outros usuários e por isso também está no MVP.
+
+Quando um item do backlog está associado a um hobby, ele só pode ser vinculado a uma sessão desse mesmo hobby. Itens sem hobby continuam genéricos e podem ser usados em qualquer sessão do próprio usuário.
+
+Fotos e localização possuem feature flags operacionais porque dependem de R2 e Google Places. O client autenticado pode consultar essas flags para esconder temporariamente a UI durante configuração, rollout ou incidente; isso não altera a autorização dos recursos nem transforma flags em dados enviados pelo usuário.
 
 ---
 

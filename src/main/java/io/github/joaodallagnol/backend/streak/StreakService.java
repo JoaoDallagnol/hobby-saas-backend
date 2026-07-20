@@ -1,11 +1,11 @@
 package io.github.joaodallagnol.backend.streak;
 
 import io.github.joaodallagnol.backend.auth.AuthenticatedUserExtractor;
-import io.github.joaodallagnol.backend.session.SessionRecord;
 import io.github.joaodallagnol.backend.session.SessionRecordRepository;
 import jakarta.annotation.Nonnull;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,16 +32,16 @@ public class StreakService {
 
     public StreakResponse getCurrentUserStreak() {
         String userId = authenticatedUserExtractor.extract(SecurityContextHolder.getContext().getAuthentication()).id();
-        List<SessionRecord> sessions = sessionRecordRepository.findAllByUserIdOrderByStartedAtDesc(userId);
+        List<OffsetDateTime> sessionDates = sessionRecordRepository.findStartedAtByUserIdOrderByStartedAtDesc(userId);
         LocalDate referenceDate = LocalDate.now(clock);
 
-        if (sessions.isEmpty()) {
+        if (sessionDates.isEmpty()) {
             return new StreakResponse(0, null, referenceDate, false);
         }
 
         Set<LocalDate> uniqueDates = new LinkedHashSet<>();
-        for (SessionRecord session : sessions) {
-            uniqueDates.add(session.getStartedAt().atZoneSameInstant(ZoneOffset.UTC).toLocalDate());
+        for (OffsetDateTime startedAt : sessionDates) {
+            uniqueDates.add(startedAt.atZoneSameInstant(ZoneOffset.UTC).toLocalDate());
         }
 
         List<LocalDate> orderedDates = uniqueDates.stream().sorted((a, b) -> b.compareTo(a)).toList();
