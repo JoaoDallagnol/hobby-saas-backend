@@ -16,9 +16,17 @@ public interface SessionRecordRepository extends JpaRepository<SessionRecord, UU
 
     Page<SessionRecord> findAllByUserIdAndHobbyId(String userId, UUID hobbyId, Pageable pageable);
 
+    Page<SessionRecord> findAllByUserIdAndVisibility(String userId, SessionVisibility visibility, Pageable pageable);
+
+    Page<SessionRecord> findAllByUserIdAndHobbyIdAndVisibility(
+            String userId, UUID hobbyId, SessionVisibility visibility, Pageable pageable);
+
     @Query("select session.startedAt from SessionRecord session where session.userId = :userId order by session.startedAt desc")
     List<OffsetDateTime> findStartedAtByUserIdOrderByStartedAtDesc(String userId);
 
     @EntityGraph(attributePaths = {"hobby", "hobby.category", "photos", "equipment", "place"})
     Optional<SessionRecord> findByIdAndUserId(UUID id, String userId);
+
+    @EntityGraph(attributePaths = {"hobby", "hobby.category", "photos", "place"})
+    Optional<SessionRecord> findByIdAndUserIdAndVisibility(UUID id, String userId, SessionVisibility visibility);
 }

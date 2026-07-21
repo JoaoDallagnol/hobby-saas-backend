@@ -31,8 +31,17 @@ public record UpdateSessionRequest(
         SessionLocationRequest location,
         UUID projectId,
         List<UUID> equipmentIds,
-        @Size(max = 10)
+        @Size(max = 1)
         List<@Valid SessionPhotoRequest> photos,
-        Map<String, Object> attributes
+        Map<String, Object> attributes,
+        @NotNull
+        SessionVisibility visibility
 ) {
+    public UpdateSessionRequest(UUID hobbyId, String title, OffsetDateTime startedAt, int durationMinutes,
+                                String notes, int satisfaction, SessionLocationRequest location, UUID projectId,
+                                List<UUID> equipmentIds, List<SessionPhotoRequest> photos,
+                                Map<String, Object> attributes) {
+        this(hobbyId, title, startedAt, durationMinutes, notes, satisfaction, location, projectId, equipmentIds,
+                photos, attributes, SessionVisibility.ONLY_ME);
+    }
 }

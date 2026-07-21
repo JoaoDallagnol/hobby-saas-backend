@@ -42,7 +42,7 @@
 
 - Perfis mínimos obrigatórios: `local` e `prod`.
 - `application.yaml` fica como base neutra, sem segredo real.
-- `application-local.yaml` suporta desenvolvimento local, com defaults seguros e integrações opcionais temporariamente vazias.
+- `application-local.yaml` suporta desenvolvimento local, com Adobe S3Mock persistindo mídia em volume/pasta Docker e demais integrações externas opcionais temporariamente vazias.
 - `application-prod.yaml` assume variáveis obrigatórias para produção e não deve depender de fallback inseguro.
 - OpenAPI/Swagger:
   - `local`: habilitado por padrão (`SPRINGDOC_ENABLED=true`).
@@ -83,6 +83,7 @@
 - `CWEBP_BINARY`
 - `PHOTO_PROCESSING_POLL_DELAY_MS`
 - `PHOTO_DELETION_POLL_DELAY_MS`
+- `PHOTO_VISIBILITY_POLL_DELAY_MS`
 
 #### Integrações opcionais enquanto o backend central evolui
 
@@ -95,9 +96,14 @@
 - `LOCAL_AUTH_NAME`
 - `LOCAL_AUTH_EMAIL_VERIFIED`
 - `R2_ENDPOINT`
-- `R2_BUCKET`
+- `R2_PRESIGN_ENDPOINT`
+- `R2_PRIVATE_BUCKET`
+- `R2_PUBLIC_BUCKET`
+- `R2_PUBLIC_BASE_URL`
 - `R2_ACCESS_KEY`
 - `R2_SECRET_KEY`
+- `CLOUDFLARE_ZONE_ID`
+- `CLOUDFLARE_API_TOKEN`
 - `GOOGLE_PLACES_API_KEY`
 - `SENTRY_DSN`
 - `BREVO_SMTP_USERNAME`
@@ -121,6 +127,7 @@
 - `CWEBP_BINARY`
 - `PHOTO_PROCESSING_POLL_DELAY_MS`
 - `PHOTO_DELETION_POLL_DELAY_MS`
+- `PHOTO_VISIBILITY_POLL_DELAY_MS`
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_SERVICE_ACCOUNT_JSON_BASE64` ou `FIREBASE_SERVICE_ACCOUNT_PATH`
 - `APP_DOMAIN`
@@ -134,7 +141,7 @@
 
 #### Produção quando a feature correspondente estiver ativa
 
-- Fotos R2: `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`
+- Fotos R2: `R2_ENDPOINT`, `R2_PRIVATE_BUCKET`, `R2_PUBLIC_BUCKET`, `R2_PUBLIC_BASE_URL`, `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`. `R2_PRESIGN_ENDPOINT` só é necessário quando o endpoint visto pelo client difere do endpoint interno.
 - Localização Google Places: `GOOGLE_PLACES_API_KEY`
 - Erros em produção: `SENTRY_DSN`
 - E-mail transacional próprio: `BREVO_SMTP_USERNAME`, `BREVO_SMTP_PASSWORD`
@@ -145,6 +152,7 @@
   - usar shell local, `.env` não versionado ou mecanismo equivalente fora do git;
   - manter `.env.example` só com placeholders;
   - se usar auth local temporária, ativar `LOCAL_AUTH_ENABLED=true`, definir `LOCAL_AUTH_TOKEN` forte e usar esse bearer só em ambiente de desenvolvimento;
+  - o Compose local usa S3Mock com credenciais fictícias e dois buckets persistidos em volume; esses valores não são secrets nem devem ser copiados para produção;
   - se quiser validar throttling localmente, ativar `RATE_LIMIT_ENABLED=true` e ajustar `RATE_LIMIT_*` conforme o volume de teste;
   - se precisar service account do Firebase, preferir arquivo local fora do repositório ou variável base64 injetada só no ambiente do dev.
   - se usar certificado local de teste ou service account em arquivo, manter fora do git e fora de paths versionados não ignorados.
@@ -249,9 +257,10 @@
 #### Cloudflare / R2
 
 - criar conta e zona DNS do domínio quando o nome do app fechar;
-- criar bucket R2 separado por ambiente ou política equivalente de isolamento;
+- criar buckets de fotos privado/público por ambiente e um bucket privado separado para backups;
 - gerar credenciais com menor privilégio possível;
-- configurar domínio público/CDN das imagens só quando o fluxo de exibição estiver pronto.
+- configurar domínio público/CDN somente no bucket público de variantes processadas;
+- configurar token limitado a Cache Purge da zona para a transição `everyone` → `only_me`.
 
 #### Google Places
 

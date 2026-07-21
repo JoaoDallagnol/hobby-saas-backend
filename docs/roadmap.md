@@ -1,10 +1,10 @@
 # Roadmap de Funcionalidades
 
-> App multi-hobby de tracking (tipo Strava/Letterboxd, mas não nichado). Objetivo da Fase 0: validar se o usuário cria o hábito de registrar, antes de qualquer feature social.
+> App multi-hobby de tracking (tipo Strava/Letterboxd, mas não nichado). Objetivo da Fase 0: validar se o usuário cria o hábito de registrar. O MVP inclui somente a superfície social mínima de perfil/sessão pública, sem feed, seguidores ou descoberta.
 
-## Fase 0 — MVP (sem dependência de outros usuários)
-- Perfil do hobbista (hobbies, nível, bio)
-- Tracker de sessão (título, data, tempo, foto, notas)
+## Fase 0 — MVP (sem depender de massa crítica)
+- Perfil do hobbista (username, hobbies, nível, bio), com leitura do perfil de outra pessoa por username
+- Tracker de sessão (título, data, tempo, no máximo uma foto, notas e visibilidade `everyone`/`only_me`)
 - Atributos dinâmicos por hobby (ver `diretrizes-tecnicas.md` — Alternativa C) — o que evita o app parecer raso vs. app nichado
 - Diário de reflexão → unificado no campo `notes`
 - Biblioteca de equipamentos
@@ -17,6 +17,7 @@
 - Teste de personalidade/descoberta de hobby (onboarding)
 
 ## Fase 2 — efeito rede ⚠️ não lançar sem massa crítica de usuários/cidade
+- Relação de seguidores e visibilidade `followers` nas sessões
 - Feed social (cronológico, amigos/mesma cidade)
 - Hobby Buddy (matching por proximidade — mesma restrição do feed)
 - Indicações/rankings locais
@@ -38,4 +39,4 @@
 - Destaque de assinante na listagem (⚠️ como badge visível, nunca como ranking artificialmente inflado)
 
 ## Regra de priorização
-Feed, Hobby Buddy e Heatmap compartilham a mesma trava: não implementar/expor sem massa crítica local.
+Seguidores/feed, Hobby Buddy e Heatmap compartilham a mesma trava: não implementar/expor sem massa crítica local. A leitura direta de perfil e sessões `everyone` por username já existe no MVP como base, mas não constitui descoberta nem feed.

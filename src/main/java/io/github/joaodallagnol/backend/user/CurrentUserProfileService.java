@@ -5,12 +5,19 @@ import io.github.joaodallagnol.backend.auth.AuthenticatedUserExtractor;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
+import java.util.Locale;
+import java.util.Set;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Service
 public class CurrentUserProfileService {
+
+    private static final Set<String> RESERVED_USERNAMES = Set.of(
+            "admin", "api", "me", "actuator", "swagger", "swagger-ui"
+    );
 
     private final AuthenticatedUserExtractor authenticatedUserExtractor;
     private final ProductUserRepository productUserRepository;
@@ -38,8 +45,24 @@ public class CurrentUserProfileService {
     @Transactional
     public CurrentUserProfileResponse updateCurrentUserProfile(CurrentUserProfileUpdateRequest request) {
         ProductUser productUser = getCurrentUser();
-        productUser.updateProfile(request.name().trim(), request.bio());
+        String username = normalizeUsername(request.username());
+        if (username != null && (RESERVED_USERNAMES.contains(username)
+                || productUserRepository.existsByUsernameIgnoreCaseAndIdNot(username, productUser.getId()))) {
+            throw new UsernameAlreadyTakenException();
+        }
+        productUser.updateProfile(request.name().trim(), request.bio(), username);
+        if (username != null) {
+            try {
+                productUserRepository.flush();
+            } catch (DataIntegrityViolationException ex) {
+                throw new UsernameAlreadyTakenException();
+            }
+        }
         return CurrentUserProfileResponse.from(productUser);
+    }
+
+    private String normalizeUsername(String username) {
+        return username == null ? null : username.trim().toLowerCase(Locale.ROOT);
     }
 
     public List<UserHobbyResponse> getCurrentUserHobbies() {

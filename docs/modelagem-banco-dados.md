@@ -21,7 +21,7 @@ erDiagram
     HOBBIES ||--o{ EQUIPMENT : "optionally linked to"
     HOBBIES ||--o{ BACKLOG_ITEMS : "optionally linked to"
 
-    SESSIONS ||--o{ SESSION_PHOTOS : has
+    SESSIONS ||--o| SESSION_PHOTOS : has
     SESSIONS }o--o{ EQUIPMENT : uses
     SESSIONS }o--o| PLACES : "tagged at"
     SESSIONS }o--o| BACKLOG_ITEMS : "linked to"
@@ -32,6 +32,7 @@ erDiagram
         string id PK "= sub/uid do token do Firebase Auth, nao gerado pelo banco"
         string email "sincronizado do Firebase Auth"
         string name "sincronizado do Firebase Auth"
+        string username UK "nullable ate ser escolhido; identificador publico"
         boolean email_verified "sincronizado do Firebase Auth"
         string bio "so existe no banco de produto"
         timestamp created_at "data do primeiro login (criacao via JIT)"
@@ -75,6 +76,7 @@ erDiagram
         int duration_minutes
         text notes
         int satisfaction
+        string visibility "everyone|only_me; default only_me"
         string place_id FK
         uuid project_id FK
         jsonb attributes
@@ -88,10 +90,12 @@ erDiagram
         string processing_status "pending|ready|failed"
         int processing_attempts "0..3"
         string last_processing_error "codigo tecnico sem detalhe sensivel"
+        string storage_scope "public|private"
     }
 
     PHOTO_STORAGE_DELETIONS {
         uuid id PK
+        string storage_scope "public|private; compoe UK"
         string storage_key UK
         timestamp created_at
         int attempts
@@ -258,6 +262,7 @@ erDiagram
 | id | string | não | — | PK. **É o próprio `sub`/`uid` do token do Firebase Authentication**, não gerado pelo banco — evita coluna de mapeamento separada e mantém as FKs do resto do schema consistentes |
 | email | string | não | — | sincronizado do Firebase Authentication no momento do provisionamento just-in-time |
 | name | string | não | — | sincronizado do Firebase Authentication |
+| username | string | sim | — | identificador público único case-insensitive, 3–30 caracteres; pode ficar `null` até usuário provisionado escolher; nunca usar o UID na URL pública |
 | email_verified | boolean | não | — | sincronizado do Firebase Authentication; útil pra restringir alguma ação a e-mail confirmado |
 | bio | string | sim | — | só existe no banco de produto, editado dentro do app |
 | created_at | timestamp | não | — | data do primeiro login (linha criada via provisionamento JIT, não em cadastro separado) |
@@ -315,6 +320,7 @@ Define quais atributos dinâmicos existem por hobby (Alternativa C).
 | duration_minutes | int | não | — | |
 | notes | text | sim | — | campo único (notas + reflexão, unificados) |
 | satisfaction | int | não | — | 1–5, obrigatório |
+| visibility | string | não | — | `everyone` ou `only_me`, default `only_me`; modelado como enum extensível para `followers` na Fase 2, mas esse valor ainda não é aceito |
 | place_id | string | sim | `places.place_id` | opcional |
 | project_id | uuid | sim | `backlog_items.id` | opcional |
 | attributes | jsonb | sim | — | valores dos atributos dinâmicos, validados contra `hobby_attribute_template` |
@@ -332,15 +338,17 @@ Define quais atributos dinâmicos existem por hobby (Alternativa C).
 | processing_status | string | não | — | `pending`, `ready` ou `failed`; nunca simular thumbnail copiando a key original |
 | processing_attempts | int | não | — | contador de tentativas, de 0 a 3 |
 | last_processing_error | string | sim | — | somente classe/código técnico resumido; não armazena mensagem de provedor ou segredo |
+| storage_scope | string | não | — | `private` ou `public`; indica em qual bucket estão as variantes atuais |
 
-`storage_key_original` é único. A remoção de uma foto dispara, na mesma transação, a inclusão de suas keys atual/original e thumbnail em `photo_storage_deletions`; isso evita perda da intenção de limpeza quando o R2 estiver indisponível.
+`storage_key_original` e `session_id` são únicos, garantindo no máximo uma foto por sessão também no banco. A remoção de uma foto dispara, na mesma transação, a inclusão do par `storage_scope` + keys atual/original e thumbnail em `photo_storage_deletions`; isso evita apagar no bucket errado e preserva a intenção de limpeza quando o R2 estiver indisponível.
 
 #### `photo_storage_deletions`
 
 | Campo | Tipo | Nulo? | Restrição | Descrição |
 |---|---|---:|---|---|
 | id | UUID | não | PK | identificador da tarefa de limpeza |
-| storage_key | string | não | unique | objeto R2 a remover de forma idempotente |
+| storage_scope | string | não | unique composto | `public` ou `private`, seleciona o bucket correto |
+| storage_key | string | não | unique composto | objeto R2 a remover de forma idempotente; unique junto de `storage_scope` |
 | created_at | timestamptz | não | — | instante de criação da tarefa |
 | attempts | int | não | >= 0 | tentativas já realizadas |
 | next_attempt_at | timestamptz | não | índice | próxima execução com backoff |

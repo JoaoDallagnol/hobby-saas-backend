@@ -44,10 +44,15 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   integrations:
     r2:
-      endpoint: ${R2_ENDPOINT:}
-      bucket: ${R2_BUCKET:}
+      endpoint: ${R2_ENDPOINT:http://localhost:9090}
+      presign-endpoint: ${R2_PRESIGN_ENDPOINT:${R2_ENDPOINT:http://localhost:9090}}
+      private-bucket: ${R2_PRIVATE_BUCKET:hobby-private}
+      public-bucket: ${R2_PUBLIC_BUCKET:hobby-public}
+      public-base-url: ${R2_PUBLIC_BASE_URL:http://localhost:9090/hobby-public}
       access-key: ${R2_ACCESS_KEY:}
       secret-key: ${R2_SECRET_KEY:}
+      cloudflare-zone-id: ${CLOUDFLARE_ZONE_ID:}
+      cloudflare-api-token: ${CLOUDFLARE_API_TOKEN:}
     google:
       places-api-key: ${GOOGLE_PLACES_API_KEY:}
     sentry:

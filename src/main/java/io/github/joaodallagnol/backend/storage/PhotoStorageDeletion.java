@@ -18,6 +18,9 @@ public class PhotoStorageDeletion {
     @Column(name = "storage_key", nullable = false, length = 500)
     private String storageKey;
 
+    @Column(name = "storage_scope", nullable = false, length = 20)
+    private StorageScope storageScope;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
@@ -33,12 +36,25 @@ public class PhotoStorageDeletion {
     protected PhotoStorageDeletion() {
     }
 
+    public PhotoStorageDeletion(StorageScope storageScope, String storageKey) {
+        this.id = UUID.randomUUID();
+        this.storageScope = storageScope;
+        this.storageKey = storageKey;
+        this.createdAt = OffsetDateTime.now(ZoneOffset.UTC);
+        this.attempts = 0;
+        this.nextAttemptAt = this.createdAt;
+    }
+
     public UUID getId() {
         return id;
     }
 
     public String getStorageKey() {
         return storageKey;
+    }
+
+    public StorageScope getStorageScope() {
+        return storageScope == null ? StorageScope.PRIVATE : storageScope;
     }
 
     public int getAttempts() {

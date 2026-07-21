@@ -20,6 +20,9 @@ public class ProductUser {
     @Column(nullable = false)
     private String name;
 
+    @Column(length = 30)
+    private String username;
+
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
 
@@ -33,9 +36,15 @@ public class ProductUser {
     }
 
     public ProductUser(String id, String email, String name, boolean emailVerified, String bio, OffsetDateTime createdAt) {
+        this(id, email, name, null, emailVerified, bio, createdAt);
+    }
+
+    public ProductUser(String id, String email, String name, String username, boolean emailVerified, String bio,
+                       OffsetDateTime createdAt) {
         this.id = id;
         this.email = email;
         this.name = name;
+        this.username = username;
         this.emailVerified = emailVerified;
         this.bio = bio;
         this.createdAt = createdAt;
@@ -53,6 +62,10 @@ public class ProductUser {
         return name;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
     public boolean isEmailVerified() {
         return emailVerified;
     }
@@ -65,8 +78,15 @@ public class ProductUser {
         return createdAt;
     }
 
-    public void updateProfile(String name, String bio) {
+    public void updateProfile(String name, String bio, String username) {
         this.name = name;
         this.bio = bio;
+        if (username != null) {
+            this.username = username;
+        }
+    }
+
+    public void updateProfile(String name, String bio) {
+        updateProfile(name, bio, null);
     }
 }

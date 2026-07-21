@@ -292,8 +292,9 @@ class ApiContractControllerTest {
                 .andExpect(jsonPath("$.projectId").value(BACKLOG_ID.toString()))
                 .andExpect(jsonPath("$.equipmentIds[0]").value(EQUIPMENT_ID.toString()))
                 .andExpect(jsonPath("$.photos[0].id").isNotEmpty())
-                .andExpect(jsonPath("$.photos[0].storageKeyOriginal").value("uploads/original.webp"))
-                .andExpect(jsonPath("$.photos[0].storageKeyThumbnail").value("uploads/thumb.webp"))
+                .andExpect(jsonPath("$.visibility").value("only_me"))
+                .andExpect(jsonPath("$.photos[0].originalUrl").value("uploads/original.webp"))
+                .andExpect(jsonPath("$.photos[0].thumbnailUrl").value("uploads/thumb.webp"))
                 .andExpect(jsonPath("$.photos[0].processingStatus").value("ready"))
                 .andExpect(jsonPath("$.attributes.distance_km").value(8.5))
                 .andExpect(jsonPath("$.attributes.surface").value("road"));

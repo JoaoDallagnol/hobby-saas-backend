@@ -3,6 +3,7 @@ package io.github.joaodallagnol.backend.storage;
 import io.github.joaodallagnol.backend.feature.FeatureFlagProperties;
 import io.github.joaodallagnol.backend.session.SessionPhoto;
 import io.github.joaodallagnol.backend.session.SessionPhotoRepository;
+import io.github.joaodallagnol.backend.session.SessionVisibility;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,20 +55,23 @@ public class SessionPhotoProcessingWorker {
             Path input = directory.resolve("input");
             Path processed = directory.resolve("original.webp");
             Path thumbnail = directory.resolve("thumbnail.webp");
-            objectStorage.download(photo.getStorageKeyOriginal(), input);
+            objectStorage.download(photo.getStorageKeyOriginal(), input, StorageScope.PRIVATE);
             imageProcessor.createWebp(input, processed, 2048, 82);
             imageProcessor.createWebp(input, thumbnail, 480, 75);
 
             String prefix = "processed/session-photos/" + photo.getId() + "/";
             String processedKey = prefix + "original.webp";
             String thumbnailKey = prefix + "thumbnail.webp";
-            objectStorage.uploadWebp(processedKey, processed);
-            objectStorage.uploadWebp(thumbnailKey, thumbnail);
+            StorageScope targetScope = photo.getSession() != null
+                    && photo.getSession().getVisibility() == SessionVisibility.EVERYONE
+                    ? StorageScope.PUBLIC : StorageScope.PRIVATE;
+            objectStorage.uploadWebp(processedKey, processed, targetScope);
+            objectStorage.uploadWebp(thumbnailKey, thumbnail, targetScope);
             String temporaryKey = photo.getStorageKeyOriginal();
-            photo.markReady(processedKey, thumbnailKey);
+            photo.markReady(processedKey, thumbnailKey, targetScope);
             photoRepository.save(photo);
             try {
-                objectStorage.delete(temporaryKey);
+                objectStorage.delete(temporaryKey, StorageScope.PRIVATE);
             } catch (RuntimeException ignored) {
                 // A stale temporary object is preferable to losing the processed DB references.
             }

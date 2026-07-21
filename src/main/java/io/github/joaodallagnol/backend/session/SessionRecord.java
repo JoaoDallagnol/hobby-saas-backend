@@ -51,6 +51,9 @@ public class SessionRecord {
     @Column(nullable = false)
     private int satisfaction;
 
+    @Column(nullable = false, length = 20)
+    private SessionVisibility visibility;
+
     @Column(name = "place_id", length = 255)
     private String placeId;
 
@@ -89,7 +92,8 @@ public class SessionRecord {
             int satisfaction,
             String placeId,
             UUID projectId,
-            Map<String, Object> attributes
+            Map<String, Object> attributes,
+            SessionVisibility visibility
     ) {
         this.id = UUID.randomUUID();
         this.userId = userId;
@@ -102,6 +106,13 @@ public class SessionRecord {
         this.placeId = placeId;
         this.projectId = projectId;
         this.attributes = attributes;
+        this.visibility = visibility == null ? SessionVisibility.ONLY_ME : visibility;
+    }
+
+    public SessionRecord(String userId, Hobby hobby, String title, OffsetDateTime startedAt, int durationMinutes,
+                         String notes, int satisfaction, String placeId, UUID projectId, Map<String, Object> attributes) {
+        this(userId, hobby, title, startedAt, durationMinutes, notes, satisfaction, placeId, projectId, attributes,
+                SessionVisibility.ONLY_ME);
     }
 
     public UUID getId() {
@@ -134,6 +145,10 @@ public class SessionRecord {
 
     public int getSatisfaction() {
         return satisfaction;
+    }
+
+    public SessionVisibility getVisibility() {
+        return visibility;
     }
 
     public String getPlaceId() {
@@ -169,7 +184,8 @@ public class SessionRecord {
             int satisfaction,
             String placeId,
             UUID projectId,
-            Map<String, Object> attributes
+            Map<String, Object> attributes,
+            SessionVisibility visibility
     ) {
         this.hobby = hobby;
         this.title = title;
@@ -180,6 +196,13 @@ public class SessionRecord {
         this.placeId = placeId;
         this.projectId = projectId;
         this.attributes = attributes;
+        this.visibility = visibility == null ? SessionVisibility.ONLY_ME : visibility;
+    }
+
+    public void update(Hobby hobby, String title, OffsetDateTime startedAt, int durationMinutes, String notes,
+                       int satisfaction, String placeId, UUID projectId, Map<String, Object> attributes) {
+        update(hobby, title, startedAt, durationMinutes, notes, satisfaction, placeId, projectId, attributes,
+                this.visibility == null ? SessionVisibility.ONLY_ME : this.visibility);
     }
 
     public void assignPlace(PlaceReference place) {
@@ -193,6 +216,7 @@ public class SessionRecord {
     }
 
     public void replacePhotos(List<String> storageKeys) {
+        requireAtMostOnePhoto(storageKeys.size());
         this.photos.clear();
         for (String storageKey : storageKeys) {
             this.photos.add(new SessionPhoto(this, storageKey));
@@ -200,9 +224,16 @@ public class SessionRecord {
     }
 
     public void reconcilePhotos(Set<UUID> retainedPhotoIds, List<String> newStorageKeys) {
+        requireAtMostOnePhoto(retainedPhotoIds.size() + newStorageKeys.size());
         this.photos.removeIf(photo -> !retainedPhotoIds.contains(photo.getId()));
         for (String storageKey : newStorageKeys) {
             this.photos.add(new SessionPhoto(this, storageKey));
+        }
+    }
+
+    private void requireAtMostOnePhoto(int count) {
+        if (count > 1) {
+            throw new IllegalArgumentException("A session can contain at most one photo.");
         }
     }
 }

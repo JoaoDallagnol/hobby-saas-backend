@@ -27,7 +27,7 @@ public class PhotoStorageDeletionWorker {
 
     void deleteOne(PhotoStorageDeletion deletion) {
         try {
-            objectStorage.delete(deletion.getStorageKey());
+            objectStorage.delete(deletion.getStorageKey(), deletion.getStorageScope());
             repository.delete(deletion);
         } catch (RuntimeException ex) {
             deletion.registerFailure(ex.getClass().getSimpleName());

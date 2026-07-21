@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -32,7 +33,9 @@ public class SessionService {
     private final HobbyAttributeTemplateService hobbyAttributeTemplateService;
     private final PlaceResolutionService placeResolutionService;
     private final FeatureFlagService featureFlagService;
+    private final SessionPhotoMediaService sessionPhotoMediaService;
 
+    @Autowired
     public SessionService(
             AuthenticatedUserExtractor authenticatedUserExtractor,
             SessionRecordRepository sessionRecordRepository,
@@ -43,7 +46,8 @@ public class SessionService {
             PlaceReferenceRepository placeReferenceRepository,
             HobbyAttributeTemplateService hobbyAttributeTemplateService,
             PlaceResolutionService placeResolutionService,
-            FeatureFlagService featureFlagService
+            FeatureFlagService featureFlagService,
+            SessionPhotoMediaService sessionPhotoMediaService
     ) {
         this.authenticatedUserExtractor = authenticatedUserExtractor;
         this.sessionRecordRepository = sessionRecordRepository;
@@ -55,6 +59,21 @@ public class SessionService {
         this.hobbyAttributeTemplateService = hobbyAttributeTemplateService;
         this.placeResolutionService = placeResolutionService;
         this.featureFlagService = featureFlagService;
+        this.sessionPhotoMediaService = sessionPhotoMediaService;
+    }
+
+    public SessionService(AuthenticatedUserExtractor authenticatedUserExtractor,
+                          SessionRecordRepository sessionRecordRepository, HobbyRepository hobbyRepository,
+                          UserHobbyRepository userHobbyRepository,
+                          EquipmentReferenceRepository equipmentReferenceRepository,
+                          BacklogItemReferenceRepository backlogItemReferenceRepository,
+                          PlaceReferenceRepository placeReferenceRepository,
+                          HobbyAttributeTemplateService hobbyAttributeTemplateService,
+                          PlaceResolutionService placeResolutionService, FeatureFlagService featureFlagService) {
+        this(authenticatedUserExtractor, sessionRecordRepository, hobbyRepository, userHobbyRepository,
+                equipmentReferenceRepository, backlogItemReferenceRepository, placeReferenceRepository,
+                hobbyAttributeTemplateService, placeResolutionService, featureFlagService,
+                new SessionPhotoMediaService(storageKey -> null, ""));
     }
 
     @Transactional
@@ -76,13 +95,14 @@ public class SessionService {
                 request.satisfaction(),
                 place == null ? null : place.getPlaceId(),
                 request.projectId(),
-                request.attributes()
+                request.attributes(),
+                request.visibility()
         );
         session.assignPlace(place);
         session.replaceEquipment(equipment);
         session.replacePhotos(extractNewPhotoKeys(request.photos(), user.id()));
 
-        return SessionResponse.from(sessionRecordRepository.save(session));
+        return SessionResponse.from(sessionRecordRepository.save(session), sessionPhotoMediaService);
     }
 
     @Transactional
@@ -104,13 +124,14 @@ public class SessionService {
                 request.satisfaction(),
                 place == null ? null : place.getPlaceId(),
                 request.projectId(),
-                request.attributes()
+                request.attributes(),
+                request.visibility()
         );
         session.assignPlace(place);
         session.replaceEquipment(equipment);
         reconcilePhotos(session, request.photos(), user.id());
 
-        return SessionResponse.from(session);
+        return SessionResponse.from(session, sessionPhotoMediaService);
     }
 
     @Transactional
@@ -129,11 +150,11 @@ public class SessionService {
         Page<SessionRecord> sessions = hobbyId == null
                 ? sessionRecordRepository.findAllByUserId(userId, pageable)
                 : sessionRecordRepository.findAllByUserIdAndHobbyId(userId, hobbyId, pageable);
-        return SessionPageResponse.from(sessions);
+        return SessionPageResponse.from(sessions, sessionPhotoMediaService);
     }
 
     public SessionResponse getSession(UUID sessionId) {
-        return SessionResponse.from(getOwnedSession(sessionId, getAuthenticatedUser().id()));
+        return SessionResponse.from(getOwnedSession(sessionId, getAuthenticatedUser().id()), sessionPhotoMediaService);
     }
 
     private AuthenticatedUser getAuthenticatedUser() {

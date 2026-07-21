@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import io.github.joaodallagnol.backend.storage.StorageScope;
 
 @Entity
 @Table(name = "session_photos")
@@ -35,6 +36,9 @@ public class SessionPhoto {
     @Column(name = "last_processing_error", length = 100)
     private String lastProcessingError;
 
+    @Column(name = "storage_scope", nullable = false, length = 20)
+    private StorageScope storageScope;
+
     protected SessionPhoto() {
     }
 
@@ -45,6 +49,7 @@ public class SessionPhoto {
         this.storageKeyThumbnail = null;
         this.processingStatus = "pending";
         this.processingAttempts = 0;
+        this.storageScope = StorageScope.PRIVATE;
     }
 
     public UUID getId() {
@@ -67,11 +72,28 @@ public class SessionPhoto {
         return processingAttempts;
     }
 
-    public void markReady(String processedOriginalKey, String thumbnailKey) {
+    public SessionRecord getSession() {
+        return session;
+    }
+
+    public StorageScope getStorageScope() {
+        return storageScope;
+    }
+
+    public void markReady(String processedOriginalKey, String thumbnailKey, StorageScope storageScope) {
         this.storageKeyOriginal = processedOriginalKey;
         this.storageKeyThumbnail = thumbnailKey;
         this.processingStatus = "ready";
+        this.storageScope = storageScope;
         this.lastProcessingError = null;
+    }
+
+    public void markReady(String processedOriginalKey, String thumbnailKey) {
+        markReady(processedOriginalKey, thumbnailKey, StorageScope.PRIVATE);
+    }
+
+    public void moveTo(StorageScope storageScope) {
+        this.storageScope = storageScope;
     }
 
     public void registerProcessingFailure(String failureCode) {

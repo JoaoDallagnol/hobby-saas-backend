@@ -48,6 +48,30 @@ class CurrentUserProfileServiceTest {
     }
 
     @Test
+    void shouldSetUniqueUsernameAndRejectReservedOrDuplicateValues() {
+        InMemoryProductUserRepository users = new InMemoryProductUserRepository();
+        ProductUser productUser = new ProductUser("firebase-user-1", "user@example.com", "User", true, null, OffsetDateTime.now());
+        ProductUser other = new ProductUser("firebase-user-2", "other@example.com", "Other", "already.used", true, null, OffsetDateTime.now());
+        users.storage.put(productUser.getId(), productUser);
+        users.storage.put(other.getId(), other);
+        CurrentUserProfileService service = new CurrentUserProfileService(
+                new AuthenticatedUserExtractor(), users.asRepository(),
+                new InMemoryUserHobbyRepository().asRepository(), new InMemoryHobbyRepository().asRepository());
+        authenticate("firebase-user-1", "user@example.com", "User");
+
+        CurrentUserProfileResponse updated = service.updateCurrentUserProfile(
+                new CurrentUserProfileUpdateRequest("User", null, "new.user"));
+
+        assertThat(updated.username()).isEqualTo("new.user");
+        assertThatThrownBy(() -> service.updateCurrentUserProfile(
+                new CurrentUserProfileUpdateRequest("User", null, "already.used")))
+                .isInstanceOf(UsernameAlreadyTakenException.class);
+        assertThatThrownBy(() -> service.updateCurrentUserProfile(
+                new CurrentUserProfileUpdateRequest("User", null, "admin")))
+                .isInstanceOf(UsernameAlreadyTakenException.class);
+    }
+
+    @Test
     void shouldAddListUpdateAndRemoveUserHobby() {
         InMemoryProductUserRepository users = new InMemoryProductUserRepository();
         InMemoryUserHobbyRepository userHobbies = new InMemoryUserHobbyRepository();
@@ -115,6 +139,11 @@ class CurrentUserProfileServiceTest {
                             storage.put(user.getId(), user);
                             yield user;
                         }
+                        case "existsByUsernameIgnoreCaseAndIdNot" -> storage.values().stream()
+                                .anyMatch(user -> user.getUsername() != null
+                                        && user.getUsername().equalsIgnoreCase((String) args[0])
+                                        && !user.getId().equals(args[1]));
+                        case "flush" -> null;
                         case "equals" -> proxy == args[0];
                         case "hashCode" -> System.identityHashCode(proxy);
                         case "toString" -> "InMemoryProductUserRepository";

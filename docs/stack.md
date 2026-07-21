@@ -25,18 +25,20 @@
 
 ## Feature flags
 - Configuração própria via `@ConfigurationProperties`, sem serviço SaaS adicional no MVP ✅
-- Flags atuais controlam somente integrações com dependência externa/rollout: upload R2, localização Google Places e futuro processamento de fotos.
+- Flags atuais controlam somente integrações com dependência externa/rollout: upload R2, localização Google Places e processamento de fotos.
 - `GET /api/features` fornece ao client autenticado o estado não sensível; tentativa de usar feature desligada retorna `503`.
 
 ## Storage de fotos (Cloudflare R2)
 - AWS SDK S3 (`software.amazon.awssdk:s3`) ✅ — R2 é S3-compatible, aponta pro endpoint do R2.
+- Dois buckets/escopos ✅ — privado para upload temporário e sessões `only_me`; público para variantes processadas `everyone`, entregues por domínio/CDN. GET privado usa URL pré-assinada e mudança de visibilidade move objetos com purge do cache.
+- Adobe S3Mock 5.1.0 no Compose local ✅ — emulador S3 mantido e persistente em volume/pasta, sem conta externa no desenvolvimento.
 - `cwebp/libwebp` via binário do pacote Debian `webp` no container ✅ — worker agendado gera WebP em dois tamanhos sem copiar metadata, com até 3 tentativas e status persistido. A abordagem evita dependência JNI frágil e aceita JPEG, PNG e WebP no MVP; HEIC/HEIF não são aceitos.
 
 ## Push
 - `firebase-admin` — reutilizado para FCM e validação de autenticação.
 
 ## Monitoramento
-- `sentry-spring-boot-starter`
+- SDK do Sentry ainda não foi adicionado; `SENTRY_DSN` é somente placeholder até essa integração ser priorizada.
 - `spring-boot-starter-actuator`
 
 ## E-mail

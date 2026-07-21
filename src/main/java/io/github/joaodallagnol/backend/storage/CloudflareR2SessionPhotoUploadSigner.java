@@ -23,18 +23,18 @@ public class CloudflareR2SessionPhotoUploadSigner implements SessionPhotoUploadS
 
     private static final Duration EXPIRATION = Duration.ofMinutes(15);
 
-    private final String endpoint;
+    private final String presignEndpoint;
     private final String bucket;
     private final String accessKey;
     private final String secretKey;
 
     public CloudflareR2SessionPhotoUploadSigner(
-            @Value("${app.integrations.r2.endpoint:}") String endpoint,
-            @Value("${app.integrations.r2.bucket:}") String bucket,
+            @Value("${app.integrations.r2.presign-endpoint:${app.integrations.r2.endpoint:}}") String presignEndpoint,
+            @Value("${app.integrations.r2.private-bucket:}") String bucket,
             @Value("${app.integrations.r2.access-key:}") String accessKey,
             @Value("${app.integrations.r2.secret-key:}") String secretKey
     ) {
-        this.endpoint = endpoint;
+        this.presignEndpoint = presignEndpoint;
         this.bucket = bucket;
         this.accessKey = accessKey;
         this.secretKey = secretKey;
@@ -45,7 +45,7 @@ public class CloudflareR2SessionPhotoUploadSigner implements SessionPhotoUploadS
         validateConfiguration();
 
         try (S3Presigner presigner = S3Presigner.builder()
-                .endpointOverride(URI.create(endpoint))
+                .endpointOverride(URI.create(presignEndpoint))
                 .region(Region.of("auto"))
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
                 .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
@@ -78,11 +78,11 @@ public class CloudflareR2SessionPhotoUploadSigner implements SessionPhotoUploadS
     }
 
     private void validateConfiguration() {
-        if (!StringUtils.hasText(endpoint)
+        if (!StringUtils.hasText(presignEndpoint)
                 || !StringUtils.hasText(bucket)
                 || !StringUtils.hasText(accessKey)
                 || !StringUtils.hasText(secretKey)) {
-            throw new IllegalStateException("Cloudflare R2 is not fully configured. Set R2_ENDPOINT, R2_BUCKET, R2_ACCESS_KEY and R2_SECRET_KEY.");
+            throw new IllegalStateException("Object storage is not fully configured.");
         }
     }
 }

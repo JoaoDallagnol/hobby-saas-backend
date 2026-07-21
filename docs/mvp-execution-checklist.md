@@ -16,7 +16,9 @@
 
 - [ ] Usuário consegue autenticar via Firebase Authentication real e ser provisionado no banco na primeira request autenticada.
 - [x] Usuário consegue manter perfil básico e hobbies praticados.
+- [x] Usuário consegue escolher username e abrir diretamente o perfil de outra pessoa autenticada sem expor identidade privada.
 - [x] Usuário consegue criar, listar e consultar sessões com atributos fixos e dinâmicos por hobby.
+- [x] Usuário consegue alternar sessão entre `everyone` e `only_me`; perfil público lista somente `everyone`.
 - [x] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
 - [x] Usuário consegue manter backlog/Kanban por hobby e vincular sessão a item/projeto quando aplicável.
 - [x] Sessão aceita fotos por fluxo de presigned URL direto para R2, sem binário via backend.
@@ -101,6 +103,7 @@
 - [x] Implementar leitura e atualização do perfil base do usuário.
   - [x] `name` vindo do fluxo definido para o produto.
   - [x] `bio` persistida no banco do produto.
+  - [x] `username` público único, normalizado e sem expor o UID Firebase.
 - [x] Implementar gestão de hobbies do usuário (`user_hobbies`).
   - [x] Adicionar hobby ao perfil.
   - [x] Remover hobby do perfil.
@@ -109,6 +112,7 @@
   - [x] Payloads de leitura.
   - [x] Payloads de escrita.
   - [x] Regras de validação.
+- [x] Expor perfil público autenticado por username com DTO mínimo, sem e-mail/UID.
 
 ## 6. Tracker de sessão
 
@@ -118,6 +122,7 @@
   - [x] Garantir que `hobbyId` exista e seja permitido para o usuário conforme regra definida.
   - [x] Aceitar `equipmentIds` válidos do usuário quando o fluxo estiver presente.
   - [x] Aceitar `projectId` válido do usuário quando o vínculo com backlog estiver presente.
+  - [x] Persistir `visibility` como enum extensível (`everyone`/`only_me`), com default privado.
 - [x] Implementar listagem e detalhe de sessão.
   - [x] Ordenação por data.
   - [x] Filtros mínimos úteis para o MVP.
@@ -130,6 +135,8 @@
   - [x] Definir comportamento para fotos e vínculos relacionados.
   - [x] Enfileirar limpeza de objetos R2 na mesma transação e executar com retry/backoff.
 - [x] Adotar paginação desde o MVP (`page` zero-based, `size` 1–100, default 20, ordenação estável por data/id).
+- [x] Expor listagem/detalhe de sessões `everyone` no perfil público com DTO sem coordenadas, vínculos internos ou storage keys.
+- [x] Reservar `followers` para Fase 2 sem aceitá-lo antes de existir autorização por grafo de seguidores.
 
 ## 6A. Biblioteca de equipamentos
 
@@ -171,7 +178,7 @@
   - [x] Restrições mínimas de content type e tamanho, se aplicável.
 - [x] Persistir apenas storage keys/URLs necessárias no banco.
 - [x] Modelar associação de fotos à sessão.
-  - [x] Validar namespace/posse da storage key, duplicatas e limite de 10 fotos.
+  - [x] Validar namespace/posse da storage key, duplicatas e limite de uma foto, mantendo lista no contrato.
   - [x] Representar processamento pendente sem reutilizar a key original como thumbnail falsa.
 - [x] Definir processamento assíncrono por worker agendado na aplicação de instância única.
   - [x] Thumbnail WebP de até 480 px.
@@ -180,6 +187,11 @@
   - [x] Até 3 tentativas, status persistido e falha sem mensagem sensível.
 - [x] Usar o binário oficial `cwebp/libwebp` instalado no container.
 - [x] Remover objetos do R2 de forma assíncrona e idempotente quando foto/sessão for excluída.
+- [x] Separar mídia pública e privada em buckets/escopos diferentes.
+  - [x] Servir `only_me` por GET presigned e `everyone` por URL estável/CDN.
+  - [x] Mover variantes ao editar visibilidade e purgar cache ao tornar privada.
+  - [x] Nunca expor upload cru nem storage key no DTO público.
+- [x] Subir Adobe S3Mock persistente no Compose local para testar o fluxo sem conta R2.
 
 ## 9. Localização
 
@@ -277,5 +289,6 @@
 
 - [x] Não puxar automaticamente Fase 1 para dentro do MVP.
 - [x] Não iniciar Fase 2 sem massa crítica real.
+  - [x] Perfil público direto não inclui feed, descoberta nem seguidores.
 - [x] Não adicionar pagamento antes da escolha do provedor.
 - [x] Não transformar decisões pendentes em regra fixa sem atualizar a documentação correspondente.

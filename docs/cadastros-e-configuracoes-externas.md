@@ -85,13 +85,20 @@ Status no projeto:
 
 ### R2
 
-- criar bucket por ambiente ou isolamento equivalente;
+- criar dois buckets por ambiente: privado (upload temporário e `only_me`) e público (somente variantes processadas `everyone`);
+- conectar domínio customizado/CDN apenas ao bucket público;
+- criar token da zona limitado a Cache Purge para retirar mídia ao mudar para `only_me`;
 - gerar credenciais com menor privilégio possível;
 - guardar:
   - `R2_ENDPOINT`
-  - `R2_BUCKET`
+  - `R2_PRIVATE_BUCKET`
+  - `R2_PUBLIC_BUCKET`
+  - `R2_PUBLIC_BASE_URL`
   - `R2_ACCESS_KEY`
   - `R2_SECRET_KEY`
+  - `CLOUDFLARE_ZONE_ID`
+  - `CLOUDFLARE_API_TOKEN`
+- para o backup PostgreSQL, criar bucket privado separado e preencher `R2_BUCKET`; idealmente usar credencial própria com acesso somente a ele.
 
 ### Certificados
 
@@ -163,7 +170,7 @@ Status no projeto:
 |---|---|
 | Firebase | `FIREBASE_PROJECT_ID`, `FIREBASE_SERVICE_ACCOUNT_JSON_BASE64` ou `FIREBASE_SERVICE_ACCOUNT_PATH` |
 | Hostinger/VPS | `prod.env`, certificados TLS, Docker/Compose instalados |
-| Cloudflare/R2 | `APP_DOMAIN`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY`, `R2_SECRET_KEY` |
+| Cloudflare/R2 | `APP_DOMAIN`, `R2_ENDPOINT`, `R2_PRIVATE_BUCKET`, `R2_PUBLIC_BUCKET`, `R2_PUBLIC_BASE_URL`, `R2_BUCKET` (backup), `R2_ACCESS_KEY`, `R2_SECRET_KEY`, `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN` |
 | Google Places | `GOOGLE_PLACES_API_KEY` |
 | Sentry | `SENTRY_DSN` |
 | Brevo | `BREVO_SMTP_USERNAME`, `BREVO_SMTP_PASSWORD` |

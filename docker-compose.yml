@@ -1,4 +1,16 @@
 services:
+  s3mock:
+    image: adobe/s3mock:5.1.0
+    container_name: hobby-saas-s3mock
+    environment:
+      COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: hobby-private,hobby-public
+      COM_ADOBE_TESTING_S3MOCK_STORE_ROOT: /data
+      COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT: "true"
+    ports:
+      - "9090:9090"
+    volumes:
+      - s3mock_data:/data
+
   postgres:
     image: postgres:17-alpine
     container_name: hobby-saas-postgres
@@ -38,6 +50,7 @@ services:
       CWEBP_BINARY: ${CWEBP_BINARY:-/usr/bin/cwebp}
       PHOTO_PROCESSING_POLL_DELAY_MS: ${PHOTO_PROCESSING_POLL_DELAY_MS:-10000}
       PHOTO_DELETION_POLL_DELAY_MS: ${PHOTO_DELETION_POLL_DELAY_MS:-30000}
+      PHOTO_VISIBILITY_POLL_DELAY_MS: ${PHOTO_VISIBILITY_POLL_DELAY_MS:-5000}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_SERVICE_ACCOUNT_JSON_BASE64: ${FIREBASE_SERVICE_ACCOUNT_JSON_BASE64:-}
       FIREBASE_SERVICE_ACCOUNT_PATH: ${FIREBASE_SERVICE_ACCOUNT_PATH:-}
@@ -47,10 +60,13 @@ services:
       LOCAL_AUTH_EMAIL: ${LOCAL_AUTH_EMAIL:-local-dev@example.com}
       LOCAL_AUTH_NAME: ${LOCAL_AUTH_NAME:-Local Dev User}
       LOCAL_AUTH_EMAIL_VERIFIED: ${LOCAL_AUTH_EMAIL_VERIFIED:-true}
-      R2_ENDPOINT: ${R2_ENDPOINT:-}
-      R2_BUCKET: ${R2_BUCKET:-}
-      R2_ACCESS_KEY: ${R2_ACCESS_KEY:-}
-      R2_SECRET_KEY: ${R2_SECRET_KEY:-}
+      R2_ENDPOINT: ${R2_ENDPOINT:-http://s3mock:9090}
+      R2_PRESIGN_ENDPOINT: ${R2_PRESIGN_ENDPOINT:-http://localhost:9090}
+      R2_PRIVATE_BUCKET: ${R2_PRIVATE_BUCKET:-hobby-private}
+      R2_PUBLIC_BUCKET: ${R2_PUBLIC_BUCKET:-hobby-public}
+      R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-http://localhost:9090/hobby-public}
+      R2_ACCESS_KEY: ${R2_ACCESS_KEY:-local-access-key}
+      R2_SECRET_KEY: ${R2_SECRET_KEY:-local-secret-key}
       GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
       BREVO_SMTP_USERNAME: ${BREVO_SMTP_USERNAME:-}
@@ -60,6 +76,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      s3mock:
+        condition: service_started
 
 volumes:
   postgres_data:
+  s3mock_data:

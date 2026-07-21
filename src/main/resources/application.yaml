@@ -22,6 +22,7 @@ app:
     cwebp-binary: ${CWEBP_BINARY:/usr/bin/cwebp}
     poll-delay-ms: ${PHOTO_PROCESSING_POLL_DELAY_MS:10000}
     deletion-poll-delay-ms: ${PHOTO_DELETION_POLL_DELAY_MS:30000}
+    visibility-poll-delay-ms: ${PHOTO_VISIBILITY_POLL_DELAY_MS:5000}
   features:
     photo-uploads: true
     session-location: true

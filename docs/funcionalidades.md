@@ -6,15 +6,17 @@ Um app para registrar, organizar e acompanhar a evolução de todos os seus hobb
 
 ## Fase 0 — MVP
 
-O objetivo dessa fase é validar se as pessoas criam o hábito de registrar seus hobbies regularmente, antes de investir em qualquer funcionalidade que dependa de outros usuários.
+O objetivo dessa fase é validar se as pessoas criam o hábito de registrar seus hobbies regularmente. Existe uma superfície social mínima para compartilhar um perfil diretamente, sem feed, seguidores, busca de pessoas ou descoberta.
 
 O **Perfil do Hobbista** é o espaço onde o usuário lista os hobbies que pratica atualmente, define um nível de experiência em cada um e escreve uma breve biografia sobre si.
 
-No MVP atual de backend, esse perfil é exposto por um contrato simples: leitura do perfil atual, edição de `name` e `bio`, leitura dos hobbies vinculados, inclusão de hobby no perfil, atualização de `experience_level` e remoção do vínculo com hobby. O escopo continua estritamente individual — nada de comparação entre perfis, descoberta ou estatística social nesta fase.
+No MVP atual de backend, esse perfil é exposto por leitura do perfil atual, edição de `name`, `username` e `bio`, gestão dos hobbies vinculados e leitura autenticada de outro perfil pelo `username`. O perfil público não expõe e-mail nem UID do Firebase. Não há comparação, busca/descoberta de pessoas, seguidores ou estatística social nesta fase.
 
 Para que o cliente consiga escolher esses hobbies sem conhecer UUIDs previamente, o backend também expõe o catálogo oficial de hobbies, ordenado por categoria e nome.
 
-O **Registro de Sessões**, ou tracker, é a funcionalidade central do app: um botão simples para iniciar um cronômetro durante a prática de um hobby, ou registrar manualmente uma atividade que já aconteceu. Cada sessão tem título, data, tempo gasto, foto e um campo de notas em texto livre — esse campo de notas também absorve o que originalmente seria um "diário de reflexão" separado, permitindo que o usuário escreva o que aprendeu ou o que pretende tentar diferente da próxima vez, sem ter dois campos parecidos competindo pela atenção.
+O **Registro de Sessões**, ou tracker, é a funcionalidade central do app: um botão simples para iniciar um cronômetro durante a prática de um hobby, ou registrar manualmente uma atividade que já aconteceu. Cada sessão tem título, data, tempo gasto, no máximo uma foto e um campo de notas em texto livre — esse campo também absorve o que originalmente seria um "diário de reflexão" separado. O autor escolhe `everyone` ou `only_me` e pode editar essa escolha depois; novas sessões começam em `only_me`.
+
+Uma sessão `everyone` aparece no perfil público do autor e expõe somente dados próprios do post: hobby, título, data, duração, notas, satisfação, atributos dinâmicos, nome seguro do lugar e foto processada. Coordenadas, `place_id`, backlog/projeto, equipamentos, UID e storage keys internas não fazem parte do contrato público. Sessões `only_me` continuam acessíveis apenas ao dono.
 
 Os **atributos dinâmicos por hobby** são o que evita o app parecer raso demais comparado a um app especializado: em vez de todo hobby usar os mesmos campos genéricos, cada tipo de hobby pode ter campos extras próprios — corrida ganha um campo de distância, leitura ganha um campo de páginas lidas, marcenaria ganha um campo de material usado, e assim por diante. Isso é o que dá ao app profundidade equivalente à de um app nichado, sem abrir mão de cobrir qualquer hobby.
 
@@ -49,6 +51,8 @@ O **teste de personalidade e descoberta** é um questionário interativo que, a 
 Essas funcionalidades compartilham uma restrição importante: todas dependem de uma massa crítica de usuários por hobby ou por cidade para funcionar de verdade. Lançar qualquer uma delas cedo demais faz o app parecer vazio ou abandonado, então a recomendação é considerar lançar restrito a uma cidade ou a um conjunto pequeno de hobbies antes de abrir tudo.
 
 O **feed de exploração social** é um feed em ordem cronológica onde o usuário vê e curte fotos e registros de amigos ou de outras pessoas da mesma cidade.
+
+A **relação de seguidores** entra junto da fase social. Ela habilitará a terceira opção de visibilidade, `followers`, já prevista como evolução do enum, mas deliberadamente rejeitada no MVP enquanto não existir um grafo de seguidores capaz de autorizar a leitura corretamente.
 
 A **busca por "hobby buddy" próximo** faz o matching de pessoas perto do usuário que praticam o mesmo hobby, para quem quer começar algo novo mas não tem com quem — compartilha exatamente a mesma restrição de densidade de usuários que o feed.
 

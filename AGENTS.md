@@ -7,15 +7,15 @@ Fase atual: **MVP / Fase 0 do roadmap**.
 Objetivo do MVP: validar hábito de registro antes de qualquer efeito de rede ou monetização avançada.
 
 Escopo funcional do MVP:
-- Perfil do hobbista (`users`, `user_hobbies`, bio, nível/experiência por hobby).
-- Tracker de sessão (`sessions` + `session_photos`), incluindo título, data, duração, notas, satisfação, foto e vínculo opcional com lugar.
+- Perfil do hobbista (`users`, `user_hobbies`, username público único, bio, nível/experiência por hobby), com leitura autenticada de outro perfil por username.
+- Tracker de sessão (`sessions` + `session_photos`), incluindo título, data, duração, notas, satisfação, no máximo uma foto, visibilidade `everyone`/`only_me` e vínculo opcional com lugar.
 - Atributos dinâmicos por hobby via template + JSONB.
 - Biblioteca de equipamentos (`equipment` + `session_equipment`) para cadastro e reutilização por sessão.
 - Backlog/Kanban por hobby (`backlog_items`) com vínculo opcional da sessão a um item/projeto.
 - Streak de constância.
 
 Fora do MVP por padrão:
-- Feed social, Hobby Buddy e Heatmap são **Fase 2** e não devem ser implementados/expostos sem massa crítica real de usuários.
+- Feed social, seguidores, Hobby Buddy e Heatmap são **Fase 2** e não devem ser implementados/expostos sem massa crítica real de usuários.
 - XP, premium, metas com IA, manutenção e demais itens posteriores continuam fora de escopo até decisão explícita.
 
 ## Stack
@@ -52,6 +52,10 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - Localização: client manda só `place_id`; backend resolve lat/lng via Google Place Details (FieldMask Essentials) e persiste — nunca confiar em lat/lng vindo do client.
 - Fotos: upload via presigned URL direto pro R2, nunca binário passando pelo backend.
 - Fotos persistem só como storage key/URL no banco; processamento é assíncrono, com thumbnail/compressão e remoção de EXIF.
+- Sessão aceita no máximo uma foto, mantendo `photos` como lista para preservar evolução futura do contrato.
+- Visibilidade de sessão no MVP é enum `everyone` ou `only_me`, com default `only_me`; não reduzir a boolean. `followers` fica reservado para a Fase 2 e não pode ser aceito antes de existir grafo e autorização de seguidores.
+- Perfil público é identificado por `users.username`, nunca pelo UID do Firebase. DTO público nunca expõe e-mail, UID, `place_id`, coordenadas, IDs de equipamento/projeto ou storage keys internas.
+- Mídia processada de sessão `everyone` vai para escopo público/CDN; mídia `only_me` fica privada e é lida por URL GET pré-assinada. Upload temporário e original cru ficam sempre privados.
 - Sessão usa `notes` como campo único de notas/reflexão; não recriar diário separado no MVP.
 - Se `equipmentIds` estiverem ativos em algum fluxo, eles sempre referenciam biblioteca do usuário; nunca texto livre dentro da sessão.
 - Modelos marcados como "conceitual" ou pertencentes a fases futuras na documentação não devem ser implementados sem revisão específica.

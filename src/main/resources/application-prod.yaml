@@ -41,9 +41,14 @@ app:
   integrations:
     r2:
       endpoint: ${R2_ENDPOINT:}
-      bucket: ${R2_BUCKET:}
+      presign-endpoint: ${R2_PRESIGN_ENDPOINT:${R2_ENDPOINT:}}
+      private-bucket: ${R2_PRIVATE_BUCKET:}
+      public-bucket: ${R2_PUBLIC_BUCKET:}
+      public-base-url: ${R2_PUBLIC_BASE_URL:}
       access-key: ${R2_ACCESS_KEY:}
       secret-key: ${R2_SECRET_KEY:}
+      cloudflare-zone-id: ${CLOUDFLARE_ZONE_ID:}
+      cloudflare-api-token: ${CLOUDFLARE_API_TOKEN:}
     google:
       places-api-key: ${GOOGLE_PLACES_API_KEY:}
     sentry:

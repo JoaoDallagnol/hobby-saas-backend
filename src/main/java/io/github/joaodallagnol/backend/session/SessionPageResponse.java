@@ -12,9 +12,9 @@ public record SessionPageResponse(
         boolean hasNext
 ) {
 
-    static SessionPageResponse from(Page<SessionRecord> result) {
+    static SessionPageResponse from(Page<SessionRecord> result, SessionPhotoMediaService mediaService) {
         return new SessionPageResponse(
-                result.getContent().stream().map(SessionResponse::from).toList(),
+                result.getContent().stream().map(session -> SessionResponse.from(session, mediaService)).toList(),
                 result.getNumber(),
                 result.getSize(),
                 result.getTotalElements(),

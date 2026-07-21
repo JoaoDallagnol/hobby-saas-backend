@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class SessionRecordTest {
 
@@ -37,14 +38,17 @@ class SessionRecordTest {
 
         session.assignPlace(place);
         session.replaceEquipment(Set.of(firstEquipment, secondEquipment));
-        session.replacePhotos(List.of("photos/one.webp", "photos/two.webp"));
+        session.replacePhotos(List.of("photos/one.webp"));
 
         assertThat(session.getPlace()).isSameAs(place);
         assertThat(session.getPlaceId()).isEqualTo("place-123");
         assertThat(session.getEquipment()).containsExactlyInAnyOrder(firstEquipment, secondEquipment);
-        assertThat(session.getPhotos()).hasSize(2);
+        assertThat(session.getPhotos()).hasSize(1);
         assertThat(session.getPhotos().stream().map(SessionPhoto::getStorageKeyOriginal))
-                .containsExactly("photos/one.webp", "photos/two.webp");
+                .containsExactly("photos/one.webp");
+        assertThatThrownBy(() -> session.replacePhotos(List.of("photos/one.webp", "photos/two.webp")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("at most one");
     }
 
     @Test

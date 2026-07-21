@@ -2,6 +2,7 @@ package io.github.joaodallagnol.backend.config;
 
 import io.github.joaodallagnol.backend.session.ResourceNotFoundException;
 import io.github.joaodallagnol.backend.feature.FeatureDisabledException;
+import io.github.joaodallagnol.backend.user.UsernameAlreadyTakenException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -11,6 +12,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(UsernameAlreadyTakenException.class)
+    ProblemDetail handleUsernameConflict(UsernameAlreadyTakenException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problemDetail.setTitle("Username unavailable");
+        return problemDetail;
+    }
 
     @ExceptionHandler(FeatureDisabledException.class)
     ProblemDetail handleFeatureDisabled(FeatureDisabledException ex) {

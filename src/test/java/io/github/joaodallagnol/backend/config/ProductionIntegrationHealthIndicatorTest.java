@@ -20,7 +20,7 @@ class ProductionIntegrationHealthIndicatorTest {
 
         assertThat(indicator.health().getStatus()).isEqualTo(Status.DOWN);
         assertThat(indicator.health().getDetails().get("missing").toString())
-                .contains("firebase.project-id", "r2.bucket", "google.places-api-key");
+                .contains("firebase.project-id", "r2.private-bucket", "google.places-api-key");
     }
 
     @Test
