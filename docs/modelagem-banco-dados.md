@@ -1,6 +1,6 @@
 # Modelagem de Banco de Dados
 
-> Nomes: tabelas/colunas em inglês. Diagrama 1 = escopo MVP. Diagrama 2 = modelo completo (Fase 1–4). Entidades marcadas "conceitual" = esqueleto do roadmap, sem coluna detalhada ainda — não implementar sem revisar antes.
+> Nomes: tabelas/colunas em inglês. Diagrama 1 = escopo MVP. Diagrama 2 = modelo completo. Gamificação pessoal e fundação Plus foram revisadas para implementação; colaboração, efeito de rede, família e IA continuam conceituais.
 
 ---
 
@@ -168,17 +168,19 @@ erDiagram
     PLACES ||--o{ LOCAL_RECOMMENDATIONS : "referenced by"
     USERS ||--o{ USER_LOCATION : "has current"
 
-    %% Fase 3 — gamificação
+    %% Fase 1 — gamificação pessoal
     USERS ||--o{ HOBBY_XP : accumulates
     HOBBIES ||--o{ HOBBY_XP : "leveled in"
-
-    %% Fase 4 — premium
-    USERS ||--o{ SUBSCRIPTIONS : has
     USERS ||--o{ GOALS : sets
+    HOBBIES ||--o{ GOALS : "optionally scopes"
+    USERS ||--o{ USER_BADGES : earns
+    USER_BADGES ||--o| USER_FEATURED_BADGES : features
+
+    %% Fundação Plus
+    USERS ||--o| SUBSCRIPTIONS : has
     USERS ||--o{ FAMILY_GROUP_MEMBERS : "belongs to"
     FAMILY_GROUPS ||--o{ FAMILY_GROUP_MEMBERS : includes
-    USERS ||--o{ USER_BADGES : earns
-    EQUIPMENT ||--o{ MAINTENANCE_ALERTS : triggers
+    EQUIPMENT ||--o{ EQUIPMENT_MAINTENANCE_RULES : has
 
     SESSION_PARTICIPANTS {
         uuid session_id FK
@@ -209,20 +211,32 @@ erDiagram
         string user_id FK
         uuid hobby_id FK
         int xp
+        int level
         string level_label
+        timestamp updated_at
     }
 
     SUBSCRIPTIONS {
         string user_id FK
         string plan
-        boolean active
+        string status
+        string provider
+        string external_subscription_id
+        timestamp current_period_end
     }
 
     GOALS {
         uuid id PK
         string user_id FK
         uuid hobby_id FK
-        string description
+        string name
+        string metric
+        int target_value
+        string cadence
+        date start_date
+        date end_date
+        string status
+        boolean advanced
     }
 
     FAMILY_GROUPS {
@@ -236,15 +250,26 @@ erDiagram
     }
 
     USER_BADGES {
+        uuid id PK
         string user_id FK
         string badge_key
+        uuid hobby_id FK
+        timestamp earned_at
     }
 
-    MAINTENANCE_ALERTS {
+    USER_FEATURED_BADGES {
+        string user_id FK
+        uuid badge_id FK
+        int position
+    }
+
+    EQUIPMENT_MAINTENANCE_RULES {
         uuid id PK
         uuid equipment_id FK
-        string alert_type
-        timestamp triggered_at
+        string name
+        int interval_minutes
+        timestamp last_maintained_at
+        boolean active
     }
 ```
 
@@ -266,6 +291,7 @@ erDiagram
 | email_verified | boolean | não | — | sincronizado do Firebase Authentication; útil pra restringir alguma ação a e-mail confirmado |
 | bio | string | sim | — | só existe no banco de produto, editado dentro do app |
 | created_at | timestamp | não | — | data do primeiro login (linha criada via provisionamento JIT, não em cadastro separado) |
+| profile_theme | string | não | — | tema cosmético; default `default`, alteração exige Plus |
 
 **Provisionamento**: não há sincronização em background — na primeira requisição autenticada de um usuário, se a linha ainda não existir em `users`, o backend cria ela na hora a partir dos campos do token validado (`sub`/`uid`, `email`, `name`, `email_verified`).
 
@@ -275,6 +301,8 @@ erDiagram
 |---|---|---|---|---|
 | id | uuid | não | — | PK |
 | name | string | não | — | ex: "Esportes", "Artes" |
+| xp_session_bonus | int | não | — | bônus por sessão usado na projeção de XP |
+| xp_minutes_per_point | int | não | — | minutos necessários por XP nesta categoria |
 
 #### `hobbies`
 
@@ -394,6 +422,10 @@ Fila de projetos (Kanban) — mesma entidade referenciada por `sessions.project_
 | title | string | não | — | |
 | status | string | não | — | ex: `pending`, `in_progress`, `done` |
 | created_at | timestamp | não | — | |
+| due_date | date | sim | — | planejamento Plus |
+| priority | string | não | — | `low`, `normal`, `high`; default `normal` |
+| archived | boolean | não | — | arquivamento Plus sem excluir histórico |
+| position | int | não | — | ordenação estável dentro do status |
 
 #### `hobby_suggestions`
 Fila de moderação pra crescimento da taxonomia.
@@ -453,7 +485,7 @@ Localização atual aproximada, base pra "hobby buddy" e heatmap.
 
 ---
 
-### Fase 3 — Gamificação *(conceitual)*
+### Fase 1 — Gamificação pessoal *(revisada para implementação)*
 
 #### `hobby_xp`
 
@@ -461,30 +493,67 @@ Localização atual aproximada, base pra "hobby buddy" e heatmap.
 |---|---|---|---|---|
 | user_id | string | não | `users.id` | PK composta |
 | hobby_id | uuid | não | `hobbies.id` | |
-| xp | int | não | — | curva de XP por categoria, ainda não definida |
-| level_label | string | não | — | ex: "Botânico Urbano" |
+| xp | int | não | — | projeção conforme parâmetros da categoria |
+| level | int | não | — | derivado dos thresholds documentados |
+| level_label | string | não | — | label genérico inicial |
+| updated_at | timestamp | não | — | última reconstrução |
+
+`hobby_xp` é projeção reconstruível; `sessions` permanece fonte da verdade.
+
+#### `goals`
+
+| Coluna | Tipo | Nulo | FK | Observação |
+|---|---|---|---|---|
+| id | uuid | não | — | PK |
+| user_id | string | não | `users.id` | proprietário |
+| hobby_id | uuid | sim | `hobbies.id` | obrigatório no Free; meta global é Plus |
+| name | string | não | — | 1–120 caracteres |
+| metric | string | não | — | `sessions` ou `minutes` |
+| target_value | int | não | — | positivo |
+| cadence | string | não | — | `weekly`, `monthly`, `custom` |
+| start_date | date | não | — | UTC |
+| end_date | date | não | — | UTC, inclusivo |
+| status | string | não | — | `active`, `completed`, `archived` |
+| advanced | boolean | não | — | criação/alteração exige Plus |
+| created_at | timestamp | não | — | auditoria |
+
+Progresso é derivado das sessões. Conta Free aceita uma meta semanal ativa por hobby no período corrente; metas semanais encerradas não bloqueiam a semana seguinte. A criação é serializada por usuário+hobby para evitar duas metas Free concorrentes.
+
+#### `user_badges`
+
+| Coluna | Tipo | Nulo | FK | Observação |
+|---|---|---|---|---|
+| id | uuid | não | — | PK |
+| user_id | string | não | `users.id` | proprietário |
+| badge_key | string | não | — | chave do catálogo server-side |
+| hobby_id | uuid | sim | `hobbies.id` | escopo específico opcional |
+| earned_at | timestamp | não | — | primeiro desbloqueio |
+
+Unique lógico por usuário, chave e hobby, tratando `null` como escopo global. Badge conquistado não é removido por edição posterior.
+
+#### `user_featured_badges`
+
+| Coluna | Tipo | Nulo | FK | Observação |
+|---|---|---|---|---|
+| user_id | string | não | `users.id` | PK com `position` |
+| badge_id | uuid | não | `user_badges.id` | FK composta com `user_id`; ownership também é garantido pelo banco |
+| position | int | não | — | 1–3 |
 
 ---
 
-### Fase 4 — Premium *(conceitual)*
+### Fundação Plus *(revisada; cobrança ainda pendente)*
 
 #### `subscriptions`
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
 | user_id | string | não | `users.id` | PK |
-| plan | string | não | — | |
-| active | boolean | não | — | |
-
-#### `goals`
-Metas avançadas / desafios com IA.
-
-| Coluna | Tipo | Nulo | FK | Observação |
-|---|---|---|---|---|
-| id | uuid | não | — | PK |
-| user_id | string | não | `users.id` | |
-| hobby_id | uuid | sim | `hobbies.id` | |
-| description | text | não | — | |
+| plan | string | não | — | `plus`; ausência equivale a Free |
+| status | string | não | — | `active`, `past_due`, `canceled`, `expired` |
+| provider | string | sim | — | `null` até decisão do provedor |
+| external_subscription_id | string | sim | — | opaco, nunca exposto publicamente |
+| current_period_end | timestamp | sim | — | validade comercial |
+| updated_at | timestamp | não | — | auditoria |
 
 #### `family_groups` / `family_group_members`
 Multi-perfil de família ou casal.
@@ -496,29 +565,26 @@ Multi-perfil de família ou casal.
 | family_group_id | uuid | não | `family_groups.id` | (`family_group_members`) |
 | user_id | string | não | `users.id` | (`family_group_members`) |
 
-#### `user_badges`
-Customização de perfil / conquistas.
-
-| Coluna | Tipo | Nulo | FK | Observação |
-|---|---|---|---|---|
-| user_id | string | não | `users.id` | |
-| badge_key | string | não | — | |
-
-#### `maintenance_alerts`
+#### `equipment_maintenance_rules`
 Inventário com alerta de manutenção/validade.
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
 | id | uuid | não | — | PK |
 | equipment_id | uuid | não | `equipment.id` | |
-| alert_type | string | não | — | |
-| triggered_at | timestamp | não | — | |
+| name | string | não | — | regra do proprietário |
+| interval_minutes | int | não | — | positivo |
+| last_maintained_at | timestamp | sim | — | início da janela; `null` usa todo histórico |
+| active | boolean | não | — | pausa sem apagar |
+| created_at | timestamp | não | — | auditoria |
+
+O alerta é calculado com `session_equipment` e sessões posteriores à última manutenção.
 
 ---
 
 ## Itens em Aberto
 
 - Lista final de categorias de equipamento (enum de `equipment.category`).
-- Curva de XP por categoria de hobby (`hobby_xp.xp`).
-- Estrutura completa das entidades marcadas como conceituais (Fases 1–4) — servem de esqueleto, não de especificação fechada.
-- Índices e constraints específicos (fora do escopo desta modelagem inicial).
+- Labels temáticos de nível por hobby; a fórmula inicial já está em `gamificacao-e-planos.md`.
+- Estrutura completa das entidades ainda conceituais: colaboração, seguidores, família, IA e templates comunitários.
+- Índices e constraints adicionais das entidades ainda conceituais, definidos somente quando cada fase for implementada.

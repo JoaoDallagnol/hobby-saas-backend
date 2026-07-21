@@ -1,6 +1,6 @@
 # Relatório de status e operação do MVP
 
-Data da revisão: **2026-07-20**.
+Data da revisão: **2026-07-21**.
 
 Este documento separa o que está implementado no repositório do que ainda depende de conta, credencial, infraestrutura ou decisão do responsável pelo produto. Nenhum valor real de secret deve ser registrado aqui.
 
@@ -9,6 +9,8 @@ Este documento separa o que está implementado no repositório do que ainda depe
 O backend central da Fase 0 está implementado: perfil próprio/público por username, hobbies, catálogo oficial, sessões paginadas com `everyone`/`only_me`, atributos dinâmicos em JSONB, equipamentos, backlog/Kanban, streak, localização por `place_id`, uma foto por sessão via presigned upload, processamento WebP/thumbnail sem EXIF e documentação OpenAPI.
 
 A aplicação possui autorização por proprietário do recurso, provisionamento JIT de usuário, rate limit básico, configuração `local`/`prod`, Flyway, Postgres, Compose local e de produção, Nginx/TLS, scripts de backup/restauração e health/readiness das integrações habilitadas.
+
+Também está implementada antecipadamente, mas desligada por padrão em produção, a base de retenção da Fase 1 e do plano Plus: metas, XP/níveis, badges, recordes, desafio mensal, exportação Free, entitlement no banco, insights/retrospectiva, customização, backlog avançado e manutenção de equipamento. Isso não altera o gate do MVP nem habilita cobrança.
 
 O MVP **ainda não está pronto para lançamento público** porque faltam validar Firebase, R2 e Google Places com contas reais, provisionar a VPS/domínio/TLS, ativar monitoramento e executar um teste real de backup/restauração.
 
@@ -35,6 +37,8 @@ O MVP **ainda não está pronto para lançamento público** porque faltam valida
 | `FEATURE_PHOTO_UPLOADS_ENABLED` | `false` | `true` | somente após bucket e credenciais R2 funcionarem |
 | `FEATURE_PHOTO_PROCESSING_ENABLED` | `false` | `true` | junto com upload; exige R2 e `cwebp` disponível |
 | `FEATURE_SESSION_LOCATION_ENABLED` | `false` | `true` | após Places API e chave restrita funcionarem |
+| `FEATURE_GAMIFICATION_ENABLED` | `true` | `false` | depois de validar o MVP end-to-end e definir o rollout da Fase 1 |
+| `FEATURE_PLUS_ENABLED` | `true` | `false` | depois de validar operação Plus e, para venda, integrar cobrança por webhook |
 
 Perfil, hobbies, sessões básicas, equipamentos, backlog e streak não têm flag: são o núcleo coerente do MVP. Flags são configuração do servidor, nunca permissão enviada pelo client. Em produção, não habilitar upload com processamento desligado; o readiness detecta essa combinação inválida.
 
@@ -70,6 +74,8 @@ Os exemplos seguros estão em `.env.example` e `deploy/production.env.example`. 
 | `NGINX_CERTS_DIR` | sensível operacional | diretório host fora do git com certificado e chave | prod |
 | `SSL_CERTIFICATE_PATH` | não | path do certificado dentro do container Nginx | prod |
 | `SSL_CERTIFICATE_KEY_PATH` | sensível operacional | path da private key dentro do container Nginx | prod |
+| `FEATURE_GAMIFICATION_ENABLED` | não | `true`/`false`; rollout, não autorização | local; ativar em prod somente por decisão de rollout |
+| `FEATURE_PLUS_ENABLED` | não | `true`/`false`; rollout, não concede Plus | local; ativar em prod somente após operação validada |
 
 Também existem ajustes não secretos de capacidade: `RATE_LIMIT_*`, `PHOTO_PROCESSING_POLL_DELAY_MS`, `PHOTO_DELETION_POLL_DELAY_MS`, `NGINX_RATE_LIMIT_*` e retenção `BACKUP_*`.
 
@@ -127,6 +133,8 @@ Até isso acontecer, `LOCAL_AUTH_*` serve somente ao desenvolvimento. Ele não �
 
 Não bloqueiam este backend MVP: provedor de pagamento, lojas mobile e e-mail transacional próprio. Pagamento continua fora do código até a escolha explícita do provedor.
 
+Para desenvolvimento, uma conta só se torna Plus por operação interna controlada na tabela `subscriptions`; não existe endpoint de auto-upgrade. Em produção, não inserir entitlement manual para venda: escolher o provedor e implementar webhook assinado/idempotente primeiro.
+
 ## Decisões ainda abertas
 
 - Nome do app e domínio.
@@ -137,12 +145,14 @@ Já fechadas: Firebase Authentication padrão, VPS Hostinger, Postgres, Cloudfla
 
 ## Validação técnica desta revisão
 
-- `./mvnw clean install`: **74 testes**, zero falhas/erros, incluindo domínio, contrato, segurança e integração.
+- `mvn test`: **97 testes**, zero falhas/erros, incluindo domínio, contrato, segurança e integração de gamificação/Plus.
 - Testes de integração exercitam PostgreSQL real via Testcontainers e migrations Flyway.
-- Build do pacote Maven executado sem testes após a suíte.
-- Imagem Docker construída e iniciada contra PostgreSQL 17 local.
-- Health respondeu `UP`; rota protegida sem bearer respondeu HTTP 401; `cwebp` foi encontrado na imagem.
-- Varredura de padrões óbvios de secret disponível em `scripts/check-no-secrets.sh`.
+- `mvn clean install`: build limpo e instalação local concluídos com a suíte completa de 97 testes.
+- Imagem Docker construída e iniciada pelo Compose contra PostgreSQL 17 local, com Adobe S3Mock e os buckets `hobby-private` e `hobby-public` disponíveis.
+- As migrations até V8 foram aplicadas tanto em banco novo via Testcontainers quanto no banco local existente; V8 reforça ownership de badges em destaque também no banco.
+- Health interno respondeu `UP` com os grupos `liveness` e `readiness`.
+- `docker compose config --quiet` validado para os perfis local e produção; stack local final permanece em execução na porta `8080`.
+- `git diff --check` e a varredura `scripts/check-no-secrets.sh` concluíram sem erro ou material sensível óbvio.
 
 Comandos de aceite final:
 
@@ -153,5 +163,3 @@ docker compose up -d --build
 docker compose ps
 curl -fsS http://localhost:8080/actuator/health
 ```
-
-No momento desta revisão, o daemon Docker local manteve o container antigo `hobby-saas-app` e os containers temporários `hobby-saas-app-validation*`; as tentativas de parada/remoção não tiveram efeito e uma delas respondeu `permission denied`. A migration V5 e o smoke test foram validados no temporário da porta `18081`; a imagem final também foi reconstruída depois do último ajuste de segurança. Para o Compose principal adotar essa imagem e limpar os temporários, reiniciar/corrigir o daemon Docker e executar novamente `docker compose up -d --build`. Isso é um problema do daemon local, não da aplicação nem do volume Postgres.

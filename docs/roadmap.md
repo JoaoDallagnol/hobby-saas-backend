@@ -11,8 +11,12 @@
 - Backlog Kanban por hobby (fila de projetos/ideias)
 - Streak de constância
 
-## Fase 1 — identidade do app (funciona com poucos usuários)
+## Fase 1 — retenção e identidade do app (funciona com poucos usuários)
 - Painel de estatísticas de tempo por hobby
+- Metas semanais flexíveis por hobby
+- Marcos, badges e recordes pessoais
+- XP/nível por hobby com fórmula configurável por categoria
+- Desafio mensal oficial e retrospectiva básica de progresso
 - Sessões colaborativas/em grupo (não depende de descoberta, usuário convida quem já conhece)
 - Teste de personalidade/descoberta de hobby (onboarding)
 
@@ -23,20 +27,26 @@
 - Indicações/rankings locais
 - Heatmap de cidade — exige volume mínimo de sessões geolocalizadas por região, senão fica vazio/enganoso
 
-## Fase 3 — gamificação
-- XP por hobby (curva de XP **diferente por categoria** — 1h de leitura ≠ 1h de corrida em esforço percebido)
+## Fase 3 — gamificação social e expansão
+- Desafios customizados entre amigos/grupos e ferramentas de administração
+- Progressões temáticas por hobby sobre a base de XP da Fase 1
+- Coleções sazonais e raridade de badges quando houver volume suficiente
 
 ## Fase 4 — premium
-- Wrapped estilo Strava (infográfico mensal/anual)
-- Comparação "eu do passado" (timelapse de fotos/progresso)
+- Estatísticas avançadas, comparação entre períodos e Wrapped mensal/anual em dados estruturados
+- Comparação "eu do passado"; timelapse de fotos permanece evolução posterior de mídia
+- Múltiplas metas, cadências avançadas e desafios pessoais customizados
+- Planejamento avançado do backlog
 - Multi-perfil família/casal
 - Metas com IA
 - Alerta de manutenção de equipamento
 - Lembrete de abandono (IA detecta queda de frequência)
-- Exportação de dados
+- Exportação visual/agendada; exportação bruta dos próprios dados permanece gratuita
 - Templates de hobby da comunidade com acesso antecipado pra assinante
-- Customização de perfil (badges, temas)
+- Customização de perfil (vitrine de badges, temas)
 - Destaque de assinante na listagem (⚠️ como badge visível, nunca como ranking artificialmente inflado)
 
 ## Regra de priorização
 Seguidores/feed, Hobby Buddy e Heatmap compartilham a mesma trava: não implementar/expor sem massa crítica local. A leitura direta de perfil e sessões `everyone` por username já existe no MVP como base, mas não constitui descoberta nem feed.
+
+A fundação backend da Fase 1 e dos benefícios Plus pode ser construída antecipadamente, mas só deve ser ativada depois da validação end-to-end do MVP. Disponibilidade por feature flag não substitui entitlement Free/Plus; cobrança continua bloqueada até escolha de provedor e webhook assinado. Regras detalhadas: `gamificacao-e-planos.md`.

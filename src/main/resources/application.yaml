@@ -27,6 +27,8 @@ app:
     photo-uploads: true
     session-location: true
     photo-processing: false
+    gamification: true
+    plus-features: false
   rate-limit:
     enabled: false
     capacity: 120

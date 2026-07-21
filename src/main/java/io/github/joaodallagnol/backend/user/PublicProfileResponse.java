@@ -6,6 +6,10 @@ public record PublicProfileResponse(
         String username,
         String name,
         String bio,
-        List<UserHobbyResponse> hobbies
+        List<UserHobbyResponse> hobbies,
+        ProfileCustomizationResponse customization
 ) {
+    public PublicProfileResponse(String username, String name, String bio, List<UserHobbyResponse> hobbies) {
+        this(username, name, bio, hobbies, null);
+    }
 }

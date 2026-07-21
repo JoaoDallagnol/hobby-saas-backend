@@ -16,7 +16,8 @@ Escopo funcional do MVP:
 
 Fora do MVP por padrão:
 - Feed social, seguidores, Hobby Buddy e Heatmap são **Fase 2** e não devem ser implementados/expostos sem massa crítica real de usuários.
-- XP, premium, metas com IA, manutenção e demais itens posteriores continuam fora de escopo até decisão explícita.
+- Gamificação pessoal e fundação Plus possuem implementação antecipada autorizada, mas rollout continua posterior à validação end-to-end do MVP; detalhes em `docs/gamificacao-e-planos.md`.
+- Cobrança, IA, múltiplas mídias, família, desafios sociais e demais itens posteriores continuam fora de escopo até decisão explícita e pré-requisitos próprios.
 
 ## Stack
 Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (auth), Cloudflare R2 (fotos), Docker Compose numa VPS única na Hostinger. Detalhe completo: `docs/stack.md`.
@@ -28,11 +29,14 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - `docs/modelagem-banco-dados.md` — schema completo (diagramas + dicionário de dados).
 - `docs/infraestrutura-e-seguranca.md` — auth, hospedagem, segurança, serviços de suporte.
 - `docs/stack.md` — dependências e libs.
+- `docs/gamificacao-e-planos.md` — regras Free/Plus, metas, XP, badges, recordes, retrospectiva, planejamento e manutenção.
+- `docs/gamification-plus-execution-checklist.md` — status executável da gamificação e fundação Plus; não confundir com o checklist do MVP.
 
 ## Leitura mínima antes de mudar algo
 - Sempre alinhar a mudança com `docs/roadmap.md`.
 - Se mexer em funcionalidade, fluxo do usuário, comportamento esperado da feature, contrato de API orientado ao produto ou priorização de escopo, conferir `docs/funcionalidades.md`.
 - Se mexer em entidade ou fluxo de negócio, conferir `docs/diretrizes-tecnicas.md`.
+- Se mexer em gamificação, estatísticas, entitlement ou benefício Plus, conferir `docs/gamificacao-e-planos.md` e seu checklist próprio.
 - Se mexer em persistência, conferir `docs/modelagem-banco-dados.md`.
 - Se mexer em auth, deploy, storage, backup, e-mail, monitoramento ou pagamento, conferir `docs/infraestrutura-e-seguranca.md`.
 - Nenhuma mudança de produto, schema, fluxo, fase do roadmap ou decisão técnica pode encerrar com documentação divergente. Se algo mudar, atualizar os arquivos afetados no mesmo trabalho.
@@ -49,6 +53,9 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - `equipment.category` e `equipment.name` são colunas independentes do mesmo registro — não é chave/valor.
 - Nunca confiar em campo de plano/permissão vindo do client (ex: `isPremium`) — checar sempre contra o banco.
 - Status de pagamento só muda via webhook assinado do provedor, nunca por request do client.
+- Feature flag de gamificação/Plus controla rollout, não entitlement. Ausência de assinatura ativa no banco equivale a Free; não criar endpoint público de auto-upgrade.
+- XP é projeção de sessões com fórmula server-side por categoria; badges são concedidos pelo servidor; o client nunca declara XP/conquista.
+- Exportação bruta dos próprios dados permanece Free e nunca inclui secrets, tokens, storage keys internas ou dados privados de terceiros.
 - Localização: client manda só `place_id`; backend resolve lat/lng via Google Place Details (FieldMask Essentials) e persiste — nunca confiar em lat/lng vindo do client.
 - Fotos: upload via presigned URL direto pro R2, nunca binário passando pelo backend.
 - Fotos persistem só como storage key/URL no banco; processamento é assíncrono, com thumbnail/compressão e remoção de EXIF.
@@ -75,7 +82,7 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 
 ## Não fazer
 - Não tratar presença no schema como autorização para buildar feature de fase futura.
-- Não implementar sessões em grupo, onboarding de descoberta ou painel de estatísticas sem pedido explícito — são Fase 1, não MVP.
+- Não implementar sessões em grupo ou onboarding de descoberta sem pedido explícito — são Fase 1, não MVP. Estatísticas pessoais e gamificação tiveram implementação antecipada autorizada, mas não alteram a definição de pronto do MVP.
 - Não implementar/expor feed, Hobby Buddy, indicações locais ou Heatmap (Fase 2) sem pedido explícito e sem massa crítica real.
 - Não usar MongoDB ou qualquer banco além do Postgres — domínio é relacional, flexibilidade já é resolvida via JSONB.
 - Não implementar load balancer/API Gateway — fora de escopo até o monolito numa VPS não bastar mais.

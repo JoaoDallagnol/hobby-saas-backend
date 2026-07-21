@@ -9,6 +9,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "backlog_items")
@@ -32,6 +33,18 @@ public class BacklogItemReference {
 
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
+
+    @Column(name = "due_date")
+    private LocalDate dueDate;
+
+    @Column(nullable = false, length = 20)
+    private String priority = "normal";
+
+    @Column(nullable = false)
+    private boolean archived;
+
+    @Column(nullable = false)
+    private int position;
 
     protected BacklogItemReference() {
     }
@@ -69,9 +82,21 @@ public class BacklogItemReference {
         return createdAt;
     }
 
+    public LocalDate getDueDate() { return dueDate; }
+    public String getPriority() { return priority; }
+    public boolean isArchived() { return archived; }
+    public int getPosition() { return position; }
+
     public void update(Hobby hobby, String title, String status) {
         this.hobby = hobby;
         this.title = title;
         this.status = status;
+    }
+
+    public void updatePlanning(LocalDate dueDate, String priority, boolean archived, int position) {
+        this.dueDate = dueDate;
+        this.priority = priority;
+        this.archived = archived;
+        this.position = position;
     }
 }

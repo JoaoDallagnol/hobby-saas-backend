@@ -7,6 +7,7 @@
 > - Não marcar apenas porque existe schema/documentação; precisa existir implementação válida no escopo do item.
 > - Se surgir trabalho novo, adicionar como subtarefa do bloco correto.
 > - Itens de Fase 1+ ficam fora deste arquivo por padrão, mesmo que já existam no schema.
+> - Gamificação pessoal e fundação Plus possuem checklist separado em `gamification-plus-execution-checklist.md`; sua implementação antecipada não muda a definição de pronto do MVP.
 > - Nenhuma mudança de produto, roadmap, schema, contrato ou implementação pode terminar deixando `AGENTS.md` ou arquivos de `docs/` desatualizados entre si.
 > - Se surgir inconsistência entre documentos, reportar antes de editar; depois da decisão, atualizar todos os arquivos impactados no mesmo trabalho.
 > - Antes de fechar qualquer mudança, fazer análise de impacto: verificar dependências em funcionalidades relacionadas, banco, APIs, validações, roadmap, checklist e documentação.

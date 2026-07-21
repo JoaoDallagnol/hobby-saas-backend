@@ -23,6 +23,8 @@ app:
     photo-uploads: ${FEATURE_PHOTO_UPLOADS_ENABLED:false}
     session-location: ${FEATURE_SESSION_LOCATION_ENABLED:false}
     photo-processing: ${FEATURE_PHOTO_PROCESSING_ENABLED:false}
+    gamification: ${FEATURE_GAMIFICATION_ENABLED:true}
+    plus-features: ${FEATURE_PLUS_ENABLED:true}
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:false}
     capacity: ${RATE_LIMIT_CAPACITY:120}

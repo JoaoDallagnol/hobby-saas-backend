@@ -54,6 +54,8 @@
   - `FEATURE_PHOTO_UPLOADS_ENABLED`: habilita presigned upload e associação de keys R2 do próprio usuário;
   - `FEATURE_SESSION_LOCATION_ENABLED`: habilita resolução de `place_id` em sessões;
   - `FEATURE_PHOTO_PROCESSING_ENABLED`: habilita o worker de thumbnail/WebP/remoção de EXIF.
+  - `FEATURE_GAMIFICATION_ENABLED`: rollout de metas, XP, badges, recordes e desafio mensal;
+  - `FEATURE_PLUS_ENABLED`: rollout das superfícies Plus; não concede entitlement.
 - Em `local`, integrações externas ficam desligadas por padrão. Em `prod`, fotos, processamento e localização ficam ligados por padrão, mas podem ser desligados durante rollout/incidente; upload não deve ficar ativo em produção com processamento desligado.
 - No profile `prod`, o health indicator marca a aplicação como `DOWN` quando Firebase ou uma integração habilitada não possui a configuração mínima. Os detalhes listam apenas nomes lógicos ausentes, nunca valores.
 - O repositório protege contra vazamento acidental com:
@@ -80,6 +82,8 @@
 - `FEATURE_PHOTO_UPLOADS_ENABLED`
 - `FEATURE_SESSION_LOCATION_ENABLED`
 - `FEATURE_PHOTO_PROCESSING_ENABLED`
+- `FEATURE_GAMIFICATION_ENABLED`
+- `FEATURE_PLUS_ENABLED`
 - `CWEBP_BINARY`
 - `PHOTO_PROCESSING_POLL_DELAY_MS`
 - `PHOTO_DELETION_POLL_DELAY_MS`
@@ -124,6 +128,8 @@
 - `FEATURE_PHOTO_UPLOADS_ENABLED`
 - `FEATURE_SESSION_LOCATION_ENABLED`
 - `FEATURE_PHOTO_PROCESSING_ENABLED`
+- `FEATURE_GAMIFICATION_ENABLED`
+- `FEATURE_PLUS_ENABLED`
 - `CWEBP_BINARY`
 - `PHOTO_PROCESSING_POLL_DELAY_MS`
 - `PHOTO_DELETION_POLL_DELAY_MS`
@@ -284,6 +290,8 @@ Passo a passo: registrar domínio → apontar nameservers pro Cloudflare → cri
 - **PostHog** — free tier generoso, self-hosted opcional (mesma VPS). Cobre funil/retenção/coorte — diferente de Sentry (erro) e Prometheus (infra).
 
 ## Pagamento ⚠️ pendente
+
+A fundação de entitlement usa `FREE`/`PLUS` no banco, mas não existe checkout nem endpoint de auto-upgrade. Até o provedor ser escolhido, uma conta Plus só pode ser preparada por operação interna controlada. Na integração real, mudança de assinatura ocorrerá exclusivamente por webhook assinado, idempotente e auditável. Nenhum client envia plano confiável.
 
 | Provedor | Mensalidade | Taxa recorrência | |
 |---|---|---|---|

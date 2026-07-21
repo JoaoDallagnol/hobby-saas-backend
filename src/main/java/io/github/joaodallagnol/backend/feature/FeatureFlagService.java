@@ -15,7 +15,9 @@ public class FeatureFlagService {
         return new FeatureFlagsResponse(
                 properties.isPhotoUploads(),
                 properties.isSessionLocation(),
-                properties.isPhotoProcessing()
+                properties.isPhotoProcessing(),
+                properties.isGamification(),
+                properties.isPlusFeatures()
         );
     }
 
@@ -25,6 +27,14 @@ public class FeatureFlagService {
 
     public void requireSessionLocation() {
         require(properties.isSessionLocation(), "sessionLocation");
+    }
+
+    public void requireGamification() {
+        require(properties.isGamification(), "gamification");
+    }
+
+    public void requirePlusFeatures() {
+        require(properties.isPlusFeatures(), "plusFeatures");
     }
 
     private void require(boolean enabled, String feature) {

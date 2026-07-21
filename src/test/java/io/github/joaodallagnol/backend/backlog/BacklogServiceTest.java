@@ -2,17 +2,21 @@ package io.github.joaodallagnol.backend.backlog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import io.github.joaodallagnol.backend.auth.AuthenticatedUserExtractor;
 import io.github.joaodallagnol.backend.auth.FirebaseAuthenticatedPrincipal;
 import io.github.joaodallagnol.backend.session.BacklogItemReference;
 import io.github.joaodallagnol.backend.session.BacklogItemReferenceRepository;
+import io.github.joaodallagnol.backend.subscription.EntitlementService;
 import io.github.joaodallagnol.backend.user.Hobby;
 import io.github.joaodallagnol.backend.user.HobbyCategory;
 import io.github.joaodallagnol.backend.user.HobbyRepository;
 import io.github.joaodallagnol.backend.user.UserHobbyRepository;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Proxy;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -112,6 +116,24 @@ class BacklogServiceTest {
         )))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Invalid backlog status");
+    }
+
+    @Test
+    void advancedPlanningRequiresDatabaseEntitlementAndPreservesBasicBacklog() {
+        InMemoryBacklogRepository backlogRepository = new InMemoryBacklogRepository();
+        EntitlementService entitlement = mock(EntitlementService.class);
+        BacklogService service = new BacklogService(new AuthenticatedUserExtractor(), backlogRepository.asRepository(),
+                new InMemoryHobbyRepository().asRepository(), new InMemoryUserHobbyRepository().asRepository(),
+                entitlement);
+        authenticate("firebase-user-1", "user@example.com", "User");
+
+        BacklogItemResponse response = service.createItem(new CreateBacklogItemRequest(null, "Planejar exposição",
+                "pending", LocalDate.parse("2026-08-15"), "high", false, 2));
+
+        assertThat(response.dueDate()).isEqualTo(LocalDate.parse("2026-08-15"));
+        assertThat(response.priority()).isEqualTo("high");
+        assertThat(response.position()).isEqualTo(2);
+        verify(entitlement).requirePlus("firebase-user-1");
     }
 
     private void authenticate(String userId, String email, String name) {

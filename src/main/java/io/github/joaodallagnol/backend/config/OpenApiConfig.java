@@ -18,7 +18,8 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "Hobby SaaS Backend API",
                 version = "v0",
-                description = "Contrato da API do MVP/Fase 0 para perfil, sessões, equipamentos, backlog, fotos e streak.",
+                description = "Contrato da API do MVP/Fase 0 e da fundação antecipada de gamificação e plano Plus. "
+                        + "A disponibilidade das superfícies posteriores depende de feature flags e entitlement.",
                 contact = @Contact(name = "Projeto Hobby SaaS")
         ),
         security = @SecurityRequirement(name = "bearerAuth")

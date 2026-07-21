@@ -32,6 +32,9 @@ public class ProductUser {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @Column(name = "profile_theme", nullable = false, length = 30)
+    private String profileTheme = "default";
+
     protected ProductUser() {
     }
 
@@ -78,6 +81,10 @@ public class ProductUser {
         return createdAt;
     }
 
+    public String getProfileTheme() {
+        return profileTheme;
+    }
+
     public void updateProfile(String name, String bio, String username) {
         this.name = name;
         this.bio = bio;
@@ -88,5 +95,9 @@ public class ProductUser {
 
     public void updateProfile(String name, String bio) {
         updateProfile(name, bio, null);
+    }
+
+    public void updateProfileTheme(String profileTheme) {
+        this.profileTheme = profileTheme;
     }
 }

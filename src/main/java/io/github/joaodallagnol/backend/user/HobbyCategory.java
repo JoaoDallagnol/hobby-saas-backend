@@ -16,6 +16,12 @@ public class HobbyCategory {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "xp_session_bonus", nullable = false)
+    private int xpSessionBonus;
+
+    @Column(name = "xp_minutes_per_point", nullable = false)
+    private int xpMinutesPerPoint;
+
     protected HobbyCategory() {
     }
 
@@ -25,5 +31,13 @@ public class HobbyCategory {
 
     public String getName() {
         return name;
+    }
+
+    public int getXpSessionBonus() {
+        return xpSessionBonus;
+    }
+
+    public int getXpMinutesPerPoint() {
+        return xpMinutesPerPoint;
     }
 }

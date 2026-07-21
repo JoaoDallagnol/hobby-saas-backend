@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class PublicProfileService {
@@ -21,13 +22,22 @@ public class PublicProfileService {
     private final UserHobbyRepository userHobbyRepository;
     private final SessionRecordRepository sessionRecordRepository;
     private final SessionPhotoMediaService mediaService;
+    private final ProfileCustomizationService customizationService;
 
+    @Autowired
     public PublicProfileService(ProductUserRepository productUserRepository, UserHobbyRepository userHobbyRepository,
-                                SessionRecordRepository sessionRecordRepository, SessionPhotoMediaService mediaService) {
+                                SessionRecordRepository sessionRecordRepository, SessionPhotoMediaService mediaService,
+                                ProfileCustomizationService customizationService) {
         this.productUserRepository = productUserRepository;
         this.userHobbyRepository = userHobbyRepository;
         this.sessionRecordRepository = sessionRecordRepository;
         this.mediaService = mediaService;
+        this.customizationService = customizationService;
+    }
+
+    public PublicProfileService(ProductUserRepository productUserRepository, UserHobbyRepository userHobbyRepository,
+                                SessionRecordRepository sessionRecordRepository, SessionPhotoMediaService mediaService) {
+        this(productUserRepository, userHobbyRepository, sessionRecordRepository, mediaService, null);
     }
 
     @Transactional(readOnly = true)
@@ -35,7 +45,8 @@ public class PublicProfileService {
         ProductUser user = getUser(username);
         return new PublicProfileResponse(user.getUsername(), user.getName(), user.getBio(),
                 userHobbyRepository.findAllByIdUserIdOrderByHobbyNameAsc(user.getId()).stream()
-                        .map(UserHobbyResponse::from).toList());
+                        .map(UserHobbyResponse::from).toList(),
+                customizationService == null ? null : customizationService.responseForUser(user));
     }
 
     @Transactional(readOnly = true)

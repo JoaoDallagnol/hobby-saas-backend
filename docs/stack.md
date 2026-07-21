@@ -27,6 +27,14 @@
 - Configuração própria via `@ConfigurationProperties`, sem serviço SaaS adicional no MVP ✅
 - Flags atuais controlam somente integrações com dependência externa/rollout: upload R2, localização Google Places e processamento de fotos.
 - `GET /api/features` fornece ao client autenticado o estado não sensível; tentativa de usar feature desligada retorna `503`.
+- Gamificação e superfícies Plus usam flags de rollout separadas; entitlement Free/Plus continua no Postgres e não é substituído por flag.
+
+## Gamificação e analytics de produto
+
+- Metas, XP, badges, recordes, retrospectivas e manutenção usam Spring Data JPA + PostgreSQL, sem SaaS ou IA adicional ✅
+- Projeções derivadas de sessão são recalculáveis/idempotentes; parâmetros de XP ficam no banco por categoria.
+- Wrapped backend retorna dados estruturados; renderização visual pertence ao client, sem biblioteca server-side de imagem/PDF nesta etapa.
+- Cobrança não possui SDK enquanto o provedor continuar pendente.
 
 ## Storage de fotos (Cloudflare R2)
 - AWS SDK S3 (`software.amazon.awssdk:s3`) ✅ — R2 é S3-compatible, aponta pro endpoint do R2.

@@ -24,9 +24,13 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Import;
+
+import io.github.joaodallagnol.backend.config.GamificationTestRepositoryConfig;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(GamificationTestRepositoryConfig.class)
 class BackendApplicationTests {
 
 	@Test

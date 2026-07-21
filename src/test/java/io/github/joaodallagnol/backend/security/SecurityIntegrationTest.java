@@ -33,6 +33,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -47,9 +48,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import io.github.joaodallagnol.backend.config.GamificationTestRepositoryConfig;
+
 @SpringBootTest
 @ActiveProfiles("test")
 @TestPropertySource(properties = "spring.main.allow-bean-definition-overriding=true")
+@Import(GamificationTestRepositoryConfig.class)
 class SecurityIntegrationTest {
 
     private static final UUID OWN_SESSION_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");

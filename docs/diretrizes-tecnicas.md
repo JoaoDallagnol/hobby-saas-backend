@@ -203,10 +203,25 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
 
 ## Feature flags operacionais
 
-- `GET /api/features` expõe ao client autenticado somente flags não sensíveis: `photoUploads`, `sessionLocation`, `photoProcessing`.
+- `GET /api/features` expõe ao client autenticado somente flags não sensíveis: `photoUploads`, `sessionLocation`, `photoProcessing`, `gamification` e `plusFeatures`.
 - Flags não substituem autorização nem podem ser enviadas/alteradas pelo client; são configuração de servidor por ambiente.
 - Feature desligada falha com HTTP `503` quando o payload tenta usá-la, permitindo rollout/fallback explícito.
 - Equipamentos, backlog, perfil, sessões básicas e streak são núcleo do MVP e não recebem flag para evitar um produto parcialmente incoerente.
+- `FEATURE_GAMIFICATION_ENABLED` controla rollout de metas, XP, badges, recordes e desafio mensal; local `true`, produção `false` até o MVP end-to-end estar validado.
+- `FEATURE_PLUS_ENABLED` controla rollout das ferramentas Plus; local `true`, produção `false` até entitlement, operação e futura cobrança estarem validados.
+- Flag não é autorização comercial. Acesso Plus exige entitlement ativo no banco, nunca campo vindo do client.
+
+## Gamificação e plano Plus
+
+- Especificação normativa: `gamificacao-e-planos.md`.
+- XP é projeção reconstruível das sessões, com parâmetros na categoria do hobby; não armazenar incremento vindo do client.
+- Meta e desafio calculam progresso consultando sessões dentro do período; edição/exclusão deve refletir imediatamente.
+- Badges oficiais são avaliados no servidor e persistem `earned_at`; o client nunca declara conquista.
+- Recordes e estatísticas comparam o usuário com o próprio histórico. Não criar ranking global entre hobbies.
+- Ausência de assinatura ativa equivale a `FREE`; rebaixamento não apaga meta, customização, planejamento ou regra de manutenção criada enquanto Plus.
+- Exportação bruta dos próprios dados é Free e exclui secrets, tokens, storage keys e dados privados de terceiros.
+- O backend pode expor dados estruturados de Wrapped; imagem/PDF/timelapse não fazem parte desta etapa.
+- Não existe endpoint público para alterar assinatura. Quando houver cobrança, somente webhook assinado do provedor poderá mudar entitlement.
 
 ## Taxonomia de hobbies
 

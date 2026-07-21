@@ -13,12 +13,16 @@ class FeatureFlagServiceTest {
         properties.setPhotoUploads(false);
         properties.setSessionLocation(true);
         properties.setPhotoProcessing(false);
+        properties.setGamification(true);
+        properties.setPlusFeatures(false);
 
         FeatureFlagsResponse response = new FeatureFlagService(properties).currentFlags();
 
         assertThat(response.photoUploads()).isFalse();
         assertThat(response.sessionLocation()).isTrue();
         assertThat(response.photoProcessing()).isFalse();
+        assertThat(response.gamification()).isTrue();
+        assertThat(response.plusFeatures()).isFalse();
     }
 
     @Test

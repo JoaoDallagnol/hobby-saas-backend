@@ -34,11 +34,19 @@ Fotos e localização possuem feature flags operacionais porque dependem de R2 e
 
 ---
 
-## Fase 1 — Identidade do App
+## Fase 1 — Retenção e Identidade do App
 
 Nessa fase, o app começa a se diferenciar de um simples bloco de notas com foto, mas ainda sem depender de uma base grande de usuários.
 
 O **painel de estatísticas de lazer** mostra, em gráficos, em quais hobbies o usuário investiu mais tempo na semana ou no mês, junto com o histórico de evolução ao longo do tempo.
+
+As **metas semanais por hobby** permitem escolher quantidade de sessões ou minutos. Uma conta gratuita mantém uma meta ativa por hobby; o progresso é recalculado a partir das sessões para permanecer correto após edição ou exclusão.
+
+Os **marcos, badges e recordes pessoais** reconhecem primeira sessão, quantidades acumuladas, horas praticadas, variedade de hobbies, melhor streak e recordes de duração/constância. Eles comparam o usuário com o próprio histórico, não colocam hobbies diferentes em um ranking artificial.
+
+A **árvore de ofício** transforma sessões em XP por hobby. A fórmula usa parâmetros da categoria e gera níveis genéricos inicialmente; nomes temáticos podem evoluir depois sem alterar o saldo. XP, badges e streak não podem ser comprados nem multiplicados por assinatura.
+
+O **desafio mensal oficial** é pessoal, determinístico e gratuito. Ele recompensa retorno distribuído no mês, sem IA ou dependência de outros usuários.
 
 As **sessões colaborativas ou em grupo** permitem marcar que uma sessão foi feita junto com outra pessoa do app — uma dupla de leitura, um grupo de corrida, uma partida de jogo de tabuleiro. Diferente de funcionalidades que dependem de descoberta por proximidade, aqui o próprio usuário convida quem já conhece, então funciona bem mesmo com poucos usuários na base.
 
@@ -62,32 +70,34 @@ O **mapa de calor da cidade**, ou heatmap, é um mapa interativo mostrando as zo
 
 ---
 
-## Fase 3 — Gamificação
+## Fase 3 — Gamificação Social e Expansão
 
-A **árvore de ofício** transforma as horas registradas em experiência (XP), fazendo o usuário subir de nível dentro de cada hobby — por exemplo, de "Aprendiz de Jardinagem" a "Botânico Urbano". A curva de XP precisa variar por categoria de hobby, já que uma hora de leitura não representa o mesmo esforço percebido que uma hora de corrida; tratar todos os hobbies com a mesma fórmula minaria a credibilidade do sistema de gamificação.
+A base pessoal de XP, metas e badges já entra na Fase 1 por não depender de rede. Nesta fase entram **desafios entre amigos ou grupos**, progressões temáticas e coleções sazonais. Ranking e raridade só fazem sentido quando houver volume e regras antifraude suficientes.
 
 ---
 
 ## Fase 4 — Premium (Hobbyhood Pro)
 
-O usuário comum segue usando o app de graça para registrar e ver a comunidade. Quem assina o plano pago paga pelo excesso de dados, pela customização e pelo orgulho de compartilhar.
+O usuário comum segue usando o app de graça para registrar, definir meta semanal, ganhar XP/badges, consultar recordes básicos e ver a comunidade. Quem assina paga por profundidade analítica, ferramentas avançadas e customização. A assinatura nunca compra mérito, XP ou alcance.
 
-Os **infográficos estéticos estilo "Wrapped"** geram automaticamente imagens e estatísticas visualmente bonitas do mês ou do ano do hobbista, prontas para compartilhar nos stories do Instagram.
+Os **infográficos estéticos estilo "Wrapped"** começam como dados estruturados mensais/anuais entregues pelo backend para o client renderizar. Geração server-side de imagem fica para uma evolução posterior.
 
 A **comparação com o "eu do passado"** vai além do Wrapped simples, mostrando lado a lado fotos e progresso ao longo do tempo — como um timelapse de evolução em desenho, cerâmica ou transformação física.
 
 O **multi-perfil de família ou casal** cobre hobbies compartilhados em casa, como um casal que joga board game junto ou um pai e filho que constroem modelismo juntos, com estatísticas combinadas entre os dois perfis.
 
-As **metas avançadas e desafios com IA** permitem ao usuário pedir ajuda a uma IA para organizar rotinas de prática, como montar um cronograma para aprender anatomia praticando 15 minutos por dia.
+As **metas avançadas** permitem múltiplas metas, cadência mensal, período customizado e desafios pessoais próprios. Sugestão com IA continua posterior porque gera custo externo e exige provedor próprio.
 
 O **inventário com alerta de manutenção ou validade** avisa o usuário quando é hora de trocar as cordas da guitarra, limpar a lente da câmera ou comprar mais insumos, com base no tempo de uso já registrado.
 
 Os **lembretes inteligentes de abandono** usam IA para perceber quando o usuário parou de registrar um hobby que praticava com frequência, e mandam um aviso personalizado incentivando o retorno.
 
-A **exportação de dados** permite ao usuário baixar seu histórico completo em CSV ou PDF, ou integrar com planilhas.
+A **exportação bruta de dados próprios** em formato interoperável permanece gratuita. PDF visual, relatório formatado ou exportação agendada podem ser benefícios premium futuros.
 
 Os **templates de hobby customizados com acesso prioritário** permitem que a própria comunidade crie campos específicos para hobbies que ainda não têm um template pronto, com assinantes ganhando acesso antecipado aos templates mais votados antes de virarem públicos para todos.
 
-A **customização de perfil** inclui medalhas exclusivas de conquistas, temas especiais para o app e destaque estético no feed.
+A **customização de perfil** inclui temas especiais, vitrine de badges realmente conquistados e selo discreto de apoiador. A assinatura não cria medalha de mérito exclusiva nem altera ranking.
 
 Por fim, a **preferência na listagem para assinantes** deve ser tratada com cautela — a recomendação é implementar como um selo visível de assinante em vez de um ranking artificialmente inflado, para não corroer a confiança dos usuários no feed.
+
+Regras completas de Free/Plus, metas, XP, badges, recordes, retrospectiva, planejamento e manutenção estão em `gamificacao-e-planos.md`.

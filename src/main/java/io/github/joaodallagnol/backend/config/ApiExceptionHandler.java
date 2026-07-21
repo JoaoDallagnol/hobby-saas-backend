@@ -3,6 +3,7 @@ package io.github.joaodallagnol.backend.config;
 import io.github.joaodallagnol.backend.session.ResourceNotFoundException;
 import io.github.joaodallagnol.backend.feature.FeatureDisabledException;
 import io.github.joaodallagnol.backend.user.UsernameAlreadyTakenException;
+import io.github.joaodallagnol.backend.subscription.PlusPlanRequiredException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -24,6 +25,13 @@ public class ApiExceptionHandler {
     ProblemDetail handleFeatureDisabled(FeatureDisabledException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
         problemDetail.setTitle("Feature unavailable");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(PlusPlanRequiredException.class)
+    ProblemDetail handlePlusRequired(PlusPlanRequiredException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problemDetail.setTitle("Plus plan required");
         return problemDetail;
     }
 

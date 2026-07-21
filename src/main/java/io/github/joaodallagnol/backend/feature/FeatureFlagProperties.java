@@ -8,6 +8,8 @@ public class FeatureFlagProperties {
     private boolean photoUploads = true;
     private boolean sessionLocation = true;
     private boolean photoProcessing = false;
+    private boolean gamification = true;
+    private boolean plusFeatures = false;
 
     public boolean isPhotoUploads() {
         return photoUploads;
@@ -31,5 +33,21 @@ public class FeatureFlagProperties {
 
     public void setPhotoProcessing(boolean photoProcessing) {
         this.photoProcessing = photoProcessing;
+    }
+
+    public boolean isGamification() {
+        return gamification;
+    }
+
+    public void setGamification(boolean gamification) {
+        this.gamification = gamification;
+    }
+
+    public boolean isPlusFeatures() {
+        return plusFeatures;
+    }
+
+    public void setPlusFeatures(boolean plusFeatures) {
+        this.plusFeatures = plusFeatures;
     }
 }
