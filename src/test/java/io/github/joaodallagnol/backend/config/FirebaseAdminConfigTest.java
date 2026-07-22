@@ -27,6 +27,11 @@ class FirebaseAdminConfigTest {
                 "local-user",
                 "local@example.com",
                 "Local User",
+                true,
+                "secondary-token",
+                "secondary-user",
+                "secondary@example.com",
+                "Secondary User",
                 true
         );
 
@@ -48,6 +53,11 @@ class FirebaseAdminConfigTest {
                 "local-user",
                 "local@example.com",
                 "Local User",
+                true,
+                "",
+                "secondary-user",
+                "secondary@example.com",
+                "Secondary User",
                 true
         ))
                 .isInstanceOf(IllegalStateException.class)

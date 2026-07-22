@@ -14,6 +14,7 @@
 - Quando a integração real virar pré-requisito, orientar o usuário sobre criação de projeto, apps, métodos de login, service account, restrições e secrets antes de fechar a entrega.
 - Ordem pragmática permitida: backend pode evoluir primeiro em domínio, banco, contratos e regras de negócio com auth controlada de `local`/`test`; integração real com Firebase continua obrigatória antes de fechar MVP funcional end-to-end ou publicar clientes.
 - Em `local`, existe suporte explícito a bearer token estático controlado por env (`LOCAL_AUTH_*`) para desenvolvimento do backend sem projeto Firebase pronto. Esse modo é aceito só no profile `local` e não substitui a validação real do Firebase em `dev`/`prod`.
+- A autenticação local aceita opcionalmente um segundo usuário (`LOCAL_AUTH_SECONDARY_*`) somente para testes de ownership/IDOR. Tokens e UIDs precisam ser distintos; essa configuração continua bloqueada fora do profile `local`.
 
 ## Hospedagem 🟢
 
@@ -99,6 +100,11 @@
 - `LOCAL_AUTH_EMAIL`
 - `LOCAL_AUTH_NAME`
 - `LOCAL_AUTH_EMAIL_VERIFIED`
+- `LOCAL_AUTH_SECONDARY_TOKEN`
+- `LOCAL_AUTH_SECONDARY_USER_ID`
+- `LOCAL_AUTH_SECONDARY_EMAIL`
+- `LOCAL_AUTH_SECONDARY_NAME`
+- `LOCAL_AUTH_SECONDARY_EMAIL_VERIFIED`
 - `R2_ENDPOINT`
 - `R2_PRESIGN_ENDPOINT`
 - `R2_PRIVATE_BUCKET`
@@ -158,6 +164,7 @@
   - usar shell local, `.env` não versionado ou mecanismo equivalente fora do git;
   - manter `.env.example` só com placeholders;
   - se usar auth local temporária, ativar `LOCAL_AUTH_ENABLED=true`, definir `LOCAL_AUTH_TOKEN` forte e usar esse bearer só em ambiente de desenvolvimento;
+  - o segundo bearer local é opcional e serve para testes de autorização entre usuários; a suíte isolada em `postman/` usa somente fixtures fictícias e banco descartável;
   - o Compose local usa S3Mock com credenciais fictícias e dois buckets persistidos em volume; esses valores não são secrets nem devem ser copiados para produção;
   - se quiser validar throttling localmente, ativar `RATE_LIMIT_ENABLED=true` e ajustar `RATE_LIMIT_*` conforme o volume de teste;
   - se precisar service account do Firebase, preferir arquivo local fora do repositório ou variável base64 injetada só no ambiente do dev.

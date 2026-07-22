@@ -1,0 +1,11 @@
+{
+  "name": "hobby-saas-api-acceptance",
+  "private": true,
+  "scripts": {
+    "generate": "node generate-collection.mjs",
+    "acceptance": "postman collection run HobbySaaS.postman_collection.json -e local.postman_environment.json"
+  },
+  "devDependencies": {
+    "postman-cli": "1.43.0"
+  }
+}

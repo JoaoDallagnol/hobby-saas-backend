@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run API acceptance tests"
+  short_description: "Execute and diagnose Postman API acceptance"
+  default_prompt: "Use $run-api-acceptance to execute the local API acceptance suite, inspect failures and logs, and report evidence."

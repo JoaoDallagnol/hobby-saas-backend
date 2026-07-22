@@ -2,7 +2,6 @@ package io.github.joaodallagnol.backend.user;
 
 import io.github.joaodallagnol.backend.auth.AuthenticatedUser;
 import io.github.joaodallagnol.backend.auth.AuthenticatedUserExtractor;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 import java.util.Locale;
@@ -11,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CurrentUserProfileService {
@@ -65,6 +65,7 @@ public class CurrentUserProfileService {
         return username == null ? null : username.trim().toLowerCase(Locale.ROOT);
     }
 
+    @Transactional(readOnly = true)
     public List<UserHobbyResponse> getCurrentUserHobbies() {
         return userHobbyRepository.findAllByIdUserIdOrderByHobbyNameAsc(getAuthenticatedUser().id()).stream()
                 .map(UserHobbyResponse::from)

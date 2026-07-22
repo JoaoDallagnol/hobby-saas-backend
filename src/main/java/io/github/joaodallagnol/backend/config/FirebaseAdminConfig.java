@@ -15,6 +15,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +40,12 @@ public class FirebaseAdminConfig {
             @Value("${app.auth.local.user-id:local-dev-user}") String localUserId,
             @Value("${app.auth.local.email:local-dev@example.com}") String localEmail,
             @Value("${app.auth.local.name:Local Dev User}") String localName,
-            @Value("${app.auth.local.email-verified:true}") boolean localEmailVerified
+            @Value("${app.auth.local.email-verified:true}") boolean localEmailVerified,
+            @Value("${app.auth.local.secondary.token:}") String secondaryToken,
+            @Value("${app.auth.local.secondary.user-id:local-secondary-user}") String secondaryUserId,
+            @Value("${app.auth.local.secondary.email:local-secondary@example.com}") String secondaryEmail,
+            @Value("${app.auth.local.secondary.name:Local Secondary User}") String secondaryName,
+            @Value("${app.auth.local.secondary.email-verified:true}") boolean secondaryEmailVerified
     ) {
         if (localAuthEnabled) {
             if (!environment.acceptsProfiles(Profiles.of("local"))) {
@@ -47,15 +54,20 @@ public class FirebaseAdminConfig {
             if (!StringUtils.hasText(localToken)) {
                 return new MissingFirebaseConfigurationTokenVerifier("Local development auth is enabled but LOCAL_AUTH_TOKEN is missing.");
             }
-            return new LocalDevelopmentTokenVerifier(
-                    localToken.trim(),
-                    new FirebaseVerifiedToken(
-                            localUserId.trim(),
-                            localEmail.trim(),
-                            localName.trim(),
-                            localEmailVerified
-                    )
-            );
+            Map<String, FirebaseVerifiedToken> localUsers = new LinkedHashMap<>();
+            localUsers.put(localToken.trim(), new FirebaseVerifiedToken(
+                    localUserId.trim(), localEmail.trim(), localName.trim(), localEmailVerified));
+            if (StringUtils.hasText(secondaryToken)) {
+                if (localToken.trim().equals(secondaryToken.trim())) {
+                    throw new IllegalStateException("Local development auth tokens must be different.");
+                }
+                if (localUserId.trim().equals(secondaryUserId.trim())) {
+                    throw new IllegalStateException("Local development auth user ids must be different.");
+                }
+                localUsers.put(secondaryToken.trim(), new FirebaseVerifiedToken(
+                        secondaryUserId.trim(), secondaryEmail.trim(), secondaryName.trim(), secondaryEmailVerified));
+            }
+            return new LocalDevelopmentTokenVerifier(localUsers);
         }
 
         try {

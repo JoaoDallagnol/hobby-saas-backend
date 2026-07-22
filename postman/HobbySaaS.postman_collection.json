@@ -1,0 +1,2144 @@
+{
+  "info": {
+    "_postman_id": "22ddc7ca-3f13-48ca-9e3d-34bcba8f9101",
+    "name": "Hobby SaaS API Acceptance",
+    "description": "Deterministic client-level acceptance suite. Run only against the isolated acceptance Compose environment; it creates data and expects Free/Plus fixtures.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runId')) {",
+          "  const now = new Date();",
+          "  const runId = Date.now().toString().slice(-10);",
+          "  const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));",
+          "  const from = new Date(date); from.setUTCDate(from.getUTCDate() - 7);",
+          "  const customEnd = new Date(date); customEnd.setUTCDate(customEnd.getUTCDate() + 14);",
+          "  pm.collectionVariables.set('runId', runId);",
+          "  pm.collectionVariables.set('startedAt', new Date(Date.now() - 3600000).toISOString());",
+          "  pm.collectionVariables.set('today', date.toISOString().slice(0, 10));",
+          "  pm.collectionVariables.set('fromDate', from.toISOString().slice(0, 10));",
+          "  pm.collectionVariables.set('toDate', date.toISOString().slice(0, 10));",
+          "  pm.collectionVariables.set('customEndDate', customEnd.toISOString().slice(0, 10));",
+          "  pm.collectionVariables.set('currentYear', String(now.getUTCFullYear()));",
+          "  pm.collectionVariables.set('currentMonth', String(now.getUTCMonth() + 1));",
+          "  pm.collectionVariables.set('freeUsername', `acceptance-free-${runId}`);",
+          "  pm.collectionVariables.set('plusUsername', `acceptance-plus-${runId}`);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [],
+  "item": [
+    {
+      "name": "00 - Infrastructure and security",
+      "item": [
+        {
+          "name": "Health is UP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"health is UP\", () => pm.expect(body.status).to.eql('UP'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/actuator/health"
+          }
+        },
+        {
+          "name": "OpenAPI exposes core contracts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"core paths are documented\", () => ['/api/sessions','/api/me/gamification','/api/me/goals','/api/me/insights','/api/me/wrapped'].forEach(path => pm.expect(body.paths).to.have.property(path)));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/v3/api-docs"
+          }
+        },
+        {
+          "name": "Protected endpoint rejects missing bearer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/me"
+          }
+        },
+        {
+          "name": "Protected endpoint rejects invalid bearer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{invalidToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Users, catalog and hobbies",
+      "item": [
+        {
+          "name": "Free user is provisioned",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Free fixture identity is server-derived\", () => { pm.expect(body.id).to.eql('acceptance-free-user'); pm.expect(body.email).to.eql('free@example.test'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me"
+          }
+        },
+        {
+          "name": "Plus user is provisioned",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Plus fixture identity is server-derived\", () => pm.expect(body.id).to.eql('acceptance-plus-user'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me"
+          }
+        },
+        {
+          "name": "Update Free profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"username is normalized and persisted\", () => pm.expect(body.username).to.eql(pm.collectionVariables.get('freeUsername')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acceptance Free\",\n  \"bio\": \"Private acceptance profile\",\n  \"username\": \"{{freeUsername}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Plus profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acceptance Plus\",\n  \"bio\": \"Public acceptance profile\",\n  \"username\": \"{{plusUsername}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List hobby catalog",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "const running = body.find(item => item.name === 'Running');",
+                  "pm.test(\"seeded catalog contains Running\", () => { pm.expect(body.length).to.be.at.least(10); pm.expect(running).to.exist; });",
+                  "pm.collectionVariables.set('hobbyId', running.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/hobbies"
+          }
+        },
+        {
+          "name": "Templates require a linked hobby",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/hobbies/{{hobbyId}}/attribute-templates"
+          }
+        },
+        {
+          "name": "Add hobby to Free user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/hobbies",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"experienceLevel\": \"beginner\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Add hobby to Plus user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/hobbies",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"experienceLevel\": \"intermediate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Running attribute templates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"dynamic attributes come from template\", () => pm.expect(body.map(item => item.key)).to.include('distance_km'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/hobbies/{{hobbyId}}/attribute-templates"
+          }
+        },
+        {
+          "name": "Update Free hobby experience",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/hobbies/{{hobbyId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"experienceLevel\": \"learning\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Free hobbies",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"linked hobby is returned\", () => pm.expect(body).to.have.length(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/hobbies"
+          }
+        },
+        {
+          "name": "Feature flags are authenticated and explicit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"acceptance rollout flags are expected\", () => { pm.expect(body.gamification).to.eql(true); pm.expect(body.plusFeatures).to.eql(true); pm.expect(body.photoUploads).to.eql(false); pm.expect(body.sessionLocation).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/features"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Equipment and backlog",
+      "item": [
+        {
+          "name": "Create Free equipment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('freeEquipmentId', body.id);",
+                  "pm.test(\"equipment owns selected hobby\", () => pm.expect(body.hobbyId).to.eql(pm.collectionVariables.get('hobbyId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/equipment",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"category\": \"Shoes\",\n  \"name\": \"Acceptance Shoes\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Plus equipment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('plusEquipmentId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/equipment",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"category\": \"Shoes\",\n  \"name\": \"Plus Shoes\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Free equipment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/equipment/{{freeEquipmentId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"category\": \"Shoes\",\n  \"name\": \"Acceptance Shoes Updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Free cannot update another user's equipment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/equipment/{{plusEquipmentId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"category\": \"Shoes\",\n  \"name\": \"Forbidden update\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Free equipment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"only owned equipment is listed\", () => { pm.expect(body).to.have.length(1); pm.expect(body[0].id).to.eql(pm.collectionVariables.get('freeEquipmentId')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/equipment?hobbyId={{hobbyId}}"
+          }
+        },
+        {
+          "name": "Create Free basic backlog item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('freeBacklogId', body.id);",
+                  "pm.test(\"basic planning defaults are Free\", () => { pm.expect(body.priority).to.eql('normal'); pm.expect(body.archived).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/backlog-items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Run a first 5K\",\n  \"status\": \"pending\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Free advanced backlog is rejected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/backlog-items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Advanced Free attempt\",\n  \"status\": \"pending\",\n  \"priority\": \"high\",\n  \"position\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Plus advanced backlog item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('plusBacklogId', body.id);",
+                  "pm.test(\"advanced fields are persisted\", () => { pm.expect(body.priority).to.eql('high'); pm.expect(body.position).to.eql(2); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/backlog-items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Plus race plan\",\n  \"status\": \"in_progress\",\n  \"dueDate\": \"{{customEndDate}}\",\n  \"priority\": \"high\",\n  \"archived\": false,\n  \"position\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Free cannot update another user's backlog item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/backlog-items/{{plusBacklogId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Forbidden\",\n  \"status\": \"pending\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Plus backlog",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Plus item is listed\", () => pm.expect(body.some(item => item.id === pm.collectionVariables.get('plusBacklogId'))).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/backlog-items?hobbyId={{hobbyId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Sessions and visibility",
+      "item": [
+        {
+          "name": "Create private Free session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('freeSessionId', body.id);",
+                  "pm.test(\"session relations and visibility are returned\", () => { pm.expect(body.visibility).to.eql('only_me'); pm.expect(body.projectId).to.eql(pm.collectionVariables.get('freeBacklogId')); pm.expect(body.equipmentIds).to.include(pm.collectionVariables.get('freeEquipmentId')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Private acceptance run\",\n  \"startedAt\": \"{{startedAt}}\",\n  \"durationMinutes\": 35,\n  \"notes\": \"Internal reflection\",\n  \"satisfaction\": 4,\n  \"location\": null,\n  \"projectId\": \"{{freeBacklogId}}\",\n  \"equipmentIds\": [\n    \"{{freeEquipmentId}}\"\n  ],\n  \"photos\": [],\n  \"attributes\": {\n    \"distance_km\": 5.2,\n    \"avg_pace_min_km\": 6.7,\n    \"surface\": \"road\"\n  },\n  \"visibility\": \"only_me\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create public Plus session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('plusSessionId', body.id);",
+                  "pm.test(\"public visibility is persisted\", () => pm.expect(body.visibility).to.eql('everyone'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Public acceptance run\",\n  \"startedAt\": \"{{startedAt}}\",\n  \"durationMinutes\": 50,\n  \"notes\": \"Public reflection\",\n  \"satisfaction\": 5,\n  \"location\": null,\n  \"projectId\": \"{{plusBacklogId}}\",\n  \"equipmentIds\": [\n    \"{{plusEquipmentId}}\"\n  ],\n  \"photos\": [],\n  \"attributes\": {\n    \"distance_km\": 8.1,\n    \"avg_pace_min_km\": 6.1,\n    \"surface\": \"trail\"\n  },\n  \"visibility\": \"everyone\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get owned Free session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{freeSessionId}}"
+          }
+        },
+        {
+          "name": "Update owned Free session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"update replaces mutable fields\", () => { pm.expect(body.durationMinutes).to.eql(40); pm.expect(body.title).to.contain('updated'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{freeSessionId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Private acceptance run updated\",\n  \"startedAt\": \"{{startedAt}}\",\n  \"durationMinutes\": 40,\n  \"notes\": \"Updated reflection\",\n  \"satisfaction\": 5,\n  \"location\": null,\n  \"projectId\": \"{{freeBacklogId}}\",\n  \"equipmentIds\": [\n    \"{{freeEquipmentId}}\"\n  ],\n  \"photos\": [],\n  \"attributes\": {\n    \"distance_km\": 5.5,\n    \"avg_pace_min_km\": 6.5,\n    \"surface\": \"road\"\n  },\n  \"visibility\": \"only_me\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List owned Free sessions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"owner pagination contains private session\", () => pm.expect(body.items.some(item => item.id === pm.collectionVariables.get('freeSessionId'))).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions?page=0&size=20"
+          }
+        },
+        {
+          "name": "Free cannot read Plus session through owner endpoint",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions/{{plusSessionId}}"
+          }
+        },
+        {
+          "name": "Free reads Plus public profile without sensitive fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"public DTO hides provider identity\", () => { pm.expect(body.username).to.eql(pm.collectionVariables.get('plusUsername')); pm.expect(body).not.to.have.property('id'); pm.expect(body).not.to.have.property('email'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{plusUsername}}"
+          }
+        },
+        {
+          "name": "Free lists Plus public sessions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"everyone session is visible\", () => pm.expect(body.items.some(item => item.id === pm.collectionVariables.get('plusSessionId'))).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{plusUsername}}/sessions?page=0&size=20"
+          }
+        },
+        {
+          "name": "Free reads Plus public session detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"public session omits internal relations\", () => { pm.expect(body.id).to.eql(pm.collectionVariables.get('plusSessionId')); pm.expect(body).not.to.have.property('equipmentIds'); pm.expect(body).not.to.have.property('projectId'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{plusUsername}}/sessions/{{plusSessionId}}"
+          }
+        },
+        {
+          "name": "Plus cannot see Free private session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"only_me session is absent\", () => pm.expect(body.items.some(item => item.id === pm.collectionVariables.get('freeSessionId'))).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{freeUsername}}/sessions?page=0&size=20"
+          }
+        },
+        {
+          "name": "Invalid visibility is rejected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Invalid visibility\",\n  \"startedAt\": \"{{startedAt}}\",\n  \"durationMinutes\": 10,\n  \"notes\": null,\n  \"satisfaction\": 3,\n  \"location\": null,\n  \"projectId\": null,\n  \"equipmentIds\": [],\n  \"photos\": [],\n  \"attributes\": {},\n  \"visibility\": \"followers\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Disabled location fails safely",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 503\", () => pm.response.to.have.status(503));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Disabled location\",\n  \"startedAt\": \"{{startedAt}}\",\n  \"durationMinutes\": 10,\n  \"notes\": null,\n  \"satisfaction\": 3,\n  \"location\": {\n    \"placeId\": \"acceptance-place\"\n  },\n  \"projectId\": null,\n  \"equipmentIds\": [],\n  \"photos\": [],\n  \"attributes\": {},\n  \"visibility\": \"only_me\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Disabled photo upload fails safely",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 503\", () => pm.response.to.have.status(503));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/session-photos/upload-url",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentType\": \"image/jpeg\",\n  \"fileName\": \"acceptance.jpg\",\n  \"sizeBytes\": 1024\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Gamification and plans",
+      "item": [
+        {
+          "name": "Free plan is derived from database",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Free has no active entitlement\", () => { pm.expect(body.plan).to.eql('free'); pm.expect(body.active).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/plan"
+          }
+        },
+        {
+          "name": "Plus plan is derived from fixture",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Plus entitlement is active\", () => { pm.expect(body.plan).to.eql('plus'); pm.expect(body.active).to.eql(true); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/plan"
+          }
+        },
+        {
+          "name": "Create Free weekly goal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('freeGoalId', body.id);",
+                  "pm.test(\"Free goal is basic weekly\", () => { pm.expect(body.advanced).to.eql(false); pm.expect(body.progress).to.be.at.least(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/goals",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"name\": \"Two runs this week\",\n  \"metric\": \"sessions\",\n  \"targetValue\": 2,\n  \"cadence\": \"weekly\",\n  \"startDate\": null,\n  \"endDate\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Second overlapping Free goal requires Plus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/goals",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"name\": \"Duplicate weekly goal\",\n  \"metric\": \"minutes\",\n  \"targetValue\": 60,\n  \"cadence\": \"weekly\",\n  \"startDate\": null,\n  \"endDate\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Plus custom global goal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('plusGoalId', body.id);",
+                  "pm.test(\"custom global goal is advanced\", () => pm.expect(body.advanced).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/goals",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hobbyId\": null,\n  \"name\": \"Custom Plus challenge\",\n  \"metric\": \"minutes\",\n  \"targetValue\": 100,\n  \"cadence\": \"custom\",\n  \"startDate\": \"{{today}}\",\n  \"endDate\": \"{{customEndDate}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Free goals",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"created goal is listed\", () => pm.expect(body.some(goal => goal.id === pm.collectionVariables.get('freeGoalId'))).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/goals"
+          }
+        },
+        {
+          "name": "Free gamification dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"session generates XP and badge\", () => { pm.expect(body.hobbies[0].xp).to.be.above(0); pm.expect(body.badges.some(badge => badge.key === 'first_session')).to.eql(true); pm.expect(body.records.longestSessionMinutes).to.eql(40); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/gamification"
+          }
+        },
+        {
+          "name": "Plus gamification dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "const badge = body.badges.find(item => item.key === 'first_session');",
+                  "pm.test(\"Plus earned first-session badge\", () => pm.expect(badge).to.exist);",
+                  "pm.collectionVariables.set('plusBadgeId', badge.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/gamification"
+          }
+        },
+        {
+          "name": "Free advanced insights require Plus",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/insights?from={{fromDate}}&to={{toDate}}"
+          }
+        },
+        {
+          "name": "Plus advanced insights",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"insights summarize current period\", () => { pm.expect(body.current.sessions).to.be.at.least(1); pm.expect(body.current.dailyActivity).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/insights?from={{fromDate}}&to={{toDate}}"
+          }
+        },
+        {
+          "name": "Plus Wrapped",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Wrapped includes structured summary\", () => { pm.expect(body.period).to.eql('month'); pm.expect(body.summary.from.startsWith(pm.collectionVariables.get('currentYear'))).to.eql(true); pm.expect(body.summary.sessions).to.be.at.least(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/wrapped?year={{currentYear}}&month={{currentMonth}}"
+          }
+        },
+        {
+          "name": "Current streak is available",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"streak is derived from sessions\", () => pm.expect(body.currentStreakDays).to.be.at.least(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/streak"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Plus tools and portability",
+      "item": [
+        {
+          "name": "Free profile customization is readable",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"default theme is readable\", () => { pm.expect(body.theme).to.eql('default'); pm.expect(body.supporterBadge).to.eql(false); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/profile-customization"
+          }
+        },
+        {
+          "name": "Free cannot mutate Plus customization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/profile-customization",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"forest\",\n  \"featuredBadgeIds\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Plus customizes profile with earned badge",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"theme and owned badge are persisted\", () => { pm.expect(body.theme).to.eql('forest'); pm.expect(body.featuredBadges).to.have.length(1); pm.expect(body.supporterBadge).to.eql(true); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/profile-customization",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"forest\",\n  \"featuredBadgeIds\": [\n    \"{{plusBadgeId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Free cannot create maintenance rule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/equipment-maintenance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": \"{{freeEquipmentId}}\",\n  \"name\": \"Rotate shoes\",\n  \"intervalMinutes\": 300,\n  \"lastMaintainedAt\": null,\n  \"active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Plus creates maintenance rule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('maintenanceRuleId', body.id);",
+                  "pm.test(\"usage is derived from linked session\", () => pm.expect(body.usedMinutes).to.be.at.least(50));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/equipment-maintenance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"equipmentId\": \"{{plusEquipmentId}}\",\n  \"name\": \"Inspect shoes\",\n  \"intervalMinutes\": 300,\n  \"lastMaintainedAt\": null,\n  \"active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Plus completes maintenance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"maintenance resets usage window\", () => { pm.expect(body.lastMaintainedAt).to.exist; pm.expect(body.usedMinutes).to.eql(0); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/equipment-maintenance/{{maintenanceRuleId}}/complete"
+          }
+        },
+        {
+          "name": "Plus lists maintenance rules",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"owned rule is listed\", () => pm.expect(body.some(rule => rule.id === pm.collectionVariables.get('maintenanceRuleId'))).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/equipment-maintenance"
+          }
+        },
+        {
+          "name": "Free JSON export contains only own data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "const body = pm.response.json();",
+                  "const serialized = JSON.stringify(body);",
+                  "pm.test(\"export is scoped and hides internal media keys\", () => { pm.expect(serialized).to.include('acceptance-free-user'); pm.expect(serialized).not.to.include('acceptance-plus-user'); pm.expect(serialized).not.to.include('storageKey'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/export/json"
+          }
+        },
+        {
+          "name": "Free CSV export is safe and non-empty",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "pm.test(\"CSV has header and own session\", () => { pm.expect(pm.response.text()).to.include('started_at'); pm.expect(pm.response.text()).to.include('Private acceptance run updated'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/export/sessions.csv"
+          }
+        },
+        {
+          "name": "Archive Free goal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 204\", () => pm.response.to.have.status(204));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{freeToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/goals/{{freeGoalId}}"
+          }
+        },
+        {
+          "name": "Archive Plus goal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 204\", () => pm.response.to.have.status(204));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/goals/{{plusGoalId}}"
+          }
+        },
+        {
+          "name": "Delete Plus maintenance rule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 204\", () => pm.response.to.have.status(204));",
+                  "pm.test(\"response time is below 10 seconds\", () => pm.expect(pm.response.responseTime).to.be.below(10000));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{plusToken}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/me/equipment-maintenance/{{maintenanceRuleId}}"
+          }
+        }
+      ]
+    }
+  ]
+}

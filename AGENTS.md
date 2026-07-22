@@ -31,6 +31,7 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - `docs/stack.md` — dependências e libs.
 - `docs/gamificacao-e-planos.md` — regras Free/Plus, metas, XP, badges, recordes, retrospectiva, planejamento e manutenção.
 - `docs/gamification-plus-execution-checklist.md` — status executável da gamificação e fundação Plus; não confundir com o checklist do MVP.
+- `docs/api-acceptance-testing.md` — tutorial, cobertura e diagnóstico da collection Postman/Postman CLI.
 
 ## Leitura mínima antes de mudar algo
 - Sempre alinhar a mudança com `docs/roadmap.md`.
@@ -39,6 +40,7 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - Se mexer em gamificação, estatísticas, entitlement ou benefício Plus, conferir `docs/gamificacao-e-planos.md` e seu checklist próprio.
 - Se mexer em persistência, conferir `docs/modelagem-banco-dados.md`.
 - Se mexer em auth, deploy, storage, backup, e-mail, monitoramento ou pagamento, conferir `docs/infraestrutura-e-seguranca.md`.
+- Se criar ou alterar endpoint/contrato, atualizar a collection Postman e conferir `docs/api-acceptance-testing.md`; para executar ou diagnosticar a suíte, ler `skills/run-api-acceptance/SKILL.md`.
 - Nenhuma mudança de produto, schema, fluxo, fase do roadmap ou decisão técnica pode encerrar com documentação divergente. Se algo mudar, atualizar os arquivos afetados no mesmo trabalho.
 - Toda mudança de funcionalidade, schema, contrato, fluxo ou priorização precisa passar por análise de impacto antes de fechar o trabalho: verificar se algo dependia disso em outra parte do produto, da implementação, do roadmap ou da documentação.
 - Se uma funcionalidade for removida, promovida, rebaixada ou alterada, revisar explicitamente vínculos com APIs, banco, validações, checklist, roadmap e features que dependem dela.
@@ -79,6 +81,7 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - Build: `mvn clean install`
 - Testes: `mvn test`
 - Local: `docker compose up -d` (sobe Spring Boot + Postgres; auth real usa Firebase via env e o profile `local` também permite bearer estático controlado por env)
+- Aceite HTTP isolado: `./scripts/run-api-acceptance.sh`
 
 ## Não fazer
 - Não tratar presença no schema como autorização para buildar feature de fase futura.

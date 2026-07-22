@@ -42,6 +42,12 @@ app:
       email: ${LOCAL_AUTH_EMAIL:local-dev@example.com}
       name: ${LOCAL_AUTH_NAME:Local Dev User}
       email-verified: ${LOCAL_AUTH_EMAIL_VERIFIED:true}
+      secondary:
+        token: ${LOCAL_AUTH_SECONDARY_TOKEN:}
+        user-id: ${LOCAL_AUTH_SECONDARY_USER_ID:local-secondary-user}
+        email: ${LOCAL_AUTH_SECONDARY_EMAIL:local-secondary@example.com}
+        name: ${LOCAL_AUTH_SECONDARY_NAME:Local Secondary User}
+        email-verified: ${LOCAL_AUTH_SECONDARY_EMAIL_VERIFIED:true}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   integrations:

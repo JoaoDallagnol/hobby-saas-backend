@@ -268,6 +268,10 @@
 - [x] Testes do fluxo de provisionamento JIT.
 - [x] Testes do fluxo de localização.
 - [x] Testes do contrato das APIs principais.
+- [x] Suíte de aceite HTTP importável no Postman e executável pela Postman CLI.
+  - [x] Ambiente Compose descartável e isolado do desenvolvimento normal.
+  - [x] Fluxos encadeados com usuários Free/Plus e validações de autenticação, autorização e contrato.
+  - [x] Relatórios JSON/JUnit, inspeção de logs e tutorial operacional para pessoas e agentes.
 
 ## 13. Documentação viva
 

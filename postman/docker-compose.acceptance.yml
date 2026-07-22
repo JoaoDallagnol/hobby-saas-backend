@@ -1,0 +1,71 @@
+name: hobby-saas-acceptance
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: hobby_saas_acceptance
+      POSTGRES_USER: acceptance
+      POSTGRES_PASSWORD: acceptance-local-only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U acceptance -d hobby_saas_acceptance"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - acceptance_postgres_data:/var/lib/postgresql/data
+
+  s3mock:
+    image: adobe/s3mock:5.1.0
+    environment:
+      COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: hobby-private,hobby-public
+      COM_ADOBE_TESTING_S3MOCK_STORE_ROOT: /data
+      COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT: "false"
+    volumes:
+      - acceptance_s3mock_data:/data
+
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/hobby_saas_acceptance
+      DB_USERNAME: acceptance
+      DB_PASSWORD: acceptance-local-only
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      RATE_LIMIT_ENABLED: "false"
+      FEATURE_PHOTO_UPLOADS_ENABLED: "false"
+      FEATURE_SESSION_LOCATION_ENABLED: "false"
+      FEATURE_PHOTO_PROCESSING_ENABLED: "false"
+      FEATURE_GAMIFICATION_ENABLED: "true"
+      FEATURE_PLUS_ENABLED: "true"
+      LOCAL_AUTH_ENABLED: "true"
+      LOCAL_AUTH_TOKEN: acceptance-free-token
+      LOCAL_AUTH_USER_ID: acceptance-free-user
+      LOCAL_AUTH_EMAIL: free@example.test
+      LOCAL_AUTH_NAME: Acceptance Free
+      LOCAL_AUTH_EMAIL_VERIFIED: "true"
+      LOCAL_AUTH_SECONDARY_TOKEN: acceptance-plus-token
+      LOCAL_AUTH_SECONDARY_USER_ID: acceptance-plus-user
+      LOCAL_AUTH_SECONDARY_EMAIL: plus@example.test
+      LOCAL_AUTH_SECONDARY_NAME: Acceptance Plus
+      LOCAL_AUTH_SECONDARY_EMAIL_VERIFIED: "true"
+      R2_ENDPOINT: http://s3mock:9090
+      R2_PRESIGN_ENDPOINT: http://localhost:19090
+      R2_PRIVATE_BUCKET: hobby-private
+      R2_PUBLIC_BUCKET: hobby-public
+      R2_PUBLIC_BASE_URL: http://localhost:19090/hobby-public
+      R2_ACCESS_KEY: acceptance-local-access-key
+      R2_SECRET_KEY: acceptance-local-secret-key
+    ports:
+      - "18080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      s3mock:
+        condition: service_started
+
+volumes:
+  acceptance_postgres_data:
+  acceptance_s3mock_data:

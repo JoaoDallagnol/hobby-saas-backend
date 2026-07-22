@@ -61,6 +61,7 @@
 - `testcontainers-junit-jupiter` + `testcontainers-postgresql` ✅ — testes de integração com Postgres real via Docker/Testcontainers.
 - Mock/stub de autenticação: simular claims/token validado do Firebase nos testes; não subir provedor real de auth em teste automatizado.
 - Em `local`, auth controlada de desenvolvimento é aceitável temporariamente para avançar domínio/API antes da integração real com Firebase dev estar concluída; o projeto já expõe um bearer estático opcional via env para esse fluxo.
+- Collection Postman v2.1 + Postman CLI fixada no escopo `postman/` ✅ — suíte HTTP com dois usuários locais, banco/Compose descartáveis, relatórios JSON/JUnit e execução por `scripts/run-api-acceptance.sh`; não entra no artefato Java nem substitui JUnit/Testcontainers.
 
 ## Sugestões extras (não são decisão fechada, só recomendação padrão de mercado)
 - `lombok`, `mapstruct`

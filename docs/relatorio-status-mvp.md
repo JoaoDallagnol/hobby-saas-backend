@@ -29,6 +29,8 @@ O MVP **ainda não está pronto para lançamento público** porque faltam valida
 - O Compose local usa Adobe S3Mock 5.1.0 com volume persistente, sem depender de conta R2.
 - Token bearer validado não é retido como credencial no `SecurityContext`; erros internos de Firebase não são refletidos ao client.
 - Contrato de backlog valida que projeto com hobby definido pertence ao mesmo hobby da sessão.
+- Suíte de aceite HTTP importável no Postman, executável pela Postman CLI e isolada em Compose próprio; cobre os fluxos centrais com usuários Free/Plus sem usar credenciais externas reais.
+- O aceite HTTP identificou e permitiu corrigir um carregamento lazy fora de transação em `GET /api/me/hobbies`.
 
 ## Feature flags
 
@@ -145,9 +147,10 @@ Já fechadas: Firebase Authentication padrão, VPS Hostinger, Postgres, Cloudfla
 
 ## Validação técnica desta revisão
 
-- `mvn test`: **97 testes**, zero falhas/erros, incluindo domínio, contrato, segurança e integração de gamificação/Plus.
+- `mvn test`: **98 testes**, zero falhas/erros, incluindo domínio, contrato, segurança e integração de gamificação/Plus.
 - Testes de integração exercitam PostgreSQL real via Testcontainers e migrations Flyway.
-- `mvn clean install`: build limpo e instalação local concluídos com a suíte completa de 97 testes.
+- `mvn clean install`: build limpo e instalação local concluídos com a suíte completa de 98 testes.
+- Suíte Postman/Postman CLI: **63 requests e 165 assertions**, zero falhas, com relatórios JSON/JUnit e varredura de logs do ambiente descartável.
 - Imagem Docker construída e iniciada pelo Compose contra PostgreSQL 17 local, com Adobe S3Mock e os buckets `hobby-private` e `hobby-public` disponíveis.
 - As migrations até V8 foram aplicadas tanto em banco novo via Testcontainers quanto no banco local existente; V8 reforça ownership de badges em destaque também no banco.
 - Health interno respondeu `UP` com os grupos `liveness` e `readiness`.
@@ -158,6 +161,7 @@ Comandos de aceite final:
 
 ```bash
 ./mvnw clean install
+./scripts/run-api-acceptance.sh
 ./scripts/check-no-secrets.sh
 docker compose up -d --build
 docker compose ps
