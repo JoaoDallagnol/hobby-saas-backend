@@ -1318,7 +1318,7 @@
             "url": "{{baseUrl}}/api/sessions",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Disabled location\",\n  \"startedAt\": \"{{startedAt}}\",\n  \"durationMinutes\": 10,\n  \"notes\": null,\n  \"satisfaction\": 3,\n  \"location\": {\n    \"placeId\": \"acceptance-place\"\n  },\n  \"projectId\": null,\n  \"equipmentIds\": [],\n  \"photos\": [],\n  \"attributes\": {},\n  \"visibility\": \"only_me\"\n}",
+              "raw": "{\n  \"hobbyId\": \"{{hobbyId}}\",\n  \"title\": \"Disabled location\",\n  \"startedAt\": \"{{startedAt}}\",\n  \"durationMinutes\": 10,\n  \"notes\": null,\n  \"satisfaction\": 3,\n  \"location\": {\n    \"placeId\": \"acceptance-place\",\n    \"label\": \"Acceptance place\"\n  },\n  \"projectId\": null,\n  \"equipmentIds\": [],\n  \"photos\": [],\n  \"attributes\": {},\n  \"visibility\": \"only_me\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

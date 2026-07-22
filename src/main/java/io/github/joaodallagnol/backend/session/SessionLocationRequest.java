@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Size;
 public record SessionLocationRequest(
         @NotBlank
         @Size(max = 255)
-        String placeId
+        String placeId,
+        @NotBlank
+        @Size(max = 150)
+        String label
 ) {
 }

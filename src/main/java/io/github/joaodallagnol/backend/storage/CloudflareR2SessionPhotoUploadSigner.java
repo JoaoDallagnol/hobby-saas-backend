@@ -55,6 +55,7 @@ public class CloudflareR2SessionPhotoUploadSigner implements SessionPhotoUploadS
                     .key(storageKey)
                     .contentType(contentType)
                     .contentLength(contentLength)
+                    .cacheControl(StorageCachePolicy.PRIVATE_NO_STORE)
                     .build();
 
             PresignedPutObjectRequest presignedRequest = presigner.presignPutObject(
@@ -67,6 +68,7 @@ public class CloudflareR2SessionPhotoUploadSigner implements SessionPhotoUploadS
             Map<String, String> headers = new LinkedHashMap<>();
             headers.put("Content-Type", contentType);
             headers.put("Content-Length", Long.toString(contentLength));
+            headers.put("Cache-Control", StorageCachePolicy.PRIVATE_NO_STORE);
 
             return new GeneratedUploadUrl(
                     presignedRequest.url().toString(),

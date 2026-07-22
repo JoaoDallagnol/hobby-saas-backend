@@ -16,7 +16,7 @@ Para que o cliente consiga escolher esses hobbies sem conhecer UUIDs previamente
 
 O **Registro de Sessões**, ou tracker, é a funcionalidade central do app: um botão simples para iniciar um cronômetro durante a prática de um hobby, ou registrar manualmente uma atividade que já aconteceu. Cada sessão tem título, data, tempo gasto, no máximo uma foto e um campo de notas em texto livre — esse campo também absorve o que originalmente seria um "diário de reflexão" separado. O autor escolhe `everyone` ou `only_me` e pode editar essa escolha depois; novas sessões começam em `only_me`.
 
-Uma sessão `everyone` aparece no perfil público do autor e expõe somente dados próprios do post: hobby, título, data, duração, notas, satisfação, atributos dinâmicos, nome seguro do lugar e foto processada. Coordenadas, `place_id`, backlog/projeto, equipamentos, UID e storage keys internas não fazem parte do contrato público. Sessões `only_me` continuam acessíveis apenas ao dono.
+Uma sessão `everyone` aparece no perfil público do autor e expõe somente dados próprios do post: hobby, título, data, duração, notas, satisfação, atributos dinâmicos, label de localização informado pelo usuário e foto processada. Coordenadas, `place_id`, backlog/projeto, equipamentos, UID e storage keys internas não fazem parte do contrato público. Sessões `only_me` continuam acessíveis apenas ao dono.
 
 Os **atributos dinâmicos por hobby** são o que evita o app parecer raso demais comparado a um app especializado: em vez de todo hobby usar os mesmos campos genéricos, cada tipo de hobby pode ter campos extras próprios — corrida ganha um campo de distância, leitura ganha um campo de páginas lidas, marcenaria ganha um campo de material usado, e assim por diante. Isso é o que dá ao app profundidade equivalente à de um app nichado, sem abrir mão de cobrir qualquer hobby.
 
@@ -31,6 +31,8 @@ O **backlog Kanban por hobby** é uma fila de projetos ou ideias futuras dentro 
 Quando um item do backlog está associado a um hobby, ele só pode ser vinculado a uma sessão desse mesmo hobby. Itens sem hobby continuam genéricos e podem ser usados em qualquer sessão do próprio usuário.
 
 Fotos e localização possuem feature flags operacionais porque dependem de R2 e Google Places. O client autenticado pode consultar essas flags para esconder temporariamente a UI durante configuração, rollout ou incidente; isso não altera a autorização dos recursos nem transforma flags em dados enviados pelo usuário.
+
+Na localização, o client envia `placeId` + um `label` de exibição. O Google é usado para validar o identificador; nome, endereço e coordenadas do provedor não são mantidos como cache permanente. Funcionalidades geográficas futuras exigem revisão própria.
 
 ---
 

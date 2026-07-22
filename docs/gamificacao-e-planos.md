@@ -134,7 +134,7 @@ Catálogo inicial:
 - `streak_7`, `streak_30`: melhor sequência histórica;
 - `hobby_sessions_10`: dez sessões em um mesmo hobby.
 
-O catálogo é definido pelo servidor. `user_badges` persiste `earned_at` e `hobby_id` quando o badge é específico. O client não declara conquista. Ao abrir o dashboard, a projeção é reconstruída da fonte da verdade e serializada por usuário; por isso create/update/delete de sessão aparece na leitura seguinte sem incremento duplicado. Essa reconstrução também funciona como reparo idempotente.
+O catálogo é definido pelo servidor. `user_badges` persiste `earned_at` e `hobby_id` quando o badge é específico. O client não declara conquista. No cache miss, o dashboard reconstrói a projeção a partir da fonte da verdade e a mantém por usuário por até cinco minutos. Create/update/delete de sessão invalida essa entrada somente depois do commit, de modo que a leitura seguinte reconstrói sem incremento duplicado. Essa reconstrução também funciona como reparo idempotente; detalhes em `estrategia-de-cache.md`.
 
 ## Recordes pessoais
 

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class HobbyAttributeTemplateService {
@@ -15,31 +16,40 @@ public class HobbyAttributeTemplateService {
     private final AuthenticatedUserExtractor authenticatedUserExtractor;
     private final HobbyRepository hobbyRepository;
     private final UserHobbyRepository userHobbyRepository;
-    private final HobbyAttributeTemplateRepository templateRepository;
+    private final HobbyAttributeTemplateCatalog templateCatalog;
 
+    @Autowired
     public HobbyAttributeTemplateService(
             AuthenticatedUserExtractor authenticatedUserExtractor,
             HobbyRepository hobbyRepository,
             UserHobbyRepository userHobbyRepository,
-            HobbyAttributeTemplateRepository templateRepository
+            HobbyAttributeTemplateCatalog templateCatalog
     ) {
         this.authenticatedUserExtractor = authenticatedUserExtractor;
         this.hobbyRepository = hobbyRepository;
         this.userHobbyRepository = userHobbyRepository;
-        this.templateRepository = templateRepository;
+        this.templateCatalog = templateCatalog;
+    }
+
+    public HobbyAttributeTemplateService(AuthenticatedUserExtractor authenticatedUserExtractor,
+                                         HobbyRepository hobbyRepository,
+                                         UserHobbyRepository userHobbyRepository,
+                                         HobbyAttributeTemplateRepository templateRepository) {
+        this(authenticatedUserExtractor, hobbyRepository, userHobbyRepository,
+                new HobbyAttributeTemplateCatalog(templateRepository));
     }
 
     public List<HobbyAttributeTemplateResponse> listTemplates(UUID hobbyId) {
         String userId = authenticatedUserExtractor.extract(SecurityContextHolder.getContext().getAuthentication()).id();
         ensureAllowedHobby(userId, hobbyId);
-        return templateRepository.findAllByHobbyIdOrderByDisplayOrderAsc(hobbyId).stream()
+        return templateCatalog.findByHobbyId(hobbyId).stream()
                 .map(HobbyAttributeTemplateResponse::from)
                 .toList();
     }
 
     public void validateAttributes(String userId, UUID hobbyId, Map<String, Object> attributes) {
         ensureAllowedHobby(userId, hobbyId);
-        List<HobbyAttributeTemplate> templates = templateRepository.findAllByHobbyIdOrderByDisplayOrderAsc(hobbyId);
+        List<HobbyAttributeTemplate> templates = templateCatalog.findByHobbyId(hobbyId);
         Map<String, HobbyAttributeTemplate> templatesByKey = templates.stream()
                 .collect(java.util.stream.Collectors.toMap(HobbyAttributeTemplate::getKey, template -> template));
 

@@ -16,7 +16,7 @@ public record ExportSessionResponse(
         String notes,
         int satisfaction,
         String visibility,
-        String placeName,
+        String locationLabel,
         UUID projectId,
         List<UUID> equipmentIds,
         Map<String, Object> attributes,
@@ -26,7 +26,7 @@ public record ExportSessionResponse(
         return new ExportSessionResponse(session.getId(), session.getHobby().getId(), session.getHobby().getName(),
                 session.getTitle(), session.getStartedAt(), session.getDurationMinutes(), session.getNotes(),
                 session.getSatisfaction(), session.getVisibility().value(),
-                session.getPlace() == null ? null : session.getPlace().getName(), session.getProjectId(),
+                session.getLocationLabel(), session.getProjectId(),
                 session.getEquipment().stream().map(item -> item.getId()).toList(), session.getAttributes(),
                 !session.getPhotos().isEmpty());
     }

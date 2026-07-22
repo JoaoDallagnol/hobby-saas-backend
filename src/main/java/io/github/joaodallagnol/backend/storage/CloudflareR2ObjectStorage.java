@@ -65,7 +65,12 @@ public class CloudflareR2ObjectStorage implements R2ObjectStorage {
     public void uploadWebp(String storageKey, Path source, StorageScope scope) {
         try (S3Client client = client()) {
             client.putObject(
-                    PutObjectRequest.builder().bucket(bucket(scope)).key(storageKey).contentType("image/webp").build(),
+                    PutObjectRequest.builder()
+                            .bucket(bucket(scope))
+                            .key(storageKey)
+                            .contentType("image/webp")
+                            .cacheControl(StorageCachePolicy.forScope(scope))
+                            .build(),
                     RequestBody.fromFile(source)
             );
         }
@@ -91,6 +96,7 @@ public class CloudflareR2ObjectStorage implements R2ObjectStorage {
                     .destinationBucket(bucket(target))
                     .destinationKey(storageKey)
                     .contentType("image/webp")
+                    .cacheControl(StorageCachePolicy.forScope(target))
                     .metadataDirective(MetadataDirective.REPLACE)
                     .build());
         }

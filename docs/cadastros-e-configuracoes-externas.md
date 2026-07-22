@@ -87,6 +87,7 @@ Status no projeto:
 
 - criar dois buckets por ambiente: privado (upload temporário e `only_me`) e público (somente variantes processadas `everyone`);
 - conectar domínio customizado/CDN apenas ao bucket público;
+- não usar `r2.dev` como entrega/cache de produção; validar no domínio customizado `Cache-Control: public, max-age=31536000, immutable` para variantes públicas e `private, no-store` no escopo privado;
 - criar token da zona limitado a Cache Purge para retirar mídia ao mudar para `only_me`;
 - gerar credenciais com menor privilégio possível;
 - guardar:
@@ -119,7 +120,8 @@ Status no projeto:
 - ativar Places API necessária;
 - gerar chave;
 - restringir por uso e escopo;
-- guardar `GOOGLE_PLACES_API_KEY`.
+- guardar `GOOGLE_PLACES_API_KEY`;
+- validar Place Details com FieldMask somente `id` e quota/billing controlados; o backend guarda apenas `place_id` + instante de validação e renova IDs após 365 dias.
 
 ## 5. Sentry
 

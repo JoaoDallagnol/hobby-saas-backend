@@ -78,6 +78,7 @@ erDiagram
         int satisfaction
         string visibility "everyone|only_me; default only_me"
         string place_id FK
+        string location_label
         uuid project_id FK
         jsonb attributes
     }
@@ -105,9 +106,7 @@ erDiagram
 
     PLACES {
         string place_id PK
-        string name
-        decimal lat
-        decimal lng
+        timestamp validated_at
     }
 
     EQUIPMENT {
@@ -350,6 +349,7 @@ Define quais atributos dinâmicos existem por hobby (Alternativa C).
 | satisfaction | int | não | — | 1–5, obrigatório |
 | visibility | string | não | — | `everyone` ou `only_me`, default `only_me`; modelado como enum extensível para `followers` na Fase 2, mas esse valor ainda não é aceito |
 | place_id | string | sim | `places.place_id` | opcional |
+| location_label | string | sim | — | obrigatório quando `place_id` existir; texto de exibição do usuário, até 150 caracteres |
 | project_id | uuid | sim | `backlog_items.id` | opcional |
 | attributes | jsonb | sim | — | valores dos atributos dinâmicos, validados contra `hobby_attribute_template` |
 
@@ -383,14 +383,14 @@ Define quais atributos dinâmicos existem por hobby (Alternativa C).
 | last_error | string | sim | — | somente classe/código técnico, sem mensagem sensível |
 
 #### `places`
-Cache de lugares resolvidos via Google Place Details.
+Cache somente dos identificadores validados via Google Place Details. Conteúdo adicional do provedor não é retido permanentemente.
 
 | Coluna | Tipo | Nulo | FK | Observação |
 |---|---|---|---|---|
 | place_id | string | não | — | PK, vem do Google |
-| name | string | não | — | |
-| lat | decimal | não | — | |
-| lng | decimal | não | — | |
+| validated_at | timestamptz | não | — | última validação ID-only; IDs com mais de 365 dias são atualizados antes do reuso |
+
+O check `ck_sessions_location_consistency` exige `place_id` e `location_label` juntos ou ambos nulos. A migration V9 remove o cache anterior de nome/coordenadas; registros legados recebem um label genérico e têm o ID marcado para revalidação no próximo uso.
 
 #### `equipment`
 Biblioteca de equipamentos do usuário. **Categoria e nome são duas colunas independentes do mesmo registro, não chave/valor.**

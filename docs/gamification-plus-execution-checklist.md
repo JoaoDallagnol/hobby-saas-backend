@@ -32,6 +32,7 @@
 - [x] Desafio mensal oficial determinístico.
 - [x] Melhor streak histórico sem alterar a regra do streak atual.
 - [x] Exportação bruta segura dos próprios dados.
+- [x] Cache limitado do dashboard por usuário, com fonte no Postgres e invalidação após commit de mutação de sessão.
 
 ## Fundação Plus
 

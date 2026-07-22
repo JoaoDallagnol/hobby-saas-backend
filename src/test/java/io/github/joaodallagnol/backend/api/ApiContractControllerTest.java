@@ -29,7 +29,6 @@ import io.github.joaodallagnol.backend.user.CurrentUserController;
 import io.github.joaodallagnol.backend.user.CurrentUserProfileResponse;
 import io.github.joaodallagnol.backend.user.CurrentUserProfileService;
 import io.github.joaodallagnol.backend.user.UserHobbyResponse;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -265,9 +264,7 @@ class ApiContractControllerTest {
                 4,
                 new SessionLocationResponse(
                         "place-123",
-                        "Ibirapuera Park",
-                        BigDecimal.valueOf(-23.587416),
-                        BigDecimal.valueOf(-46.657634)
+                        "Ibirapuera Park"
                 ),
                 BACKLOG_ID,
                 List.of(EQUIPMENT_ID),
@@ -286,9 +283,10 @@ class ApiContractControllerTest {
                 .andExpect(jsonPath("$.notes").value("Good pace"))
                 .andExpect(jsonPath("$.satisfaction").value(4))
                 .andExpect(jsonPath("$.location.placeId").value("place-123"))
-                .andExpect(jsonPath("$.location.name").value("Ibirapuera Park"))
-                .andExpect(jsonPath("$.location.lat").value(-23.587416))
-                .andExpect(jsonPath("$.location.lng").value(-46.657634))
+                .andExpect(jsonPath("$.location.label").value("Ibirapuera Park"))
+                .andExpect(jsonPath("$.location.name").doesNotExist())
+                .andExpect(jsonPath("$.location.lat").doesNotExist())
+                .andExpect(jsonPath("$.location.lng").doesNotExist())
                 .andExpect(jsonPath("$.projectId").value(BACKLOG_ID.toString()))
                 .andExpect(jsonPath("$.equipmentIds[0]").value(EQUIPMENT_ID.toString()))
                 .andExpect(jsonPath("$.photos[0].id").isNotEmpty())
@@ -346,7 +344,7 @@ class ApiContractControllerTest {
                 75,
                 "Strong pace throughout the route.",
                 5,
-                new SessionLocationResponse("place-123", "Ibirapuera Park", BigDecimal.valueOf(-23.58), BigDecimal.valueOf(-46.65)),
+                new SessionLocationResponse("place-123", "Ibirapuera Park"),
                 BACKLOG_ID,
                 List.of(EQUIPMENT_ID),
                 List.of(),
@@ -364,7 +362,8 @@ class ApiContractControllerTest {
                                   "notes": "Strong pace throughout the route.",
                                   "satisfaction": 5,
                                   "location": {
-                                    "placeId": "place-123"
+                                    "placeId": "place-123",
+                                    "label": "Ibirapuera Park"
                                   },
                                   "projectId": "%s",
                                   "equipmentIds": ["%s"],
@@ -507,7 +506,7 @@ class ApiContractControllerTest {
         private List<HobbyAttributeTemplateResponse> templateResponses = List.of();
 
         StubHobbyAttributeTemplateService() {
-            super(null, null, null, null);
+            super(null, null, null, (io.github.joaodallagnol.backend.session.HobbyAttributeTemplateCatalog) null);
         }
 
         @Override

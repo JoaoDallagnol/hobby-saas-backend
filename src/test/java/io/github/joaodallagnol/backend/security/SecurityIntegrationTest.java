@@ -18,7 +18,6 @@ import io.github.joaodallagnol.backend.user.ProductUser;
 import io.github.joaodallagnol.backend.user.ProductUserRepository;
 import io.github.joaodallagnol.backend.user.UserHobbyRepository;
 import java.lang.reflect.Proxy;
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -311,12 +310,7 @@ class SecurityIntegrationTest {
         @Bean
         @Primary
         GooglePlaceDetailsClient googlePlaceDetailsClient() {
-            return placeId -> new ResolvedPlace(
-                    placeId,
-                    "Test Place",
-                    BigDecimal.valueOf(-23.550520),
-                    BigDecimal.valueOf(-46.633308)
-            );
+            return placeId -> new ResolvedPlace(placeId);
         }
 
         @Bean

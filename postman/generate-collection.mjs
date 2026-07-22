@@ -186,7 +186,7 @@ const collection = {
           hobbyId: "{{hobbyId}}", title: "Invalid visibility", startedAt: "{{startedAt}}", durationMinutes: 10, notes: null, satisfaction: 3, location: null, projectId: null, equipmentIds: [], photos: [], attributes: {}, visibility: "followers"
         } }),
         request({ name: "Disabled location fails safely", method: "POST", path: "/api/sessions", token: "freeToken", status: 503, body: {
-          hobbyId: "{{hobbyId}}", title: "Disabled location", startedAt: "{{startedAt}}", durationMinutes: 10, notes: null, satisfaction: 3, location: { placeId: "acceptance-place" }, projectId: null, equipmentIds: [], photos: [], attributes: {}, visibility: "only_me"
+          hobbyId: "{{hobbyId}}", title: "Disabled location", startedAt: "{{startedAt}}", durationMinutes: 10, notes: null, satisfaction: 3, location: { placeId: "acceptance-place", label: "Acceptance place" }, projectId: null, equipmentIds: [], photos: [], attributes: {}, visibility: "only_me"
         } }),
         request({ name: "Disabled photo upload fails safely", method: "POST", path: "/api/me/session-photos/upload-url", token: "freeToken", status: 503, body: {
           contentType: "image/jpeg", fileName: "acceptance.jpg", sizeBytes: 1024

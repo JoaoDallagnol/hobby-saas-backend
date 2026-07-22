@@ -1,6 +1,6 @@
 # Relatório de status e operação do MVP
 
-Data da revisão: **2026-07-21**.
+Data da revisão: **2026-07-22**.
 
 Este documento separa o que está implementado no repositório do que ainda depende de conta, credencial, infraestrutura ou decisão do responsável pelo produto. Nenhum valor real de secret deve ser registrado aqui.
 
@@ -31,6 +31,9 @@ O MVP **ainda não está pronto para lançamento público** porque faltam valida
 - Contrato de backlog valida que projeto com hobby definido pertence ao mesmo hobby da sessão.
 - Suíte de aceite HTTP importável no Postman, executável pela Postman CLI e isolada em Compose próprio; cobre os fluxos centrais com usuários Free/Plus sem usar credenciais externas reais.
 - O aceite HTTP identificou e permitiu corrigir um carregamento lazy fora de transação em `GET /api/me/hobbies`.
+- Cache Caffeine limitado reduz leituras repetidas de catálogos/templates e do dashboard derivado, sem Redis ou custo externo; sessão continua no PostgreSQL e invalida gamificação após commit.
+- A migration V9 substitui o cache permanente de conteúdo do Google por `place_id` + `validated_at`; o label exibido pertence à sessão e coordenadas/nome do provedor não são persistidos.
+- Objetos R2 privados usam `private, no-store`; variantes públicas versionadas usam cache imutável de um ano para favorecer hits no CDN e reduzir leituras Class B.
 
 ## Feature flags
 
@@ -110,7 +113,7 @@ Até isso acontecer, `LOCAL_AUTH_*` serve somente ao desenvolvimento. Ele não �
 
 1. Criar projeto Google Cloud do ambiente e habilitar billing/Places API.
 2. Criar chave server-side restrita à API necessária e revisar quotas.
-3. Validar Place Details com FieldMask Essentials, cache local e comportamento de falha.
+3. Validar Place Details com FieldMask somente `id`, revalidação após 365 dias e comportamento de falha.
 
 ### Hostinger, domínio e Cloudflare
 
@@ -147,12 +150,12 @@ Já fechadas: Firebase Authentication padrão, VPS Hostinger, Postgres, Cloudfla
 
 ## Validação técnica desta revisão
 
-- `mvn test`: **98 testes**, zero falhas/erros, incluindo domínio, contrato, segurança e integração de gamificação/Plus.
+- `mvn test`: **105 testes**, zero falhas/erros, incluindo domínio, contrato, segurança, cache, R2 e integração de gamificação/Plus.
 - Testes de integração exercitam PostgreSQL real via Testcontainers e migrations Flyway.
-- `mvn clean install`: build limpo e instalação local concluídos com a suíte completa de 98 testes.
+- `mvn clean install`: build limpo e instalação local concluídos; a validação final posterior executou a suíte completa de 105 testes.
 - Suíte Postman/Postman CLI: **63 requests e 165 assertions**, zero falhas, com relatórios JSON/JUnit e varredura de logs do ambiente descartável.
 - Imagem Docker construída e iniciada pelo Compose contra PostgreSQL 17 local, com Adobe S3Mock e os buckets `hobby-private` e `hobby-public` disponíveis.
-- As migrations até V8 foram aplicadas tanto em banco novo via Testcontainers quanto no banco local existente; V8 reforça ownership de badges em destaque também no banco.
+- As migrations até V9 foram aplicadas tanto em bancos novos via Testcontainers quanto no banco local existente; V9 remove nome/coordenadas do cache Places e adiciona label por sessão + revalidação do ID.
 - Health interno respondeu `UP` com os grupos `liveness` e `readiness`.
 - `docker compose config --quiet` validado para os perfis local e produção; stack local final permanece em execução na porta `8080`.
 - `git diff --check` e a varredura `scripts/check-no-secrets.sh` concluíram sem erro ou material sensível óbvio.

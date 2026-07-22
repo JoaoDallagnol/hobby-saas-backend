@@ -23,7 +23,7 @@
 - [x] Usuário consegue cadastrar e reutilizar equipamentos próprios nas sessões.
 - [x] Usuário consegue manter backlog/Kanban por hobby e vincular sessão a item/projeto quando aplicável.
 - [x] Sessão aceita fotos por fluxo de presigned URL direto para R2, sem binário via backend.
-- [x] Sessão aceita `place_id`; backend resolve e persiste localização sem confiar em coordenadas do client.
+- [x] Sessão aceita `place_id` + label de exibição; backend valida o ID sem confiar/persistir coordenadas do client ou cachear conteúdo restrito do provedor.
 - [x] Sistema calcula ou expõe streak de constância no escopo do MVP.
 - [ ] Base mínima de segurança, backup, monitoramento e deploy local está operacional.
 - [x] Tudo essencial do MVP está coberto por testes suficientes para evoluir sem quebrar regra central do produto.
@@ -83,6 +83,7 @@
   - [x] Pelo menos um hobby criativo/artístico.
   - [x] Pelo menos um hobby intelectual/estudo.
 - [x] Expor catálogo oficial para o client descobrir `hobbyId`, categoria e ícone.
+- [x] Cachear catálogo e templates somente em memória limitada/reconstruível, sem serviço externo e sem alterar a fonte de verdade.
 
 ## 4. Autenticação e provisionamento de usuário
 
@@ -190,19 +191,20 @@
 - [x] Remover objetos do R2 de forma assíncrona e idempotente quando foto/sessão for excluída.
 - [x] Separar mídia pública e privada em buckets/escopos diferentes.
   - [x] Servir `only_me` por GET presigned e `everyone` por URL estável/CDN.
+  - [x] Aplicar `private, no-store` ao escopo privado e cache público imutável às variantes versionadas.
   - [x] Mover variantes ao editar visibilidade e purgar cache ao tornar privada.
   - [x] Nunca expor upload cru nem storage key no DTO público.
 - [x] Subir Adobe S3Mock persistente no Compose local para testar o fluxo sem conta R2.
 
 ## 9. Localização
 
-- [x] Implementar recebimento de `place_id` vindo do client.
-- [x] Integrar com Google Place Details usando apenas Essentials FieldMask.
+- [x] Implementar recebimento de `place_id` + `label` vindo do client.
+- [x] Integrar com Google Place Details usando FieldMask somente `id`.
 - [x] Implementar cache em `places`.
-  - [x] Reutilizar lugar já resolvido.
-  - [x] Persistir `place_id`, `name`, `lat`, `lng`.
+  - [x] Reutilizar ID validado por até 365 dias e revalidar depois disso.
+  - [x] Persistir somente `place_id` + `validated_at`; label do usuário pertence à sessão.
 - [x] Garantir que o backend ignore/rejeite coordenadas enviadas pelo client.
-- [x] Definir representação de localização nas APIs de sessão.
+- [x] Definir representação privada (`placeId` + `label`) e pública (somente label) nas APIs de sessão.
 
 ## 10. Streak
 
@@ -256,6 +258,11 @@
   - [x] Verificar ausência de segredo hardcoded ou log sensível.
   - [x] Verificar exposição indevida de dados, IDOR/BOLA e confiança excessiva em payload do client.
   - [x] Verificar CORS, headers e comportamento de produção conforme necessidade real.
+- [x] Definir estratégia de cache sem custo externo no MVP.
+  - [x] Caches locais são limitados, expirados e apenas para dados reconstruíveis.
+  - [x] Mutações de sessão invalidam dashboard derivado após commit.
+  - [x] Cache nunca substitui autorização, entitlement ou PostgreSQL.
+  - [x] Documentar revisão obrigatória antes de múltiplas instâncias.
 
 ## 12. Testes
 
@@ -283,6 +290,7 @@
 - [x] Exigir análise de impacto em features dependentes, APIs, banco, validações e ordem de implementação.
 - [x] Atualizar `docs/modelagem-banco-dados.md` quando a implementação exigir ajuste real de schema.
 - [x] Atualizar `docs/stack.md` quando uma dependência deixar de ser hipótese e virar decisão.
+- [x] Manter matriz de cache, TTL, invalidação e regras de provedor em `docs/estrategia-de-cache.md`.
 - [ ] Registrar decisões abertas que ainda não bloqueiam o MVP.
   - [ ] Nome do app/domínio.
   - [ ] Provedor de pagamento.

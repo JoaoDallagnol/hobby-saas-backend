@@ -36,12 +36,13 @@ class SessionRecordTest {
         EquipmentReference firstEquipment = equipment("user-1");
         EquipmentReference secondEquipment = equipment("user-1");
 
-        session.assignPlace(place);
+        session.assignPlace(place, "Park");
         session.replaceEquipment(Set.of(firstEquipment, secondEquipment));
         session.replacePhotos(List.of("photos/one.webp"));
 
         assertThat(session.getPlace()).isSameAs(place);
         assertThat(session.getPlaceId()).isEqualTo("place-123");
+        assertThat(session.getLocationLabel()).isEqualTo("Park");
         assertThat(session.getEquipment()).containsExactlyInAnyOrder(firstEquipment, secondEquipment);
         assertThat(session.getPhotos()).hasSize(1);
         assertThat(session.getPhotos().stream().map(SessionPhoto::getStorageKeyOriginal))
@@ -64,8 +65,10 @@ class SessionRecordTest {
                 "Old notes",
                 3,
                 "place-old",
+                "Old park",
                 null,
-                Map.of("distance_km", new BigDecimal("8.4"))
+                Map.of("distance_km", new BigDecimal("8.4")),
+                SessionVisibility.ONLY_ME
         );
         UUID projectId = UUID.randomUUID();
         Map<String, Object> updatedAttributes = Map.of("pages_read", 32);
@@ -78,8 +81,10 @@ class SessionRecordTest {
                 "New notes",
                 5,
                 "place-new",
+                "New library",
                 projectId,
-                updatedAttributes
+                updatedAttributes,
+                SessionVisibility.ONLY_ME
         );
 
         assertThat(session.getHobby()).isSameAs(updatedHobby);
@@ -89,8 +94,31 @@ class SessionRecordTest {
         assertThat(session.getNotes()).isEqualTo("New notes");
         assertThat(session.getSatisfaction()).isEqualTo(5);
         assertThat(session.getPlaceId()).isEqualTo("place-new");
+        assertThat(session.getLocationLabel()).isEqualTo("New library");
         assertThat(session.getProjectId()).isEqualTo(projectId);
         assertThat(session.getAttributes()).isEqualTo(updatedAttributes);
+    }
+
+    @Test
+    void shouldRejectPlaceWithoutDisplayLabel() {
+        Hobby hobby = hobby("Running");
+
+        assertThatThrownBy(() -> new SessionRecord(
+                "user-1",
+                hobby,
+                "Morning Run",
+                OffsetDateTime.parse("2026-07-19T09:00:00Z"),
+                45,
+                null,
+                4,
+                "place-123",
+                null,
+                null,
+                Map.of(),
+                SessionVisibility.ONLY_ME
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("provided together");
     }
 
     private Hobby hobby(String name) {
@@ -115,7 +143,7 @@ class SessionRecordTest {
 
     private PlaceReference place(String placeId) {
         try {
-            PlaceReference place = new PlaceReference(placeId, "Park", new BigDecimal("-23.1"), new BigDecimal("-46.2"));
+            PlaceReference place = new PlaceReference(placeId, OffsetDateTime.parse("2026-07-19T00:00:00Z"));
             return place;
         } catch (Exception ex) {
             throw new IllegalStateException(ex);

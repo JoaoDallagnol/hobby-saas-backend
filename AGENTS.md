@@ -32,6 +32,8 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - `docs/gamificacao-e-planos.md` — regras Free/Plus, metas, XP, badges, recordes, retrospectiva, planejamento e manutenção.
 - `docs/gamification-plus-execution-checklist.md` — status executável da gamificação e fundação Plus; não confundir com o checklist do MVP.
 - `docs/api-acceptance-testing.md` — tutorial, cobertura e diagnóstico da collection Postman/Postman CLI.
+- `docs/estrategia-de-cache.md` — matriz de cache, invalidação, regras de Places e entrega CDN/R2.
+- `docs/cadastros-e-configuracoes-externas.md` — runbook das contas, credenciais e validações manuais fora do repositório.
 
 ## Leitura mínima antes de mudar algo
 - Sempre alinhar a mudança com `docs/roadmap.md`.
@@ -39,7 +41,8 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - Se mexer em entidade ou fluxo de negócio, conferir `docs/diretrizes-tecnicas.md`.
 - Se mexer em gamificação, estatísticas, entitlement ou benefício Plus, conferir `docs/gamificacao-e-planos.md` e seu checklist próprio.
 - Se mexer em persistência, conferir `docs/modelagem-banco-dados.md`.
-- Se mexer em auth, deploy, storage, backup, e-mail, monitoramento ou pagamento, conferir `docs/infraestrutura-e-seguranca.md`.
+- Se mexer em auth, deploy, storage, backup, e-mail, monitoramento ou pagamento, conferir `docs/infraestrutura-e-seguranca.md`; se afetar cadastro/validação manual em plataforma, conferir também `docs/cadastros-e-configuracoes-externas.md`.
+- Se mexer em cache, CDN, retenção de dados de provedor ou invalidação, conferir `docs/estrategia-de-cache.md`.
 - Se criar ou alterar endpoint/contrato, atualizar a collection Postman e conferir `docs/api-acceptance-testing.md`; para executar ou diagnosticar a suíte, ler `skills/run-api-acceptance/SKILL.md`.
 - Nenhuma mudança de produto, schema, fluxo, fase do roadmap ou decisão técnica pode encerrar com documentação divergente. Se algo mudar, atualizar os arquivos afetados no mesmo trabalho.
 - Toda mudança de funcionalidade, schema, contrato, fluxo ou priorização precisa passar por análise de impacto antes de fechar o trabalho: verificar se algo dependia disso em outra parte do produto, da implementação, do roadmap ou da documentação.
@@ -58,13 +61,14 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - Feature flag de gamificação/Plus controla rollout, não entitlement. Ausência de assinatura ativa no banco equivale a Free; não criar endpoint público de auto-upgrade.
 - XP é projeção de sessões com fórmula server-side por categoria; badges são concedidos pelo servidor; o client nunca declara XP/conquista.
 - Exportação bruta dos próprios dados permanece Free e nunca inclui secrets, tokens, storage keys internas ou dados privados de terceiros.
-- Localização: client manda só `place_id`; backend resolve lat/lng via Google Place Details (FieldMask Essentials) e persiste — nunca confiar em lat/lng vindo do client.
+- Localização: client manda `place_id` e um `label` de exibição tratado como conteúdo do usuário; backend valida apenas o ID via Google Place Details e persiste `place_id` + `validated_at`, nunca nome/endereço/coordenadas retornados pelo Google como cache permanente e nunca lat/lng vindo do client.
 - Fotos: upload via presigned URL direto pro R2, nunca binário passando pelo backend.
 - Fotos persistem só como storage key/URL no banco; processamento é assíncrono, com thumbnail/compressão e remoção de EXIF.
 - Sessão aceita no máximo uma foto, mantendo `photos` como lista para preservar evolução futura do contrato.
 - Visibilidade de sessão no MVP é enum `everyone` ou `only_me`, com default `only_me`; não reduzir a boolean. `followers` fica reservado para a Fase 2 e não pode ser aceito antes de existir grafo e autorização de seguidores.
 - Perfil público é identificado por `users.username`, nunca pelo UID do Firebase. DTO público nunca expõe e-mail, UID, `place_id`, coordenadas, IDs de equipamento/projeto ou storage keys internas.
 - Mídia processada de sessão `everyone` vai para escopo público/CDN; mídia `only_me` fica privada e é lida por URL GET pré-assinada. Upload temporário e original cru ficam sempre privados.
+- Cache nunca concede autorização ou entitlement. Cache local deve ser limitado/expirável, conter só dado reconstruível e ter invalidação documentada após commit; ao escalar para múltiplas instâncias, revisar invalidação distribuída antes do rollout.
 - Sessão usa `notes` como campo único de notas/reflexão; não recriar diário separado no MVP.
 - Se `equipmentIds` estiverem ativos em algum fluxo, eles sempre referenciam biblioteca do usuário; nunca texto livre dentro da sessão.
 - Modelos marcados como "conceitual" ou pertencentes a fases futuras na documentação não devem ser implementados sem revisão específica.

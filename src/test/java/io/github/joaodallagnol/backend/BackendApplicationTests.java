@@ -14,7 +14,6 @@ import io.github.joaodallagnol.backend.storage.PhotoStorageDeletionRepository;
 import io.github.joaodallagnol.backend.user.HobbyRepository;
 import io.github.joaodallagnol.backend.user.ProductUserRepository;
 import io.github.joaodallagnol.backend.user.UserHobbyRepository;
-import java.math.BigDecimal;
 import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Optional;
@@ -218,12 +217,7 @@ class BackendApplicationTests {
 		@Bean
 		@Primary
 		GooglePlaceDetailsClient googlePlaceDetailsClient() {
-			return placeId -> new ResolvedPlace(
-					placeId,
-					"Test Place",
-					BigDecimal.valueOf(-23.550520),
-					BigDecimal.valueOf(-46.633308)
-			);
+			return placeId -> new ResolvedPlace(placeId);
 		}
 
 		@Bean

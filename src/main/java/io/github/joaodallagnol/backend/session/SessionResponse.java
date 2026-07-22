@@ -42,9 +42,7 @@ public record SessionResponse(
                 session.getVisibility(),
                 session.getPlaceId() == null ? null : new SessionLocationResponse(
                         session.getPlaceId(),
-                        session.getPlace() == null ? null : session.getPlace().getName(),
-                        session.getPlace() == null ? null : session.getPlace().getLat(),
-                        session.getPlace() == null ? null : session.getPlace().getLng()
+                        session.getLocationLabel()
                 ),
                 session.getProjectId(),
                 session.getEquipment().stream().map(EquipmentReference::getId).toList(),

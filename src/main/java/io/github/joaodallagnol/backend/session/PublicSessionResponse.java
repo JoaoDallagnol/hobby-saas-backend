@@ -14,7 +14,7 @@ public record PublicSessionResponse(
         int durationMinutes,
         String notes,
         int satisfaction,
-        String locationName,
+        String locationLabel,
         List<PublicSessionPhotoResponse> photos,
         Map<String, Object> attributes
 ) {
@@ -28,7 +28,7 @@ public record PublicSessionResponse(
                 session.getDurationMinutes(),
                 session.getNotes(),
                 session.getSatisfaction(),
-                session.getPlace() == null ? null : session.getPlace().getName(),
+                session.getLocationLabel(),
                 session.getPhotos().stream().map(photo -> PublicSessionPhotoResponse.from(photo, mediaService)).toList(),
                 session.getAttributes()
         );

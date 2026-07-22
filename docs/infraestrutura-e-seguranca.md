@@ -20,7 +20,7 @@
 
 - **VPS única** (Hostinger, linha KVM, datacenter São Paulo) rodando Spring Boot + Postgres via **Docker Compose**. Não usar PaaS por serviço (Railway/Render) neste desenho atual.
 - Descartados: Oracle Cloud Free Tier (instabilidade/limite reduzido), Hetzner (EUR + datacenter EU).
-- App deve ser **stateless** (sem estado em memória local, config via env var) — pré-requisito barato pra escalar depois sem reescrever.
+- Estado autoritativo deve permanecer fora da memória local e configuração vem de env var. Caches Caffeine limitados e reconstruíveis são permitidos na VPS única; antes de múltiplas instâncias, adicionar invalidação distribuída ou removê-los. Ver `estrategia-de-cache.md`.
 - 🔵 Load balancer/API Gateway: não implementar agora. Evolução: Postgres gerenciado → Nginx como LB simples → API Gateway só se virar multi-serviço de verdade.
 
 ## Segurança 🟢
@@ -273,6 +273,7 @@
 - criar buckets de fotos privado/público por ambiente e um bucket privado separado para backups;
 - gerar credenciais com menor privilégio possível;
 - configurar domínio público/CDN somente no bucket público de variantes processadas;
+- validar `Cache-Control` público imutável nas variantes e `private, no-store` em uploads/mídia privada; o domínio `r2.dev` não substitui o domínio customizado/CDN de produção;
 - configurar token limitado a Cache Purge da zona para a transição `everyone` → `only_me`.
 
 #### Google Places
@@ -281,6 +282,7 @@
 - ativar Places API necessária;
 - restringir chave por uso e revisar escopo;
 - manter chave separada por ambiente se necessário.
+- usar Place Details com FieldMask somente `id`; persistir apenas `place_id` e `validated_at`, com refresh após 365 dias. Nome/endereço/coordenadas do Google não entram em cache permanente.
 
 ## Domínio/DNS ⚠️ pendente (nome do app não decidido)
 

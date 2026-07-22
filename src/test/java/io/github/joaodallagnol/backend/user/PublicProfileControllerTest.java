@@ -48,7 +48,7 @@ class PublicProfileControllerTest {
 
         mockMvc.perform(get("/api/users/runner.one/sessions"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].locationName").value("Public Park"))
+                .andExpect(jsonPath("$.items[0].locationLabel").value("Public Park"))
                 .andExpect(jsonPath("$.items[0].projectId").doesNotExist())
                 .andExpect(jsonPath("$.items[0].equipmentIds").doesNotExist())
                 .andExpect(jsonPath("$.items[0].location.placeId").doesNotExist());

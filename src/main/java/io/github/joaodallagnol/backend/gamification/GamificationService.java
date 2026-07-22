@@ -1,6 +1,7 @@
 package io.github.joaodallagnol.backend.gamification;
 
 import io.github.joaodallagnol.backend.feature.FeatureFlagService;
+import io.github.joaodallagnol.backend.config.UserDerivedDataCache;
 import io.github.joaodallagnol.backend.session.SessionRecordRepository;
 import io.github.joaodallagnol.backend.subscription.EntitlementService;
 import io.github.joaodallagnol.backend.user.Hobby;
@@ -22,6 +23,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.support.NoOpCacheManager;
 
 @Service
 public class GamificationService {
@@ -36,11 +39,13 @@ public class GamificationService {
     private final EntitlementService entitlementService;
     private final FeatureFlagService featureFlagService;
     private final Clock clock;
+    private final UserDerivedDataCache userDerivedDataCache;
 
+    @Autowired
     public GamificationService(SessionRecordRepository sessionRepository, HobbyXpRepository hobbyXpRepository,
                                UserBadgeRepository badgeRepository, HobbyRepository hobbyRepository,
                                EntitlementService entitlementService, FeatureFlagService featureFlagService,
-                               Clock clock) {
+                               Clock clock, UserDerivedDataCache userDerivedDataCache) {
         this.sessionRepository = sessionRepository;
         this.hobbyXpRepository = hobbyXpRepository;
         this.badgeRepository = badgeRepository;
@@ -48,19 +53,34 @@ public class GamificationService {
         this.entitlementService = entitlementService;
         this.featureFlagService = featureFlagService;
         this.clock = clock;
+        this.userDerivedDataCache = userDerivedDataCache;
+    }
+
+    public GamificationService(SessionRecordRepository sessionRepository, HobbyXpRepository hobbyXpRepository,
+                               UserBadgeRepository badgeRepository, HobbyRepository hobbyRepository,
+                               EntitlementService entitlementService, FeatureFlagService featureFlagService,
+                               Clock clock) {
+        this(sessionRepository, hobbyXpRepository, badgeRepository, hobbyRepository, entitlementService,
+                featureFlagService, clock, new UserDerivedDataCache(new NoOpCacheManager()));
     }
 
     @Transactional
     public GamificationDashboardResponse dashboard() {
         featureFlagService.requireGamification();
         String userId = entitlementService.currentUserId();
+        GamificationDashboardResponse cached = userDerivedDataCache.getDashboard(userId);
+        if (cached != null) {
+            return cached;
+        }
         hobbyXpRepository.lockUserProjection("gamification:" + userId);
         List<SessionMetricRow> metrics = sessionRepository.findGamificationMetricsByUserId(userId);
         PersonalRecordsResponse records = calculateRecords(metrics);
         MonthlyChallengeResponse challenge = calculateMonthlyChallenge(metrics);
         List<HobbyProgressResponse> progress = rebuildXp(userId, metrics);
         List<BadgeResponse> badges = awardAndReadBadges(userId, metrics, records, challenge);
-        return new GamificationDashboardResponse(progress, badges, records, challenge);
+        GamificationDashboardResponse response = new GamificationDashboardResponse(progress, badges, records, challenge);
+        userDerivedDataCache.putDashboardAfterRebuild(userId, response);
+        return response;
     }
 
     private List<HobbyProgressResponse> rebuildXp(String userId, List<SessionMetricRow> metrics) {

@@ -13,6 +13,13 @@
 - `flyway-core` ✅ — migração de schema
 - `sessions.attributes` em JSONB ✅ — mapeamento atual usa Hibernate ORM nativo com `@JdbcTypeCode(SqlTypes.JSON)` sobre `Map<String, Object>` e coluna `jsonb`; não foi necessária lib auxiliar.
 
+## Cache
+
+- Spring Cache + Caffeine ✅ — cache local, limitado e descartável para catálogo de hobbies, templates de atributos e dashboard derivado de gamificação.
+- Não há Redis/serviço externo no MVP; PostgreSQL permanece fonte de verdade e mutações de sessão invalidam dados derivados depois do commit.
+- Cloudflare CDN/R2 entrega mídia pública imutável; mídia privada e upload temporário usam `no-store`.
+- Estratégia completa, TTLs e gatilhos de reavaliação: `estrategia-de-cache.md`.
+
 ## Autenticação
 - `spring-boot-starter-security`
 - `firebase-admin` — valida ID token/JWT do Firebase Authentication no backend e também cobre envio via FCM. Backend nunca processa senha.
@@ -39,6 +46,7 @@
 ## Storage de fotos (Cloudflare R2)
 - AWS SDK S3 (`software.amazon.awssdk:s3`) ✅ — R2 é S3-compatible, aponta pro endpoint do R2.
 - Dois buckets/escopos ✅ — privado para upload temporário e sessões `only_me`; público para variantes processadas `everyone`, entregues por domínio/CDN. GET privado usa URL pré-assinada e mudança de visibilidade move objetos com purge do cache.
+- Objetos públicos processados recebem `Cache-Control: public, max-age=31536000, immutable`; objetos privados recebem `private, no-store` ✅
 - Adobe S3Mock 5.1.0 no Compose local ✅ — emulador S3 mantido e persistente em volume/pasta, sem conta externa no desenvolvimento.
 - `cwebp/libwebp` via binário do pacote Debian `webp` no container ✅ — worker agendado gera WebP em dois tamanhos sem copiar metadata, com até 3 tentativas e status persistido. A abordagem evita dependência JNI frágil e aceita JPEG, PNG e WebP no MVP; HEIC/HEIF não são aceitos.
 

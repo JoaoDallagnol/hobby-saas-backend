@@ -1,6 +1,5 @@
 package io.github.joaodallagnol.backend.session;
 
-import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -11,7 +10,7 @@ import org.springframework.web.client.RestClientException;
 @Component
 public class GooglePlaceDetailsHttpClient implements GooglePlaceDetailsClient {
 
-    private static final String FIELD_MASK = "id,displayName,formattedAddress,location";
+    private static final String FIELD_MASK = "id";
 
     private final String apiKey;
     private final RestClient restClient;
@@ -39,36 +38,16 @@ public class GooglePlaceDetailsHttpClient implements GooglePlaceDetailsClient {
                     .body(GooglePlaceDetailsResponse.class);
 
             if (response == null
-                    || !StringUtils.hasText(response.id())
-                    || response.displayName() == null
-                    || !StringUtils.hasText(response.displayName().text())
-                    || response.location() == null
-                    || response.location().latitude() == null
-                    || response.location().longitude() == null) {
+                    || !StringUtils.hasText(response.id())) {
                 throw new IllegalArgumentException("Google Places returned an incomplete place response.");
             }
 
-            return new ResolvedPlace(
-                    response.id(),
-                    response.displayName().text(),
-                    BigDecimal.valueOf(response.location().latitude()),
-                    BigDecimal.valueOf(response.location().longitude())
-            );
+            return new ResolvedPlace(response.id());
         } catch (RestClientException ex) {
             throw new IllegalArgumentException("Failed to resolve placeId with Google Places.", ex);
         }
     }
 
-    private record GooglePlaceDetailsResponse(
-            String id,
-            DisplayName displayName,
-            Location location
-    ) {
-    }
-
-    private record DisplayName(String text, String languageCode) {
-    }
-
-    private record Location(Double latitude, Double longitude) {
+    private record GooglePlaceDetailsResponse(String id) {
     }
 }

@@ -81,7 +81,7 @@ Observação de produto:
 - `GET /api/users/{username}/sessions?page=0&size=20&hobbyId={opcional}` lista apenas sessões `everyone`.
 - `GET /api/users/{username}/sessions/{sessionId}` retorna detalhe somente se a sessão pertencer ao perfil e estiver `everyone`; caso contrário responde como não encontrada, evitando enumeração.
 - Esses endpoints continuam autenticados no MVP: "público" significa visível a qualquer usuário do app, não indexado anonimamente na web.
-- O DTO público nunca contém e-mail, UID Firebase, `place_id`, lat/lng, `projectId`, `equipmentIds` nem storage keys. A localização pública contém somente o nome seguro do lugar.
+- O DTO público nunca contém e-mail, UID Firebase, `place_id`, lat/lng, `projectId`, `equipmentIds` nem storage keys. A localização pública contém somente o label informado pelo usuário.
 - Não existe listagem/busca de usuários, feed ou relação de seguidores nesta fase.
 
 ### Leitura dos hobbies do perfil
@@ -166,13 +166,14 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
 ## Localização
 
 - Client: Google Places Autocomplete → obtém `place_id`.
-- Client → backend: envia só `place_id` (+ `displayName` opcional, só UI otimista, nunca persistido).
-- Backend: chama Place Details com `FieldMask` restrito a Essentials (`place_id`, nome, endereço, geometria) — nunca campos Pro/Enterprise.
+- Client → backend: envia `place_id` e `label`; o label é texto de exibição escolhido pelo usuário/client e é tratado como conteúdo do usuário, não como conteúdo validado do Google.
+- Backend: chama Place Details com `FieldMask` restrito a `id`, somente para validar/atualizar o identificador.
 - Backend nunca confia em lat/lng vindo do cliente.
-- Cache: tabela `places(place_id PK, name, lat, lng)`, evita chamada repetida.
-- Se o `place_id` já estiver em cache, backend reutiliza sem nova chamada externa; se não estiver, resolve via Google Place Details e persiste no cache antes de salvar a sessão.
-- Resposta privada do dono pode expor `location` com `placeId`, `name`, `lat` e `lng` a partir do cache do backend. Resposta pública expõe somente `locationName`.
-- Privacidade: sessão em casa não expõe endereço exato, só agrega em nível de bairro. Heatmap sempre agrega por "balde" geográfico, nunca ponto exato.
+- Cache permitido: tabela `places(place_id PK, validated_at)`. Um ID validado há menos de 365 dias é reutilizado; depois disso, o backend faz refresh ID-only antes de voltar a usá-lo.
+- `sessions.location_label` guarda o rótulo do usuário. Não persistir nome, endereço, lat ou lng retornados pelo Google como cache permanente.
+- Resposta privada do dono expõe `location` com `placeId` e `label`. Resposta pública expõe somente `locationLabel`, sem `place_id`.
+- Heatmap, proximidade e recomendação local continuam na Fase 2 e exigem nova decisão de aquisição/retenção de coordenadas, privacidade e termos do provedor.
+- Matriz, TTLs e regras de invalidação: `estrategia-de-cache.md`.
 
 ## Fotos
 
@@ -187,6 +188,7 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
 - O processamento roda em worker agendado na própria aplicação (adequado ao monolito de instância única), consulta lotes de até 10 fotos pendentes e tenta cada item no máximo 3 vezes.
 - O worker baixa a key temporária do R2, executa `cwebp` sem copiar metadata, gera variante de até 2048 px (quality 82) e thumbnail de até 480 px (quality 75), envia ambas ao R2 e remove a key temporária somente depois de persistir as novas referências.
 - Upload temporário e mídia `only_me` ficam no bucket privado. Leitura privada usa GET presigned de 15 minutos. Variantes de sessão `everyone` ficam no bucket público e são entregues por URL estável no domínio/CDN configurado.
+- Upload temporário e mídia privada usam `Cache-Control: private, no-store`; variantes públicas versionadas por key usam `Cache-Control: public, max-age=31536000, immutable`.
 - Ao editar `visibility`, um worker idempotente move as variantes entre os buckets. A API para de expor a foto publicamente assim que a sessão vira `only_me`; o worker remove o objeto público e solicita purge das URLs no cache da Cloudflare. Durante a movimentação, URLs ficam `null` com `deliveryStatus=updating_visibility`.
 - Em `local`, Adobe S3Mock 5.1.0 fornece a mesma API S3 e persiste objetos em volume/pasta Docker; não exige conta Cloudflare para desenvolver.
 - O rollout é controlado por `FEATURE_PHOTO_UPLOADS_ENABLED` e `FEATURE_PHOTO_PROCESSING_ENABLED`. Em produção, uploads só ficam ready quando ambos estão ativos e o health check rejeita upload ativo com processamento desligado.
@@ -242,7 +244,7 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
   "notes": "Peguei um ritmo bom hoje",
   "satisfaction": 4,
   "visibility": "only_me",
-  "location": { "placeId": "ChIJ...xyz" },
+  "location": { "placeId": "ChIJ...xyz", "label": "Parque do bairro" },
   "equipmentIds": ["8f14e45f-ceea-4c8c-b5c6-3e0d1a2f9b11"],
   "projectId": null,
   "photos": [{ "storageKey": "uploads/user_123/session_temp/a1b2c3.webp" }],

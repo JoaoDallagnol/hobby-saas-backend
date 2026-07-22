@@ -83,7 +83,7 @@ class SessionServiceTest {
                 45,
                 "Good pace",
                 4,
-                new SessionLocationRequest("place-123"),
+                new SessionLocationRequest("place-123", "Central Park"),
                 projectId,
                 List.of(equipment.getId()),
                 List.of(new SessionPhotoRequest(SessionPhotoStorageKeyPolicy.uploadPrefix("firebase-user-1") + "photo1.webp")),
@@ -99,7 +99,7 @@ class SessionServiceTest {
                 50,
                 "Better finish",
                 5,
-                new SessionLocationRequest("place-123"),
+                new SessionLocationRequest("place-123", "Central Park"),
                 projectId,
                 List.of(equipment.getId()),
                 List.of(new SessionPhotoRequest(SessionPhotoStorageKeyPolicy.uploadPrefix("firebase-user-1") + "photo2.webp")),
@@ -484,9 +484,7 @@ class SessionServiceTest {
         void add(String placeId) {
             storage.put(placeId, new PlaceReference(
                     placeId,
-                    "Central Park",
-                    java.math.BigDecimal.valueOf(-23.550520),
-                    java.math.BigDecimal.valueOf(-46.633308)
+                    OffsetDateTime.parse("2026-07-19T00:00:00Z")
             ));
         }
 

@@ -57,6 +57,9 @@ public class SessionRecord {
     @Column(name = "place_id", length = 255)
     private String placeId;
 
+    @Column(name = "location_label", length = 150)
+    private String locationLabel;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "place_id", referencedColumnName = "place_id", insertable = false, updatable = false)
     private PlaceReference place;
@@ -91,6 +94,7 @@ public class SessionRecord {
             String notes,
             int satisfaction,
             String placeId,
+            String locationLabel,
             UUID projectId,
             Map<String, Object> attributes,
             SessionVisibility visibility
@@ -103,10 +107,19 @@ public class SessionRecord {
         this.durationMinutes = durationMinutes;
         this.notes = notes;
         this.satisfaction = satisfaction;
+        validateLocation(placeId, locationLabel);
         this.placeId = placeId;
+        this.locationLabel = locationLabel;
         this.projectId = projectId;
         this.attributes = attributes;
         this.visibility = visibility == null ? SessionVisibility.ONLY_ME : visibility;
+    }
+
+    public SessionRecord(String userId, Hobby hobby, String title, OffsetDateTime startedAt, int durationMinutes,
+                         String notes, int satisfaction, String placeId, UUID projectId,
+                         Map<String, Object> attributes, SessionVisibility visibility) {
+        this(userId, hobby, title, startedAt, durationMinutes, notes, satisfaction, placeId, null, projectId,
+                attributes, visibility);
     }
 
     public SessionRecord(String userId, Hobby hobby, String title, OffsetDateTime startedAt, int durationMinutes,
@@ -155,6 +168,10 @@ public class SessionRecord {
         return placeId;
     }
 
+    public String getLocationLabel() {
+        return locationLabel;
+    }
+
     public UUID getProjectId() {
         return projectId;
     }
@@ -183,6 +200,7 @@ public class SessionRecord {
             String notes,
             int satisfaction,
             String placeId,
+            String locationLabel,
             UUID projectId,
             Map<String, Object> attributes,
             SessionVisibility visibility
@@ -193,10 +211,19 @@ public class SessionRecord {
         this.durationMinutes = durationMinutes;
         this.notes = notes;
         this.satisfaction = satisfaction;
+        validateLocation(placeId, locationLabel);
         this.placeId = placeId;
+        this.locationLabel = locationLabel;
         this.projectId = projectId;
         this.attributes = attributes;
         this.visibility = visibility == null ? SessionVisibility.ONLY_ME : visibility;
+    }
+
+    public void update(Hobby hobby, String title, OffsetDateTime startedAt, int durationMinutes, String notes,
+                       int satisfaction, String placeId, UUID projectId, Map<String, Object> attributes,
+                       SessionVisibility visibility) {
+        update(hobby, title, startedAt, durationMinutes, notes, satisfaction, placeId, null, projectId, attributes,
+                visibility);
     }
 
     public void update(Hobby hobby, String title, OffsetDateTime startedAt, int durationMinutes, String notes,
@@ -205,9 +232,19 @@ public class SessionRecord {
                 this.visibility == null ? SessionVisibility.ONLY_ME : this.visibility);
     }
 
-    public void assignPlace(PlaceReference place) {
+    public void assignPlace(PlaceReference place, String locationLabel) {
+        validateLocation(place == null ? null : place.getPlaceId(), locationLabel);
         this.place = place;
         this.placeId = place == null ? null : place.getPlaceId();
+        this.locationLabel = place == null ? null : locationLabel;
+    }
+
+    private void validateLocation(String placeId, String locationLabel) {
+        boolean hasPlace = placeId != null && !placeId.isBlank();
+        boolean hasLabel = locationLabel != null && !locationLabel.isBlank();
+        if (hasPlace != hasLabel) {
+            throw new IllegalArgumentException("Place id and location label must be provided together.");
+        }
     }
 
     public void replaceEquipment(Set<EquipmentReference> equipment) {

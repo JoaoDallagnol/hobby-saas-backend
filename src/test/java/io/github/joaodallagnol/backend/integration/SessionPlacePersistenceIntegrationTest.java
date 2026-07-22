@@ -50,7 +50,8 @@ class SessionPlacePersistenceIntegrationTest extends PostgresIntegrationTestSupp
                   "notes": "Route with elevation.",
                   "satisfaction": 4,
                   "location": {
-                    "placeId": "place-abc"
+                    "placeId": "place-abc",
+                    "label": "Park Run Start"
                   },
                   "attributes": {
                     "distance_km": 10.1,
@@ -67,9 +68,10 @@ class SessionPlacePersistenceIntegrationTest extends PostgresIntegrationTestSupp
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Park Run"))
                 .andExpect(jsonPath("$.location.placeId").value("place-abc"))
-                .andExpect(jsonPath("$.location.name").value("Resolved place-abc"))
-                .andExpect(jsonPath("$.location.lat").value(-23.55052))
-                .andExpect(jsonPath("$.location.lng").value(-46.633308));
+                .andExpect(jsonPath("$.location.label").value("Park Run Start"))
+                .andExpect(jsonPath("$.location.name").doesNotExist())
+                .andExpect(jsonPath("$.location.lat").doesNotExist())
+                .andExpect(jsonPath("$.location.lng").doesNotExist());
 
         UUID sessionId = jdbcTemplate.queryForObject(
                 "SELECT id FROM sessions WHERE user_id = ? AND title = ?",
@@ -82,7 +84,7 @@ class SessionPlacePersistenceIntegrationTest extends PostgresIntegrationTestSupp
                         .header(AUTHORIZATION, "Bearer valid-token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.location.placeId").value("place-abc"))
-                .andExpect(jsonPath("$.location.name").value("Resolved place-abc"));
+                .andExpect(jsonPath("$.location.label").value("Park Run Start"));
 
         Integer placeCount = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM places WHERE place_id = ?",
@@ -94,15 +96,21 @@ class SessionPlacePersistenceIntegrationTest extends PostgresIntegrationTestSupp
                 String.class,
                 sessionId.toString()
         );
-        String placeName = jdbcTemplate.queryForObject(
-                "SELECT name FROM places WHERE place_id = ?",
+        String locationLabel = jdbcTemplate.queryForObject(
+                "SELECT location_label FROM sessions WHERE id = ?::uuid",
                 String.class,
+                sessionId.toString()
+        );
+        OffsetDateTime validatedAt = jdbcTemplate.queryForObject(
+                "SELECT validated_at FROM places WHERE place_id = ?",
+                OffsetDateTime.class,
                 "place-abc"
         );
 
         assertThat(placeCount).isEqualTo(1);
         assertThat(persistedPlaceId).isEqualTo("place-abc");
-        assertThat(placeName).isEqualTo("Resolved place-abc");
+        assertThat(locationLabel).isEqualTo("Park Run Start");
+        assertThat(validatedAt).isNotNull();
     }
 
     private void insertUserWithRunningHobby(String userId, String email, String name) {

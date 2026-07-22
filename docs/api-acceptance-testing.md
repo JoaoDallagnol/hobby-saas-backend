@@ -107,7 +107,7 @@ A collection cria variáveis de execução (`hobbyId`, ids de equipamento/backlo
 | Backlog | Free básico, bloqueio avançado, Plus avançado e ownership |
 | Sessões | create/list/get/update, equipamento/projeto, JSONB e paginação |
 | Visibilidade | `only_me`, `everyone`, perfil público, lista/detalhe público e rejeição de `followers` |
-| Integrações desligadas | localização e upload respondem `503` com falha segura |
+| Integrações desligadas | localização (`placeId` + `label`) e upload respondem `503` com falha segura |
 | Gamificação | streak, meta Free, limite Free, meta Plus, XP, badge e recordes |
 | Plano/analytics | entitlement vindo do banco, `403` Free, insights e Wrapped Plus |
 | Plus | tema, badge conquistado em destaque, manutenção e campos avançados |

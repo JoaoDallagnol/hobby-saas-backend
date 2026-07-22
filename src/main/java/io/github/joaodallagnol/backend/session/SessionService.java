@@ -6,6 +6,7 @@ import io.github.joaodallagnol.backend.user.Hobby;
 import io.github.joaodallagnol.backend.user.HobbyRepository;
 import io.github.joaodallagnol.backend.user.UserHobbyRepository;
 import io.github.joaodallagnol.backend.feature.FeatureFlagService;
+import io.github.joaodallagnol.backend.config.UserDerivedDataCache;
 import io.github.joaodallagnol.backend.storage.SessionPhotoStorageKeyPolicy;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.support.NoOpCacheManager;
 
 @Service
 public class SessionService {
@@ -34,6 +36,7 @@ public class SessionService {
     private final PlaceResolutionService placeResolutionService;
     private final FeatureFlagService featureFlagService;
     private final SessionPhotoMediaService sessionPhotoMediaService;
+    private final UserDerivedDataCache userDerivedDataCache;
 
     @Autowired
     public SessionService(
@@ -47,7 +50,8 @@ public class SessionService {
             HobbyAttributeTemplateService hobbyAttributeTemplateService,
             PlaceResolutionService placeResolutionService,
             FeatureFlagService featureFlagService,
-            SessionPhotoMediaService sessionPhotoMediaService
+            SessionPhotoMediaService sessionPhotoMediaService,
+            UserDerivedDataCache userDerivedDataCache
     ) {
         this.authenticatedUserExtractor = authenticatedUserExtractor;
         this.sessionRecordRepository = sessionRecordRepository;
@@ -60,6 +64,7 @@ public class SessionService {
         this.placeResolutionService = placeResolutionService;
         this.featureFlagService = featureFlagService;
         this.sessionPhotoMediaService = sessionPhotoMediaService;
+        this.userDerivedDataCache = userDerivedDataCache;
     }
 
     public SessionService(AuthenticatedUserExtractor authenticatedUserExtractor,
@@ -73,7 +78,8 @@ public class SessionService {
         this(authenticatedUserExtractor, sessionRecordRepository, hobbyRepository, userHobbyRepository,
                 equipmentReferenceRepository, backlogItemReferenceRepository, placeReferenceRepository,
                 hobbyAttributeTemplateService, placeResolutionService, featureFlagService,
-                new SessionPhotoMediaService(storageKey -> null, ""));
+                new SessionPhotoMediaService(storageKey -> null, ""),
+                new UserDerivedDataCache(new NoOpCacheManager()));
     }
 
     @Transactional
@@ -94,15 +100,18 @@ public class SessionService {
                 request.notes(),
                 request.satisfaction(),
                 place == null ? null : place.getPlaceId(),
+                request.location() == null ? null : request.location().label().trim(),
                 request.projectId(),
                 request.attributes(),
                 request.visibility()
         );
-        session.assignPlace(place);
+        session.assignPlace(place, request.location() == null ? null : request.location().label().trim());
         session.replaceEquipment(equipment);
         session.replacePhotos(extractNewPhotoKeys(request.photos(), user.id()));
 
-        return SessionResponse.from(sessionRecordRepository.save(session), sessionPhotoMediaService);
+        SessionRecord saved = sessionRecordRepository.save(session);
+        userDerivedDataCache.evictAfterSessionMutation(user.id());
+        return SessionResponse.from(saved, sessionPhotoMediaService);
     }
 
     @Transactional
@@ -123,20 +132,24 @@ public class SessionService {
                 request.notes(),
                 request.satisfaction(),
                 place == null ? null : place.getPlaceId(),
+                request.location() == null ? null : request.location().label().trim(),
                 request.projectId(),
                 request.attributes(),
                 request.visibility()
         );
-        session.assignPlace(place);
+        session.assignPlace(place, request.location() == null ? null : request.location().label().trim());
         session.replaceEquipment(equipment);
         reconcilePhotos(session, request.photos(), user.id());
 
+        userDerivedDataCache.evictAfterSessionMutation(user.id());
         return SessionResponse.from(session, sessionPhotoMediaService);
     }
 
     @Transactional
     public void deleteSession(UUID sessionId) {
-        sessionRecordRepository.delete(getOwnedSession(sessionId, getAuthenticatedUser().id()));
+        String userId = getAuthenticatedUser().id();
+        sessionRecordRepository.delete(getOwnedSession(sessionId, userId));
+        userDerivedDataCache.evictAfterSessionMutation(userId);
     }
 
     @Transactional(readOnly = true)
