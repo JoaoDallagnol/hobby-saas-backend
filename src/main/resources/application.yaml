@@ -3,6 +3,10 @@ spring:
     name: backend
   profiles:
     default: local
+  jpa:
+    properties:
+      hibernate:
+        default_batch_fetch_size: 32
 
 server:
   shutdown: graceful

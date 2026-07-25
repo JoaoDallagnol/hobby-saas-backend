@@ -155,7 +155,7 @@ Já fechadas: Firebase Authentication padrão, VPS Hostinger, Postgres, Cloudfla
 - `mvn clean install`: build limpo e instalação local concluídos; a validação final posterior executou a suíte completa de 105 testes.
 - Suíte Postman/Postman CLI: **63 requests e 165 assertions**, zero falhas, com relatórios JSON/JUnit e varredura de logs do ambiente descartável.
 - Imagem Docker construída e iniciada pelo Compose contra PostgreSQL 17 local, com Adobe S3Mock e os buckets `hobby-private` e `hobby-public` disponíveis.
-- As migrations até V9 foram aplicadas tanto em bancos novos via Testcontainers quanto no banco local existente; V9 remove nome/coordenadas do cache Places e adiciona label por sessão + revalidação do ID.
+- As migrations até V10 foram aplicadas em bancos novos via Testcontainers; V9 remove nome/coordenadas do cache Places e adiciona label por sessão + revalidação do ID, enquanto V10 adiciona índices compostos para a paginação estável das sessões.
 - Health interno respondeu `UP` com os grupos `liveness` e `readiness`.
 - `docker compose config --quiet` validado para os perfis local e produção; stack local final permanece em execução na porta `8080`.
 - `git diff --check` e a varredura `scripts/check-no-secrets.sh` concluíram sem erro ou material sensível óbvio.

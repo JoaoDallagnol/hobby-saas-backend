@@ -355,6 +355,8 @@ Define quais atributos dinâmicos existem por hobby (Alternativa C).
 
 **Mapeamento atual na aplicação**: `sessions.attributes` está mapeado no backend como `Map<String, Object>` usando Hibernate ORM nativo com `@JdbcTypeCode(SqlTypes.JSON)` e coluna PostgreSQL `jsonb`. Até o estado atual do projeto, esse caminho atende ao MVP sem dependência de lib extra.
 
+**Acesso paginado**: a migration V10 adiciona índices compostos alinhados à ordenação estável `started_at DESC, id DESC`, cobrindo a listagem do dono e os filtros simples ou combinados por hobby e visibilidade. As relações lazy usadas na montagem do DTO são carregadas em lotes limitados pelo Hibernate, evitando uma consulta separada por sessão sem aplicar `fetch join` de coleções sobre uma página.
+
 #### `session_photos`
 
 | Coluna | Tipo | Nulo | FK | Observação |

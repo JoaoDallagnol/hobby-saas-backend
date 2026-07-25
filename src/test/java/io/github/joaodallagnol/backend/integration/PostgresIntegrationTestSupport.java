@@ -18,21 +18,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @ActiveProfiles("integration")
-@Testcontainers
 @TestPropertySource(properties = "spring.main.allow-bean-definition-overriding=true")
 public abstract class PostgresIntegrationTestSupport {
 
-    @Container
     @SuppressWarnings("resource")
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine")
-            .withDatabaseName("hobby_saas_test")
-            .withUsername("test")
-            .withPassword("test");
+    static final PostgreSQLContainer<?> POSTGRES = startPostgres();
 
     protected MockMvc mockMvc;
 
@@ -50,6 +43,15 @@ public abstract class PostgresIntegrationTestSupport {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.flyway.enabled", () -> true);
         registry.add("app.auth.firebase.project-id", () -> "integration-test-project");
+    }
+
+    private static PostgreSQLContainer<?> startPostgres() {
+        PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine")
+                .withDatabaseName("hobby_saas_test")
+                .withUsername("test")
+                .withPassword("test");
+        postgres.start();
+        return postgres;
     }
 
     @TestConfiguration
