@@ -10,6 +10,7 @@
 - Firebase Authentication guarda a credencial e executa o fluxo de login; app **nunca** vê/armazena senha.
 - `users.id` = `sub`/`uid` do token emitido pelo Firebase Authentication, armazenado como string (não gerar id próprio, não ter coluna de mapeamento separada).
 - Provisionamento **just-in-time**: primeira request autenticada de um user novo cria a linha em `users` na hora, a partir do token validado.
+- O provisionamento JIT usa inserção idempotente no PostgreSQL para que duas primeiras requests concorrentes do mesmo usuário resultem em uma única linha e ambas possam seguir normalmente.
 - Separar projeto/credenciais de `dev` e `prod` no Firebase desde cedo. Não reutilizar configuração de produção em ambiente local.
 - Quando a integração real virar pré-requisito, orientar o usuário sobre criação de projeto, apps, métodos de login, service account, restrições e secrets antes de fechar a entrega.
 - Ordem pragmática permitida: backend pode evoluir primeiro em domínio, banco, contratos e regras de negócio com auth controlada de `local`/`test`; integração real com Firebase continua obrigatória antes de fechar MVP funcional end-to-end ou publicar clientes.

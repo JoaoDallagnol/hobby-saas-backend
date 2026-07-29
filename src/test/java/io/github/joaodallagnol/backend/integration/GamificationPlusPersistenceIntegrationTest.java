@@ -9,17 +9,26 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
-@ContextConfiguration(classes = {PostgresIntegrationTestSupport.AuthTestConfig.class})
+@ContextConfiguration(classes = {
+        PostgresIntegrationTestSupport.AuthTestConfig.class,
+        GamificationPlusPersistenceIntegrationTest.FixedClockConfig.class
+})
 @TestPropertySource(properties = {
         "spring.main.allow-bean-definition-overriding=true",
         "app.features.gamification=true",
@@ -28,6 +37,16 @@ import org.springframework.test.context.TestPropertySource;
 class GamificationPlusPersistenceIntegrationTest extends PostgresIntegrationTestSupport {
 
     private static final UUID RUNNING_HOBBY_ID = UUID.fromString("1f1f49ea-6b5d-4c2e-9ce7-3e621f081001");
+
+    @TestConfiguration
+    static class FixedClockConfig {
+
+        @Bean
+        @Primary
+        Clock fixedGamificationClock() {
+            return Clock.fixed(Instant.parse("2026-07-21T12:00:00Z"), ZoneOffset.UTC);
+        }
+    }
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

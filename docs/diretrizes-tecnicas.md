@@ -1,7 +1,9 @@
 # Diretrizes Técnicas
 
 ## Idioma
-DB e código: inglês. Tradução (pt-BR e outros): futuro, fora de escopo agora.
+DB, código e contratos da API: inglês. O mobile atual apresenta a interface em
+pt-BR e traduz valores oficiais na fronteira do client; suporte a múltiplos
+idiomas continua fora de escopo nesta fase.
 
 ## Sessão — atributos fixos (free tier)
 

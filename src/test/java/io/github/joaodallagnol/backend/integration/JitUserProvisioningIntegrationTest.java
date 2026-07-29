@@ -1,6 +1,11 @@
 package io.github.joaodallagnol.backend.integration;
 
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,5 +87,44 @@ class JitUserProvisioningIntegrationTest extends PostgresIntegrationTestSupport 
         assertThat(name).isEqualTo("Jit User");
         assertThat(emailVerified).isTrue();
         assertThat(createdAt).isNotNull();
+    }
+
+    @Test
+    void provisionsUserOnlyOnceWhenFirstRequestsAreConcurrent() throws Exception {
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            CountDownLatch ready = new CountDownLatch(2);
+            CountDownLatch start = new CountDownLatch(1);
+
+            List<Future<Integer>> responses = List.of(
+                    executor.submit(() -> performConcurrentRequest(ready, start)),
+                    executor.submit(() -> performConcurrentRequest(ready, start))
+            );
+
+            assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+
+            int firstStatus = responses.get(0).get(10, TimeUnit.SECONDS);
+            int secondStatus = responses.get(1).get(10, TimeUnit.SECONDS);
+            assertThat(List.of(firstStatus, secondStatus)).containsExactly(200, 200);
+        }
+
+        Integer persistedUsers = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE id = ?",
+                Integer.class,
+                "jit-user"
+        );
+        assertThat(persistedUsers).isEqualTo(1);
+    }
+
+    private int performConcurrentRequest(CountDownLatch ready, CountDownLatch start) throws Exception {
+        ready.countDown();
+        if (!start.await(5, TimeUnit.SECONDS)) {
+            throw new IllegalStateException("Concurrent requests did not start in time.");
+        }
+        return mockMvc.perform(get("/api/me")
+                        .header(AUTHORIZATION, "Bearer jit-token"))
+                .andReturn()
+                .getResponse()
+                .getStatus();
     }
 }

@@ -123,6 +123,19 @@ class SecurityIntegrationTest {
                     new Class<?>[]{ProductUserRepository.class},
                     (proxy, method, args) -> switch (method.getName()) {
                         case "findById" -> Optional.ofNullable(users.get((String) args[0]));
+                        case "insertIfMissing" -> {
+                            String id = (String) args[0];
+                            boolean missing = !users.containsKey(id);
+                            users.computeIfAbsent(id, ignored -> new ProductUser(
+                                    id,
+                                    (String) args[1],
+                                    (String) args[2],
+                                    (boolean) args[3],
+                                    null,
+                                    (OffsetDateTime) args[4]
+                            ));
+                            yield missing ? 1 : 0;
+                        }
                         case "save" -> {
                             ProductUser user = (ProductUser) args[0];
                             users.put(user.getId(), user);

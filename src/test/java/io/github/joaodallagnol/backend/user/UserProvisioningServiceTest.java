@@ -69,10 +69,20 @@ class UserProvisioningServiceTest {
                     new Class<?>[]{ProductUserRepository.class},
                     (proxy, method, args) -> switch (method.getName()) {
                         case "findById" -> Optional.ofNullable(storage.get((String) args[0]));
-                        case "save" -> {
-                            ProductUser user = (ProductUser) args[0];
-                            storage.put(user.getId(), user);
-                            yield user;
+                        case "insertIfMissing" -> {
+                            String id = (String) args[0];
+                            if (storage.containsKey(id)) {
+                                yield 0;
+                            }
+                            storage.put(id, new ProductUser(
+                                    id,
+                                    (String) args[1],
+                                    (String) args[2],
+                                    (boolean) args[3],
+                                    null,
+                                    (OffsetDateTime) args[4]
+                            ));
+                            yield 1;
                         }
                         case "equals" -> proxy == args[0];
                         case "hashCode" -> System.identityHashCode(proxy);
