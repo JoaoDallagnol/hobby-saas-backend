@@ -1,6 +1,6 @@
 # Relatório de status e operação do MVP
 
-Data da revisão: **2026-07-22**.
+Data da revisão: **2026-07-28**.
 
 Este documento separa o que está implementado no repositório do que ainda depende de conta, credencial, infraestrutura ou decisão do responsável pelo produto. Nenhum valor real de secret deve ser registrado aqui.
 
@@ -8,7 +8,18 @@ Este documento separa o que está implementado no repositório do que ainda depe
 
 O backend central da Fase 0 está implementado: perfil próprio/público por username, hobbies, catálogo oficial, sessões paginadas com `everyone`/`only_me`, atributos dinâmicos em JSONB, equipamentos, backlog/Kanban, streak, localização por `place_id`, uma foto por sessão via presigned upload, processamento WebP/thumbnail sem EXIF e documentação OpenAPI.
 
-A aplicação possui autorização por proprietário do recurso, provisionamento JIT de usuário, rate limit básico, configuração `local`/`prod`, Flyway, Postgres, Compose local e de produção, Nginx/TLS, scripts de backup/restauração e health/readiness das integrações habilitadas.
+A aplicação possui autorização por proprietário do recurso, provisionamento JIT
+idempotente mesmo sob primeiras requests concorrentes, rate limit básico,
+configuração `local`/`prod`, Flyway, Postgres, Compose local e de produção,
+Nginx/TLS, scripts de backup/restauração e health/readiness das integrações
+habilitadas.
+
+O cliente mobile local cobre o núcleo habilitado do MVP em pt-BR: onboarding de
+hobbies, registro e histórico de sessões, detalhes/edição, próximos passos,
+equipamentos, perfil e progresso pessoal. A navegação foi consolidada em Início,
+Histórico, Organizar e Perfil, com retorno explícito e fallback seguro. Fotos,
+Google Places e Firebase real continuam ocultos ou condicionados às respectivas
+feature flags e credenciais externas.
 
 Também está implementada antecipadamente, mas desligada por padrão em produção, a base de retenção da Fase 1 e do plano Plus: metas, XP/níveis, badges, recordes, desafio mensal, exportação Free, entitlement no banco, insights/retrospectiva, customização, backlog avançado e manutenção de equipamento. Isso não altera o gate do MVP nem habilita cobrança.
 
@@ -28,6 +39,9 @@ O MVP **ainda não está pronto para lançamento público** porque faltam valida
 - Mídia `only_me` fica no bucket privado e usa GET presigned; mídia `everyone` usa bucket público/CDN. Mudança de visibilidade move variantes e purga cache ao tornar privada.
 - O Compose local usa Adobe S3Mock 5.1.0 com volume persistente, sem depender de conta R2.
 - Token bearer validado não é retido como credencial no `SecurityContext`; erros internos de Firebase não são refletidos ao client.
+- Provisionamento JIT usa `INSERT ... ON CONFLICT DO NOTHING` e possui teste de
+  integração com duas primeiras requests concorrentes, garantindo uma única
+  linha de usuário e duas respostas bem-sucedidas.
 - Contrato de backlog valida que projeto com hobby definido pertence ao mesmo hobby da sessão.
 - Suíte de aceite HTTP importável no Postman, executável pela Postman CLI e isolada em Compose próprio; cobre os fluxos centrais com usuários Free/Plus sem usar credenciais externas reais.
 - O aceite HTTP identificou e permitiu corrigir um carregamento lazy fora de transação em `GET /api/me/hobbies`.
@@ -150,9 +164,12 @@ Já fechadas: Firebase Authentication padrão, VPS Hostinger, Postgres, Cloudfla
 
 ## Validação técnica desta revisão
 
-- `mvn test`: **105 testes**, zero falhas/erros, incluindo domínio, contrato, segurança, cache, R2 e integração de gamificação/Plus.
+- `mvn test`: **106 testes**, zero falhas/erros, incluindo domínio, contrato,
+  segurança, cache, R2, concorrência do provisionamento JIT e integração de
+  gamificação/Plus.
 - Testes de integração exercitam PostgreSQL real via Testcontainers e migrations Flyway.
-- `mvn clean install`: build limpo e instalação local concluídos; a validação final posterior executou a suíte completa de 105 testes.
+- `mvn clean install`: build limpo e instalação local concluídos; a validação
+  final posterior executou a suíte completa de 106 testes.
 - Suíte Postman/Postman CLI: **63 requests e 165 assertions**, zero falhas, com relatórios JSON/JUnit e varredura de logs do ambiente descartável.
 - Imagem Docker construída e iniciada pelo Compose contra PostgreSQL 17 local, com Adobe S3Mock e os buckets `hobby-private` e `hobby-public` disponíveis.
 - As migrations até V10 foram aplicadas em bancos novos via Testcontainers; V9 remove nome/coordenadas do cache Places e adiciona label por sessão + revalidação do ID, enquanto V10 adiciona índices compostos para a paginação estável das sessões.

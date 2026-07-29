@@ -6,6 +6,11 @@ App multi-hobby de tracking e gerenciamento (tipo Strava/Letterboxd, mas não ni
 Fase atual: **MVP / Fase 0 do roadmap**.
 Objetivo do MVP: validar hábito de registro antes de qualquer efeito de rede ou monetização avançada.
 
+Promessa atual no cliente mobile: ajudar a pessoa a registrar o que pratica,
+organizar os próximos passos e acompanhar a própria evolução, sem pressão
+competitiva. O backend preserva seus nomes técnicos e contratos em inglês; a
+apresentação pt-BR é responsabilidade do client.
+
 Escopo funcional do MVP:
 - Perfil do hobbista (`users`, `user_hobbies`, username público único, bio, nível/experiência por hobby), com leitura autenticada de outro perfil por username.
 - Tracker de sessão (`sessions` + `session_photos`), incluindo título, data, duração, notas, satisfação, no máximo uma foto, visibilidade `everyone`/`only_me` e vínculo opcional com lugar.
@@ -53,6 +58,9 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 ## Regras não óbvias (ler sempre)
 - `users.id` = `sub`/`uid` do Firebase Authentication, armazenado como string. Nunca gerar id próprio, nunca criar coluna de senha em `users`.
 - Provisionamento de `users` é just-in-time na primeira request autenticada; dados-base vêm do token validado do Firebase.
+- O provisionamento JIT deve continuar idempotente sob requests concorrentes; a
+  inserção PostgreSQL usa conflito por `users.id` como no-op e nunca pode voltar
+  a depender de `save()` seguido de tratamento tardio de unicidade.
 - Durante desenvolvimento inicial, fluxos de negócio podem ser implementados e testados com autenticação controlada de ambiente local/teste antes da integração real com Firebase estar fechada. Isso não autoriza enfraquecer contrato de segurança nem remover a integração real do escopo do MVP.
 - Atributo dinâmico por hobby sempre vai em `sessions.attributes` (JSONB), validado contra `hobby_attribute_template`. Nunca criar coluna nova pra atributo específico de hobby.
 - `equipment.category` e `equipment.name` são colunas independentes do mesmo registro — não é chave/valor.
@@ -70,6 +78,12 @@ Java 25, Spring Boot 4.1.x, Maven, Postgres, Flyway, Firebase Authentication (au
 - Mídia processada de sessão `everyone` vai para escopo público/CDN; mídia `only_me` fica privada e é lida por URL GET pré-assinada. Upload temporário e original cru ficam sempre privados.
 - Cache nunca concede autorização ou entitlement. Cache local deve ser limitado/expirável, conter só dado reconstruível e ter invalidação documentada após commit; ao escalar para múltiplas instâncias, revisar invalidação distribuída antes do rollout.
 - Sessão usa `notes` como campo único de notas/reflexão; não recriar diário separado no MVP.
+- O conceito central é apresentado como **sessão** no mobile. `activity` pode
+  aparecer apenas em texto explicativo; não renomear entidades ou contratos para
+  refletir variação de copy.
+- `backlog`/Kanban são nomes internos. O mobile apresenta essa jornada como
+  **Próximos passos** dentro da aba **Organizar**; isso não autoriza renomear
+  tabela, endpoint ou DTO.
 - Se `equipmentIds` estiverem ativos em algum fluxo, eles sempre referenciam biblioteca do usuário; nunca texto livre dentro da sessão.
 - Modelos marcados como "conceitual" ou pertencentes a fases futuras na documentação não devem ser implementados sem revisão específica.
 - Perfis de ambiente e configuração sensível devem nascer separados desde cedo (`local` e `prod` no mínimo), com valores vindos de env vars/secrets e nunca hardcoded no código.

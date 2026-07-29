@@ -5,6 +5,12 @@ DB, código e contratos da API: inglês. O mobile atual apresenta a interface em
 pt-BR e traduz valores oficiais na fronteira do client; suporte a múltiplos
 idiomas continua fora de escopo nesta fase.
 
+Na linguagem do produto, **sessão** é qualquer período dedicado a um hobby e é o
+nome consistente do registro central. `backlog`/Kanban permanecem termos
+técnicos no backend, mas o mobile os apresenta como **Próximos passos** dentro
+da área **Organizar**. Essa tradução não altera nomes de tabela, endpoint, DTO ou
+enum.
+
 ## Sessão — atributos fixos (free tier)
 
 | Campo | Tipo | Regra |

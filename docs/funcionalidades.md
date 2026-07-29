@@ -2,6 +2,24 @@
 
 Um app para registrar, organizar e acompanhar a evolução de todos os seus hobbies em um só lugar — não nichado num hobby específico (como Strava é pra corrida ou Goodreads é pra leitura), mas generalista, cobrindo qualquer hobby que o usuário pratique.
 
+## Linguagem atual da experiência mobile
+
+A promessa apresentada ao usuário é: **registrar o que pratica, organizar os
+próximos passos e acompanhar a própria evolução, sem pressão competitiva**.
+
+- **Sessão** é qualquer período dedicado a um hobby e permanece como termo
+  principal do produto.
+- “Atividade” pode ser usada em explicações, mas não substitui sessão na
+  navegação ou nas ações principais.
+- **Próximos passos** é o nome da experiência de backlog/Kanban; `backlog`
+  permanece no código e no contrato da API.
+- A navegação principal do mobile é **Início**, **Histórico**, **Organizar** e
+  **Perfil**.
+- O mobile é pt-BR nesta fase. DB, código e contratos da API continuam em inglês.
+- A direção visual e os tokens de cor pertencem ao repositório
+  `hobby-saas-mobile`, em `docs/architecture.md`; o backend não replica valores
+  de apresentação.
+
 ---
 
 ## Fase 0 — MVP
@@ -26,7 +44,12 @@ O **streak de constância** é um contador de dias seguidos em que o usuário re
 
 A **biblioteca de equipamentos** permite ao usuário cadastrar os itens que usa em cada hobby — uma câmera, um par de tênis de corrida, um kit de pincéis — e associar esses itens às sessões em que foram usados. Isso não depende de nenhum outro usuário do app e por isso entra já no MVP, junto com o restante.
 
-O **backlog Kanban por hobby** é uma fila de projetos ou ideias futuras dentro de cada hobby — no hobby de leitura, são os livros já comprados mas ainda não lidos; na marcenaria, são os móveis planejados mas ainda não construídos. Uma sessão pode opcionalmente ser vinculada a um item desse backlog. Assim como a biblioteca de equipamentos, não depende de outros usuários e por isso também está no MVP.
+O **backlog Kanban por hobby**, apresentado como **Próximos passos** no mobile, é
+uma fila de projetos ou ideias futuras dentro de cada hobby — no hobby de
+leitura, são os livros já comprados mas ainda não lidos; na marcenaria, são os
+móveis planejados mas ainda não construídos. Uma sessão pode opcionalmente ser
+vinculada a um item desse backlog. Assim como a biblioteca de equipamentos, não
+depende de outros usuários e por isso também está no MVP.
 
 Quando um item do backlog está associado a um hobby, ele só pode ser vinculado a uma sessão desse mesmo hobby. Itens sem hobby continuam genéricos e podem ser usados em qualquer sessão do próprio usuário.
 
