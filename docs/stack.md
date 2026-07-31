@@ -48,7 +48,7 @@
 - Dois buckets/escopos ✅ — privado para upload temporário e sessões `only_me`; público para variantes processadas `everyone`, entregues por domínio/CDN. GET privado usa URL pré-assinada e mudança de visibilidade move objetos com purge do cache.
 - Objetos públicos processados recebem `Cache-Control: public, max-age=31536000, immutable`; objetos privados recebem `private, no-store` ✅
 - Adobe S3Mock 5.1.0 no Compose local ✅ — emulador S3 mantido e persistente em volume/pasta, sem conta externa no desenvolvimento.
-- `cwebp/libwebp` via binário do pacote Debian `webp` no container ✅ — worker agendado gera WebP em dois tamanhos sem copiar metadata, com até 3 tentativas e status persistido. A abordagem evita dependência JNI frágil e aceita JPEG, PNG e WebP no MVP; HEIC/HEIF não são aceitos.
+- ImageMagick + `cwebp/libwebp` via binários dos pacotes Debian no container ✅ — o worker aplica a orientação EXIF aos pixels com `-auto-orient`, remove metadata e gera WebP em dois tamanhos, com até 3 tentativas e status persistido. A abordagem evita dependência JNI frágil e aceita JPEG, PNG e WebP no MVP; HEIC/HEIF não são aceitos.
 
 ## Push
 - `firebase-admin` — reutilizado para FCM e validação de autenticação.

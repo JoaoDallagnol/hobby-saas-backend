@@ -29,6 +29,9 @@ public class SessionPhotoMediaService {
     }
 
     private SessionPhotoResponse toResponse(SessionPhoto photo, boolean publicView) {
+        if ("failed".equals(photo.getProcessingStatus())) {
+            return new SessionPhotoResponse(photo.getId(), null, null, photo.getProcessingStatus(), "unavailable");
+        }
         if (!"ready".equals(photo.getProcessingStatus())) {
             return new SessionPhotoResponse(photo.getId(), null, null, photo.getProcessingStatus(), "processing");
         }

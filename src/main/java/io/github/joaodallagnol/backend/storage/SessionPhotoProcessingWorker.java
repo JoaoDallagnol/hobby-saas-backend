@@ -53,11 +53,13 @@ public class SessionPhotoProcessingWorker {
         try {
             directory = Files.createTempDirectory("hobby-photo-");
             Path input = directory.resolve("input");
+            Path oriented = directory.resolve("oriented.png");
             Path processed = directory.resolve("original.webp");
             Path thumbnail = directory.resolve("thumbnail.webp");
             objectStorage.download(photo.getStorageKeyOriginal(), input, StorageScope.PRIVATE);
-            imageProcessor.createWebp(input, processed, 2048, 82);
-            imageProcessor.createWebp(input, thumbnail, 480, 75);
+            imageProcessor.normalizeOrientation(input, oriented);
+            imageProcessor.createWebp(oriented, processed, 2048, 82);
+            imageProcessor.createWebp(oriented, thumbnail, 480, 75);
 
             String prefix = "processed/session-photos/" + photo.getId() + "/";
             String processedKey = prefix + "original.webp";
@@ -89,6 +91,7 @@ public class SessionPhotoProcessingWorker {
         }
         try {
             Files.deleteIfExists(directory.resolve("input"));
+            Files.deleteIfExists(directory.resolve("oriented.png"));
             Files.deleteIfExists(directory.resolve("original.webp"));
             Files.deleteIfExists(directory.resolve("thumbnail.webp"));
             Files.deleteIfExists(directory);

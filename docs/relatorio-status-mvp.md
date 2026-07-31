@@ -1,12 +1,12 @@
 # Relatório de status e operação do MVP
 
-Data da revisão: **2026-07-28**.
+Data da revisão: **2026-07-30**.
 
 Este documento separa o que está implementado no repositório do que ainda depende de conta, credencial, infraestrutura ou decisão do responsável pelo produto. Nenhum valor real de secret deve ser registrado aqui.
 
 ## Estado atual
 
-O backend central da Fase 0 está implementado: perfil próprio/público por username, hobbies, catálogo oficial, sessões paginadas com `everyone`/`only_me`, atributos dinâmicos em JSONB, equipamentos, backlog/Kanban, streak, localização por `place_id`, uma foto por sessão via presigned upload, processamento WebP/thumbnail sem EXIF e documentação OpenAPI.
+O backend central da Fase 0 está implementado: perfil próprio/público por username, hobbies, catálogo oficial, sessões paginadas com `everyone`/`only_me`, atributos dinâmicos em JSONB, equipamentos, backlog/Kanban, streak, localização por `place_id`, uma foto por sessão via presigned upload, processamento WebP/thumbnail com orientação visual preservada e sem EXIF e documentação OpenAPI.
 
 A aplicação possui autorização por proprietário do recurso, provisionamento JIT
 idempotente mesmo sob primeiras requests concorrentes, rate limit básico,
@@ -18,8 +18,10 @@ O cliente mobile local cobre o núcleo habilitado do MVP em pt-BR: onboarding de
 hobbies, registro e histórico de sessões, detalhes/edição, próximos passos,
 equipamentos, perfil e progresso pessoal. A navegação foi consolidada em Início,
 Histórico, Organizar e Perfil, com retorno explícito e fallback seguro. Fotos,
-Google Places e Firebase real continuam ocultos ou condicionados às respectivas
-feature flags e credenciais externas.
+quando habilitadas, possuem seleção, upload, edição, remoção, estado visual de
+processamento e atualização automática no início, histórico e detalhe. Google
+Places e Firebase real continuam ocultos ou condicionados às respectivas feature
+flags e credenciais externas.
 
 Também está implementada antecipadamente, mas desligada por padrão em produção, a base de retenção da Fase 1 e do plano Plus: metas, XP/níveis, badges, recordes, desafio mensal, exportação Free, entitlement no banco, insights/retrospectiva, customização, backlog avançado e manutenção de equipamento. Isso não altera o gate do MVP nem habilita cobrança.
 
@@ -31,10 +33,12 @@ O MVP **ainda não está pronto para lançamento público** porque faltam valida
 - Health de produção fica `DOWN` quando Firebase ou uma integração habilitada está sem configuração, sem expor valores.
 - Catálogo oficial em `GET /api/hobbies` para o client descobrir IDs válidos.
 - Paginação de sessões com ordenação estável e limite máximo de página.
-- Processamento assíncrono de JPEG/PNG/WebP via `cwebp`: variante de até 2048 px, thumbnail de até 480 px e remoção de metadata/EXIF por re-encode.
+- Processamento assíncrono de JPEG/PNG/WebP via ImageMagick + `cwebp`: a orientação EXIF é aplicada aos pixels antes da remoção dos metadados, seguida pela variante de até 2048 px e thumbnail de até 480 px.
 - Fotos possuem estado `pending`, `ready` ou `failed`, no máximo três tentativas de processamento e erro técnico sem mensagem sensível.
+- Fotos que esgotam as tentativas retornam `deliveryStatus=unavailable`, evitando que o client trate uma falha definitiva como processamento infinito.
 - Chaves temporárias são namespaced pelo UID autenticado; o backend rejeita key alheia, repetida ou acima do limite de uma foto.
 - Edição de sessão preserva fotos quando `photos` é omitido; lista vazia remove todas; IDs existentes e novas keys podem ser combinados sem aceitar IDOR/BOLA.
+- Substituição de foto remove e descarrega a associação anterior antes de inserir a nova, respeitando a unicidade no PostgreSQL e preservando a fila transacional de limpeza.
 - Exclusão de foto/sessão enfileira a remoção dos objetos R2 na mesma transação do banco; worker idempotente executa cleanup com retry/backoff.
 - Mídia `only_me` fica no bucket privado e usa GET presigned; mídia `everyone` usa bucket público/CDN. Mudança de visibilidade move variantes e purga cache ao tornar privada.
 - O Compose local usa Adobe S3Mock 5.1.0 com volume persistente, sem depender de conta R2.
@@ -54,7 +58,7 @@ O MVP **ainda não está pronto para lançamento público** porque faltam valida
 | Variável | `local` padrão | `prod` padrão | Quando ativar |
 |---|---:|---:|---|
 | `FEATURE_PHOTO_UPLOADS_ENABLED` | `false` | `true` | somente após bucket e credenciais R2 funcionarem |
-| `FEATURE_PHOTO_PROCESSING_ENABLED` | `false` | `true` | junto com upload; exige R2 e `cwebp` disponível |
+| `FEATURE_PHOTO_PROCESSING_ENABLED` | `false` | `true` | junto com upload; exige R2, ImageMagick e `cwebp` disponíveis |
 | `FEATURE_SESSION_LOCATION_ENABLED` | `false` | `true` | após Places API e chave restrita funcionarem |
 | `FEATURE_GAMIFICATION_ENABLED` | `true` | `false` | depois de validar o MVP end-to-end e definir o rollout da Fase 1 |
 | `FEATURE_PLUS_ENABLED` | `true` | `false` | depois de validar operação Plus e, para venda, integrar cobrança por webhook |
@@ -160,16 +164,16 @@ Para desenvolvimento, uma conta só se torna Plus por operação interna control
 - Enumeração curada das categorias de equipamento.
 - Provedor de pagamento para fase posterior.
 
-Já fechadas: Firebase Authentication padrão, VPS Hostinger, Postgres, Cloudflare R2, Google Places, JSONB nativo do Hibernate e processamento com `cwebp/libwebp`.
+Já fechadas: Firebase Authentication padrão, VPS Hostinger, Postgres, Cloudflare R2, Google Places, JSONB nativo do Hibernate e processamento com ImageMagick + `cwebp/libwebp`.
 
 ## Validação técnica desta revisão
 
-- `mvn test`: **106 testes**, zero falhas/erros, incluindo domínio, contrato,
+- `mvn test`: **111 testes**, zero falhas/erros, incluindo domínio, contrato,
   segurança, cache, R2, concorrência do provisionamento JIT e integração de
-  gamificação/Plus.
+  gamificação/Plus e persistência do ciclo criar/listar/detalhar/preservar/substituir/remover foto.
 - Testes de integração exercitam PostgreSQL real via Testcontainers e migrations Flyway.
 - `mvn clean install`: build limpo e instalação local concluídos; a validação
-  final posterior executou a suíte completa de 106 testes.
+  final executou novamente a suíte completa de 111 testes.
 - Suíte Postman/Postman CLI: **63 requests e 165 assertions**, zero falhas, com relatórios JSON/JUnit e varredura de logs do ambiente descartável.
 - Imagem Docker construída e iniciada pelo Compose contra PostgreSQL 17 local, com Adobe S3Mock e os buckets `hobby-private` e `hobby-public` disponíveis.
 - As migrations até V10 foram aplicadas em bancos novos via Testcontainers; V9 remove nome/coordenadas do cache Places e adiciona label por sessão + revalidação do ID, enquanto V10 adiciona índices compostos para a paginação estável das sessões.

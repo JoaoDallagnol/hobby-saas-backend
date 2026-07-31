@@ -13,7 +13,7 @@ FROM eclipse-temurin:25-jre
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends webp \
+    && apt-get install -y --no-install-recommends imagemagick webp \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /workspace/target/backend-0.0.1-SNAPSHOT.jar app.jar

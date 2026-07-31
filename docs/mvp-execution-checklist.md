@@ -185,9 +185,10 @@
 - [x] Definir processamento assíncrono por worker agendado na aplicação de instância única.
   - [x] Thumbnail WebP de até 480 px.
   - [x] Variante WebP de até 2048 px com compressão.
+  - [x] Aplicação da orientação EXIF aos pixels antes de remover os metadados.
   - [x] Remoção de EXIF por re-encode sem cópia de metadata.
   - [x] Até 3 tentativas, status persistido e falha sem mensagem sensível.
-- [x] Usar o binário oficial `cwebp/libwebp` instalado no container.
+- [x] Usar ImageMagick para normalizar orientação e o binário oficial `cwebp/libwebp` para gerar as variantes, ambos instalados no container.
 - [x] Remover objetos do R2 de forma assíncrona e idempotente quando foto/sessão for excluída.
 - [x] Separar mídia pública e privada em buckets/escopos diferentes.
   - [x] Servir `only_me` por GET presigned e `everyone` por URL estável/CDN.
@@ -295,7 +296,7 @@
   - [ ] Nome do app/domínio.
   - [ ] Provedor de pagamento.
   - [ ] Enumeração de categorias de equipamento.
-  - [x] Estratégia final de processamento de imagem: worker agendado + `cwebp/libwebp`.
+  - [x] Estratégia final de processamento de imagem: worker agendado + ImageMagick para orientação/limpeza + `cwebp/libwebp` para variantes.
   - [x] Estratégia final de mapeamento JSONB: Hibernate nativo com `@JdbcTypeCode(SqlTypes.JSON)`.
 
 ## Fora do escopo deste checklist

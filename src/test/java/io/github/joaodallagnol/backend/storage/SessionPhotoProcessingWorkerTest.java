@@ -64,7 +64,16 @@ class SessionPhotoProcessingWorkerTest {
                     default -> throw new UnsupportedOperationException(method.getName());
                 }
         );
-        CwebpImageProcessor processor = new CwebpImageProcessor("unused") {
+        CwebpImageProcessor processor = new CwebpImageProcessor("unused", "unused") {
+            @Override
+            public void normalizeOrientation(Path input, Path output) {
+                try {
+                    Files.copy(input, output);
+                } catch (java.io.IOException ex) {
+                    throw new IllegalStateException(ex);
+                }
+            }
+
             @Override
             public void createWebp(Path input, Path output, int width, int quality) {
                 try {

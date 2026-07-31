@@ -339,6 +339,7 @@ class SessionServiceTest {
                             storage.remove(((SessionRecord) args[0]).getId());
                             yield null;
                         }
+                        case "flush" -> null;
                         case "findByIdAndUserId" -> storage.values().stream()
                                 .filter(item -> item.getId().equals(args[0]) && item.getUserId().equals(args[1]))
                                 .findFirst();

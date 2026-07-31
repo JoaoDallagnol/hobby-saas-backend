@@ -253,7 +253,14 @@ public class SessionService {
         if (!ownedPhotos.keySet().containsAll(retainedIds)) {
             throw new IllegalArgumentException("One or more photo ids do not belong to the session.");
         }
-        session.reconcilePhotos(retainedIds, validateNewPhotoKeys(newPhotos, userId));
+        List<String> newPhotoKeys = validateNewPhotoKeys(newPhotos, userId);
+        boolean replacesExistingPhoto = !newPhotoKeys.isEmpty()
+                && session.getPhotos().stream().anyMatch(photo -> !retainedIds.contains(photo.getId()));
+        if (replacesExistingPhoto) {
+            session.reconcilePhotos(retainedIds, List.of());
+            sessionRecordRepository.flush();
+        }
+        session.reconcilePhotos(retainedIds, newPhotoKeys);
     }
 
     private List<String> validateNewPhotoKeys(List<SessionPhotoRequest> photos, String userId) {

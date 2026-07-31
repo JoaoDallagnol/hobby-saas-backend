@@ -186,21 +186,21 @@ Modelo: **template + JSON** (não EAV, não coluna própria por atributo).
 ## Fotos
 
 - Upload: client pede presigned URL, sobe direto pro storage (Cloudflare R2), nunca via backend.
-- Processamento assíncrono: thumbnail, compressão/WebP, **remoção de EXIF** (GPS embutido).
+- Processamento assíncrono: aplicação da orientação EXIF aos pixels, thumbnail, compressão/WebP e **remoção de EXIF** (inclusive GPS embutido). A ordem é obrigatória para preservar a orientação visual da foto depois que os metadados forem descartados.
 - Cada sessão aceita **no máximo uma foto**. O contrato continua como lista para permitir evolução futura sem trocar o shape.
 - 2 variantes processadas armazenadas (imagem de até 2048 px + thumbnail), sem nunca servir o upload cru.
 - Só URL/key persistida no banco, nunca binário.
 - Storage: Cloudflare R2 (S3-compatible, egress $0, free tier não expira) — não AWS S3.
 - A key temporária de upload é namespaced por uma codificação URL-safe do `uid`; ao criar/atualizar sessão, o backend rejeita key de outro usuário, duplicatas e mais de uma foto.
-- Enquanto o worker não finalizar, as URLs são `null`, `processingStatus` é `pending` e `deliveryStatus` é `processing`; nunca expor a key original como falsa URL. Estados de processamento: `pending`, `ready`, `failed`.
+- Enquanto o worker não finalizar, as URLs são `null`, `processingStatus` é `pending` e `deliveryStatus` é `processing`; após esgotar as tentativas, `processingStatus` é `failed` e `deliveryStatus` é `unavailable`. Nunca expor a key original como falsa URL. Estados de processamento: `pending`, `ready`, `failed`.
 - O processamento roda em worker agendado na própria aplicação (adequado ao monolito de instância única), consulta lotes de até 10 fotos pendentes e tenta cada item no máximo 3 vezes.
-- O worker baixa a key temporária do R2, executa `cwebp` sem copiar metadata, gera variante de até 2048 px (quality 82) e thumbnail de até 480 px (quality 75), envia ambas ao R2 e remove a key temporária somente depois de persistir as novas referências.
+- O worker baixa a key temporária do R2, usa ImageMagick `-auto-orient` antes de `-strip`, executa `cwebp` sobre os pixels já orientados, gera variante de até 2048 px (quality 82) e thumbnail de até 480 px (quality 75), envia ambas ao R2 e remove a key temporária somente depois de persistir as novas referências.
 - Upload temporário e mídia `only_me` ficam no bucket privado. Leitura privada usa GET presigned de 15 minutos. Variantes de sessão `everyone` ficam no bucket público e são entregues por URL estável no domínio/CDN configurado.
 - Upload temporário e mídia privada usam `Cache-Control: private, no-store`; variantes públicas versionadas por key usam `Cache-Control: public, max-age=31536000, immutable`.
 - Ao editar `visibility`, um worker idempotente move as variantes entre os buckets. A API para de expor a foto publicamente assim que a sessão vira `only_me`; o worker remove o objeto público e solicita purge das URLs no cache da Cloudflare. Durante a movimentação, URLs ficam `null` com `deliveryStatus=updating_visibility`.
 - Em `local`, Adobe S3Mock 5.1.0 fornece a mesma API S3 e persiste objetos em volume/pasta Docker; não exige conta Cloudflare para desenvolver.
 - O rollout é controlado por `FEATURE_PHOTO_UPLOADS_ENABLED` e `FEATURE_PHOTO_PROCESSING_ENABLED`. Em produção, uploads só ficam ready quando ambos estão ativos e o health check rejeita upload ativo com processamento desligado.
-- Em `PATCH /api/sessions/{id}`, omitir `photos` preserva a foto atual; uma lista vazia remove. Para manter a foto, enviar `{ "id": "<photoId>" }`; para anexar uma nova, enviar `{ "storageKey": "<uploadKey>" }`. IDs são validados contra a própria sessão para impedir IDOR/BOLA.
+- Em `PATCH /api/sessions/{id}`, omitir `photos` preserva a foto atual; uma lista vazia remove. Para manter a foto, enviar `{ "id": "<photoId>" }`; para anexar uma nova, enviar `{ "storageKey": "<uploadKey>" }`. IDs são validados contra a própria sessão para impedir IDOR/BOLA. Na substituição, a linha anterior é removida e descarregada antes da inserção da nova, respeitando a unicidade de uma foto por sessão e mantendo a fila transacional de limpeza.
 - Ao remover foto ou sessão, uma trigger transacional grava escopo + key em `photo_storage_deletions`; um worker remove o objeto do bucket correto com retry/backoff e só então exclui a tarefa. A key de upload original é única para impedir reutilização ambígua entre sessões.
 - Formatos aceitos no MVP: JPEG, PNG e WebP, até 10 MB. HEIC/HEIF ficam rejeitados até existir decoder seguro compatível com o pipeline.
 
